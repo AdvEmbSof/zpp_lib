@@ -3,3 +3,4 @@ tests:
     tags:
       - kernel
       - userspace
+    platform_allow: stm32h747i_disco/stm32h747xx/m7

@@ -9,8 +9,19 @@ LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 #define LED0_NODE DT_ALIAS(led0)
 
-DigitalOut::DigitalOut(const gpio_dt_spec& gpio) : _gpio(gpio)
-{  
+DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) { 
+}
+
+DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
+  switch (pinName) {
+    case PinName::LED0:
+      _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+      break;
+
+    default:
+      break;
+  }
+
   if (!gpio_is_ready_dt(&_gpio)) {
     LOG_ERR("GPIO %s not existing on platform", _gpio.port->name);
     __ASSERT(false, "GPIO %s not existing on platform", _gpio.port->name);
@@ -24,10 +35,13 @@ DigitalOut::DigitalOut(const gpio_dt_spec& gpio) : _gpio(gpio)
     return;
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
-}
-
-DigitalOut::DigitalOut(uint32_t node_id, uint32_t value) : _gpio(GPIO_DT_SPEC_GET(LED0_NODE, gpios))
-{
+  
+  ZephyrResult rc = write(value);
+  if (! rc) {
+    LOG_ERR("Cannot write value %d to output (%s)", value, _gpio.port->name);
+    __ASSERT(false, "Cannot write value %d to output (%s)", value, _gpio.port->name);
+    return;    
+  }
 }
 
 ZephyrResult DigitalOut::write(int value) {

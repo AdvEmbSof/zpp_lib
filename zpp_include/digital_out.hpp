@@ -19,18 +19,24 @@ namespace zpp_lib {
 class DigitalOut : private NonCopyable<DigitalOut>
 {
 public:
+    /**
+     * @brief Enumeration to be used for instanciating a specific output pin
+     * 
+     */
+    enum class PinName { LED0 };
+
     /** Create a DigitalOut connected to the specified pin
      *
      *  @param pin DigitalOut pin to connect to
      */
-    DigitalOut(const gpio_dt_spec& gpio);
+    DigitalOut(PinName pinName);
 
     /** Create a DigitalOut connected to the specified pin
      *
      *  @param pin DigitalOut pin to connect to
      *  @param value the initial pin value
      */
-    DigitalOut(uint32_t node_id, uint32_t value);
+    DigitalOut(PinName pinName, uint32_t value);
 
     /** Set the output, specified as 0 or 1 (int)
      *
