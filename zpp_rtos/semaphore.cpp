@@ -12,8 +12,12 @@ namespace zpp_lib {
 
 Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
   //__ASSERT(K_SEM_DEFINE(_sem_obj, 0U, 1U) == 0, "Cannot create semaphore");
+#if ASSERT
   auto ret = k_sem_init(&_sem_obj, initial_count, max_count);
   __ASSERT(ret == 0, "Cannot create semaphore");
+#else
+  k_sem_init(&_sem_obj, initial_count, max_count);
+#endif // ASSERT
   LOG_DBG("Semaphore created with count %d (vs %d) and max count %d", k_sem_count_get(&_sem_obj), initial_count, max_count);
 }
 

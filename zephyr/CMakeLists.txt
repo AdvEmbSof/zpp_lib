@@ -1,0 +1,5 @@
+if(CONFIG_USE_ZPP_LIB)
+  zephyr_include_directories(../)
+  FILE(GLOB app_sources ../zpp_rtos/*.cpp ../zpp_drivers/*.cpp)
+  zephyr_library_sources(${app_sources})
+endif()

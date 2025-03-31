@@ -1,0 +1,32 @@
+config USE_ZPP_LIB
+	bool "Support for zpp library"
+	default n
+	imply DYNAMIC_THREAD
+	imply DYNAMIC_THREAD_ALLOC
+	help
+	  This option enables the 'zpp' library
+
+config DYNAMIC_THREAD_POOL_SIZE
+  int "Number of statically pre-allocated threads"
+	depends on USE_ZPP_LIB
+	default 2
+	range 0 8192
+	help
+	  This overrides the definition in zephyr kernel
+		This allows to pre-allocate a default number of thread objects
+		that are required for the use of zpp_lib
+		
+config THREAD_STACK_SIZE
+	int "Default user thread stack size"
+	depends on USE_ZPP_LIB
+	default 1024
+	help
+	  This option allows to specify the default stack size to be used for user threads
+  
+module = ZPP_RTOS
+module-str = ZPP_RTOS
+source "subsys/logging/Kconfig.template.log_config"
+
+module = ZPP_DRIVERS
+module-str = ZPP_DRIVERS
+source "subsys/logging/Kconfig.template.log_config"
