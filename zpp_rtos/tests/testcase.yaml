@@ -3,4 +3,4 @@ tests:
     tags:
       - kernel
       - userspace
-    platform_allow: stm32h747i_disco/stm32h747xx/m7
+    platform_allow: stm32h747i_disco/stm32h747xx/m7 native_sim
