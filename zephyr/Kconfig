@@ -1,23 +1,20 @@
 config USE_ZPP_LIB
 	bool "Support for zpp library"
 	default n
-	imply DYNAMIC_THREAD
-	imply DYNAMIC_THREAD_ALLOC
 	help
 	  This option enables the 'zpp' library
 
-config DYNAMIC_THREAD_POOL_SIZE
+config ZPP_THREAD_POOL_SIZE
   int "Number of statically pre-allocated threads"
 	depends on USE_ZPP_LIB
 	default 2
-	range 0 8192
-	help
-	  This overrides the definition in zephyr kernel
+	range 0 10
+	help		
 		This allows to pre-allocate a default number of thread objects
-		that are required for the use of zpp_lib
-		
-config THREAD_STACK_SIZE
-	int "Default user thread stack size"
+		that are required for the use of zpp_lib (zpp_lib::Thread)
+
+config ZPP_THREAD_STACK_SIZE
+	int "Default zpp thread stack size"
 	depends on USE_ZPP_LIB
 	default 1024
 	help

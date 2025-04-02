@@ -10,7 +10,7 @@
 // zpp_lib
 #include "zpp_include/non_copyable.hpp"
 #include "zpp_include/types.hpp"
-#include "zpp_include/result.hpp"
+#include "zpp_include/zephyr_result.hpp"
 #include "zpp_include/mutex.hpp"
 
 namespace zpp_lib {
@@ -19,15 +19,12 @@ class Thread : private NonCopyable<Thread> {
 public:
     /** Allocate a new thread without starting execution
       @param   priority       initial priority of the thread function. (default: osPriorityNormal).
-      @param   stack_size     stack size (in bytes) requirements for the thread function. (default: OS_STACK_SIZE).
-      @param   stack_mem      pointer to the stack area to be used by this thread (default: nullptr).
       @param   name           name to be used for this thread. It has to stay allocated for the lifetime of the thread (default: nullptr)
 
       @note Default value of tz_module will be MBED_TZ_DEFAULT_ACCESS
       @note You cannot call this function from ISR context.
     */
     Thread(PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
-           uint32_t stack_size = CONFIG_THREAD_STACK_SIZE,
            const char *name = nullptr);
 
     /** Starts a thread executing the specified function.
@@ -51,7 +48,6 @@ private:
     // Required to share definitions without
     // delegated constructors
     void constructor(PreemptableThreadPriority priority,
-                     uint32_t stack_size,
                      const char *name);
     static void _thunk(void *thread_ptr, void* a2, void* a3);
 
@@ -60,12 +56,12 @@ private:
     bool _finished;
     PreemptableThreadPriority _priority;
     std::string _name;
-    size_t _stack_size;
     k_tid_t _tid;
     struct k_thread _thread_data;
-    k_thread_stack_t* _thread_stack;
-     
+    
     Mutex _mutex;
+    // used for accessing the corresponding statically allocated stack
+    static uint8_t _threadInstanceCount;    
 };
 
 } // namespace zpp_lib

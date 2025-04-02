@@ -6,7 +6,7 @@
 
 // zpp_lib
 #include "zpp_include/non_copyable.hpp"
-#include "zpp_include/result.hpp"
+#include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
   
@@ -23,7 +23,7 @@ public:
      * @brief Enumeration to be used for instanciating a specific output pin
      * 
      */
-    enum class PinName { LED0 };
+    enum class PinName { LED0, LED1 };
 
     /** Create a DigitalOut connected to the specified pin
      *

@@ -8,7 +8,7 @@
 #include <functional>
 
 // zpp_lib
-#include "zpp_include/result.hpp"
+#include "zpp_include/zephyr_result.hpp"
 #include "zpp_include/non_copyable.hpp"
 
 namespace zpp_lib {

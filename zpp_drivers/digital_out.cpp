@@ -7,8 +7,6 @@ namespace zpp_lib {
   
 LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
-#define LED0_NODE DT_ALIAS(led0)
-
 DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) { 
 }
 
@@ -16,6 +14,10 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
   switch (pinName) {
     case PinName::LED0:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+      break;
+
+    case PinName::LED1:
+      _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
       break;
 
     default:
