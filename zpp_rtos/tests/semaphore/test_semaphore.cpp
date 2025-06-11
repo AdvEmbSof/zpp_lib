@@ -19,7 +19,7 @@ ZTEST_USER(zpp_semaphore, test_semaphore_release_acquire)
 	zassert_true(sem.acquire());
   zassert_true(sem.release());
 	zassert_true(sem.acquire());
-zassert_true(false);
+
 	// TESTPOINT: try to acquire one more time (ret should evaluate to false without error)
 	auto boolRet = sem.try_acquire();
 	zassert_true(! boolRet.has_error());
