@@ -18,25 +18,28 @@ void thread_fn(volatile uint64_t* counter, volatile bool* stop)
 ZTEST_USER(zpp_thread, test_sleep)
 {
   using namespace std::literals;
-  // determine the number of time slices to wait before checking for counters (must be even)
-  static std::chrono::milliseconds sleepDuration = 1ms;
+  static std::chrono::milliseconds waitDuration = 1ms;
   
   // TESTPOINT validate that busy wait works properly
   static constexpr uint8_t kNbrOfDurations = 10;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
     std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
-    zpp_lib::ThisThread::busyWait(sleepDuration);
+    zpp_lib::ThisThread::busyWait(waitDuration);
     std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
 
-    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - sleepDuration;
+    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - waitDuration;
     static constexpr uint64_t allowedDeltaInUs = 10;
   
     zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
-                 "Elapsed time is not within expected range, delta %lld, allowed = %lld", 
-                 deltaTime.count(), allowedDeltaInUs);
+                 "Iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld", 
+                 i, deltaTime.count(), allowedDeltaInUs);
+
+    // double wait duration
+    waitDuration *= 2;
   }
 
   // TESTPOINT validate that sleep works properly
+  static std::chrono::milliseconds sleepDuration = 1ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
     std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::sleep_for(sleepDuration);
@@ -46,8 +49,11 @@ ZTEST_USER(zpp_thread, test_sleep)
     static constexpr uint64_t allowedDeltaInUs = 200;
   
     zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
-                 "Elapsed time is not within expected range, delta %lld, allowed = %lld", 
-                 deltaTime.count(), allowedDeltaInUs);
+                 "Iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld", 
+                 i, deltaTime.count(), allowedDeltaInUs);
+
+    // double sleep duration
+    sleepDuration *= 2;
   }
 }
 
