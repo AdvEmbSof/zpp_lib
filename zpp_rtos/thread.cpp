@@ -29,8 +29,7 @@ Thread::Thread(PreemptableThreadPriority priority,
 
 void Thread::constructor(PreemptableThreadPriority priority,
                          const char *name)
-{
-  LOG_DBG("Thread constructed with stack size %d", K_THREAD_STACK_SIZEOF(ZPP_THREADS[_threadInstanceCount]));
+{  
   _priority = priority;
   _name = name ? name : "application_unnamed_thread";
   _finished = false;    
@@ -39,10 +38,15 @@ void Thread::constructor(PreemptableThreadPriority priority,
 ZephyrResult Thread::start(std::function<void()> task) noexcept {
   std::scoped_lock<Mutex> guard(_mutex);
 
+  // check that the thread was not already started
+  ZephyrResult res;
+  if (_tid != nullptr) {
+    res.assign_error(ZephyrErrorCode::k_already);
+    return res;
+  }
+
   // the thread stacks are allocated statically 
-#if ASSERT
   __ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created");
-#endif // ASSERT
 
   // initialize callback used in Thread::_thunk
   _task = task;
@@ -50,7 +54,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // create the thread
   uint32_t options = 0;
   k_timeout_t delay = K_NO_WAIT;
-  int zephyr_priority = static_cast<int>(_priority);
+  int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
   LOG_DBG("Creating thread with stack size %d and priority %d", 
           K_THREAD_STACK_SIZEOF(ZPP_THREADS[_threadInstanceCount]), 
           zephyr_priority);
@@ -66,7 +70,6 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
                          zephyr_priority, 
                          options, 
                          delay);
-  ZephyrResult res;
   if (_tid == nullptr) {        
     res.assign_error(ZephyrErrorCode::k_nomem);
     return res;
@@ -74,6 +77,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   
   // update the thread instance count
   _threadInstanceCount++;
+  LOG_DBG("Thread instance count is %d", _threadInstanceCount);
 
   LOG_DBG("Thread created");
   return res;
@@ -100,6 +104,8 @@ void Thread::_thunk(void *thread_ptr, void* a2, void* a3) {
   __ASSERT(ret, "Cannot lock mutex after task done");
   t->_tid = nullptr;
   t->_finished = true;
+  // remove this thread from the existing threads
+  _threadInstanceCount--;
   LOG_DBG("Job is marked finished, unlocking mutex");
   ret = t->_mutex.unlock();
   __ASSERT(ret, "Cannot unlock mutex after task done"); 

@@ -18,5 +18,13 @@ enum class PreemptableThreadPriority {
   PriorityRealtime      =  CONFIG_NUM_PREEMPT_PRIORITIES - 7,  ///< Priority: realtime
   PriorityISR           =  -CONFIG_NUM_PREEMPT_PRIORITIES      ///< Highest priority (Reserved for ISR deferred thread)
 };
- 
+
+constexpr PreemptableThreadPriority prio_to_preemptable_thread_priority(int prio) noexcept {
+  return static_cast<PreemptableThreadPriority>(prio);
+}
+
+constexpr int preemptable_thread_priority_to_zephyr_prio(PreemptableThreadPriority prio) noexcept {
+  return static_cast<int>(prio);
+}
+
 } // namespace zpp_lib

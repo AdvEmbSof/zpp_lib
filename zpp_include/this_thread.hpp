@@ -39,6 +39,32 @@ sleep_for(const std::chrono::duration<T_Rep, T_Period>& sleep_duration)
   return std::chrono::milliseconds(res);
 }
 
+///
+/// @brief Set the current thread priority
+///
+/// @param thread priority
+///
+void setPriority(PreemptableThreadPriority priority) {
+  k_tid_t tid =	k_current_get();
+#if ASSERT
+  __ASSERT(tid != nullptr, "Current thread has no tid");
+#endif 
+  k_thread_priority_set(tid, preemptable_thread_priority_to_zephyr_prio(priority));
+}
+
+///
+/// @brief Get the current thread priority
+///
+///
+PreemptableThreadPriority getPriority() {
+  k_tid_t tid =	k_current_get();
+#if ASSERT
+  __ASSERT(tid != nullptr, "Current thread has no tid");
+#endif 
+  int prio = k_thread_priority_get(tid);
+  return prio_to_preemptable_thread_priority(prio);
+}
+
 } // namespace ThisThread
 
 } // namespace zpp_lin

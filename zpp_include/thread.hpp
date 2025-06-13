@@ -56,7 +56,7 @@ private:
     bool _finished;
     PreemptableThreadPriority _priority;
     std::string _name;
-    k_tid_t _tid;
+    k_tid_t _tid = nullptr;
     struct k_thread _thread_data;
     
     Mutex _mutex;

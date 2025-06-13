@@ -2,4 +2,4 @@ tests:
   zpp_lib.zpp_rtos:
     tags:
       - kernel
-      - userspace
+      - cpp
