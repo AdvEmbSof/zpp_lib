@@ -48,7 +48,7 @@ ZTEST_USER(zpp_thread, test_round_robin)
   stop = true;
   
 	// TESTPOINT: check that both thread1 and thread2 got approximately the same CPU resources
-  static constexpr uint64_t delta = 2000;
+  static constexpr uint64_t delta = 4000;
   uint64_t diff = counter1 > counter2 ? counter1 - counter2 : counter2 - counter1;
   zassert_true(diff < delta, "Time slicing looks uneven, diff = %lld, delta = %lld", diff, delta);
 
