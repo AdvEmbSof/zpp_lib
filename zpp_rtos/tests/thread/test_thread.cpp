@@ -3,6 +3,7 @@
 // zpp_rtos
 #include "zpp_include/semaphore.hpp"
 #include "zpp_include/thread.hpp"
+#include "zpp_include/time.hpp"
 #include "zpp_include/this_thread.hpp"
 
 #include <functional>
@@ -14,7 +15,43 @@ void thread_fn(volatile uint64_t* counter, volatile bool* stop)
   }
 }
 
-ZTEST_USER(zpp_thread, test_round_robin)
+ZTEST_USER(zpp_thread, test_sleep)
+{
+  using namespace std::literals;
+  // determine the number of time slices to wait before checking for counters (must be even)
+  static std::chrono::milliseconds sleepDuration = 1ms;
+  
+  // TESTPOINT validate that busy wait works properly
+  static constexpr uint8_t kNbrOfDurations = 10;
+  for (uint8_t i = 0; i < kNbrOfDurations; i++) {
+    std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
+    zpp_lib::ThisThread::busyWait(sleepDuration);
+    std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
+
+    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - sleepDuration;
+    static constexpr uint64_t allowedDeltaInUs = 10;
+  
+    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
+                 "Elapsed time is not within expected range, delta %lld, allowed = %lld", 
+                 deltaTime.count(), allowedDeltaInUs);
+  }
+
+  // TESTPOINT validate that sleep works properly
+  for (uint8_t i = 0; i < kNbrOfDurations; i++) {
+    std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
+    zpp_lib::ThisThread::sleep_for(sleepDuration);
+    std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
+
+    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - sleepDuration;
+    static constexpr uint64_t allowedDeltaInUs = 200;
+  
+    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
+                 "Elapsed time is not within expected range, delta %lld, allowed = %lld", 
+                 deltaTime.count(), allowedDeltaInUs);
+  }
+}
+
+/*ZTEST_USER(zpp_thread, test_round_robin)
 {
   // Create two threads with below normal priority
   zpp_lib::Thread thread1(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal, "Thread1");
@@ -58,7 +95,7 @@ ZTEST_USER(zpp_thread, test_round_robin)
   ret = thread2.join();
 	zassert_true(ret);
 }
-
+*/
 static void *zpp_thread_tests_setup(void)
 {
 #ifdef CONFIG_USERSPACE

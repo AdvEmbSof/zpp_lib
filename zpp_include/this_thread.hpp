@@ -65,6 +65,16 @@ PreemptableThreadPriority getPriority() {
   return prio_to_preemptable_thread_priority(prio);
 }
 
+///
+///
+/// @brief Perform a busy wait on the current thread
+///
+///
+void busyWait(std::chrono::microseconds waitTime) {
+  // k_busy_wait takes usecs
+  k_busy_wait(waitTime.count());
+}
+
 } // namespace ThisThread
 
 } // namespace zpp_lin
