@@ -34,7 +34,8 @@ template<class T_Rep, class T_Period >
 inline auto
 sleep_for(const std::chrono::duration<T_Rep, T_Period>& sleep_duration)
 {
-  auto res = k_sleep(milliseconds_to_ticks(sleep_duration));
+  //auto res = k_sleep(milliseconds_to_ticks(sleep_duration));
+  auto res = k_msleep(sleep_duration.count());
 
   return std::chrono::milliseconds(res);
 }
