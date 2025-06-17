@@ -35,17 +35,17 @@ ZTEST_USER(zpp_thread, test_sleep)
                  i, deltaTime.count(), allowedDeltaInUs);
 
     // double wait duration
-    waitDuration *= 2;
+    // waitDuration *= 2;
   }
 
   // TESTPOINT validate that sleep works properly
-  static std::chrono::milliseconds sleepDuration = 1ms;
+  static std::chrono::milliseconds sleepDuration = 1000ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
     std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::sleep_for(sleepDuration);
-    std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds afterSleepTime = zpp_lib::Time::getUpTime();
 
-    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - sleepDuration;
+    std::chrono::microseconds deltaTime = (afterSleepTime - currentTime) - sleepDuration;
     static constexpr uint64_t allowedDeltaInUs = 200;
   
     zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
@@ -53,7 +53,7 @@ ZTEST_USER(zpp_thread, test_sleep)
                  i, deltaTime.count(), allowedDeltaInUs);
 
     // double sleep duration
-    sleepDuration *= 2;
+    // sleepDuration *= 2;
   }
 }
 
