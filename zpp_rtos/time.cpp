@@ -15,6 +15,7 @@ std::chrono::microseconds Time::getUpTime() {
   uint64_t us = k_cyc_to_us_floor64(cycles);
   std::chrono::microseconds now(us);
 #else
+  std::chrono::microseconds now(0);
 #endif
 
   return now;
