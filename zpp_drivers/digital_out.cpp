@@ -30,7 +30,8 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
     return;
   }
 
-  int ret = gpio_pin_configure_dt(&_gpio, GPIO_OUTPUT_ACTIVE);
+  // make sure that we can both read and write to the pin
+  int ret = gpio_pin_configure_dt(&_gpio, GPIO_INPUT | GPIO_OUTPUT_ACTIVE);
   if (ret < 0) {
     LOG_ERR("Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
     __ASSERT(false, "Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
