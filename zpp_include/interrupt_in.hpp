@@ -19,15 +19,26 @@ namespace zpp_lib {
  *
  * 
  */
-class InterruptIn : private NonCopyable<InterruptIn> {
 
+enum class PinName { BUTTON1 = 1, BUTTON2 = 2, BUTTON3 = 3, BUTTON4 = 4};
+template <PinName pinName>
+class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
 public:
+    /**
+     * @brief Constant defining pressed polarity
+     * 
+     */
+    static constexpr uint8_t kPolarityPressed = 1;
 
+    /**
+     * @brief Enumeration to be used for instanciating a specific input pin
+     * 
+     */
     /** Create an InterruptIn connected to the specified pin
      *
      *  @param pin InterruptIn pin to connect to
      */
-    InterruptIn(const gpio_dt_spec& gpio);
+    InterruptIn();
 
     /** Read the input, represented as 0 or 1 (int)
      *
@@ -46,7 +57,7 @@ public:
      *
      *  @param func A pointer to a void function, or 0 to set as none
      */
-    void rise(std::function<void()> func);
+    //void press(std::function<void()> func);
 
     /** Attach a function to call when a falling edge occurs on the input
      *  Interrupts are enabled for the pin
@@ -61,7 +72,7 @@ protected:
 	             gpio_port_pins_t pins);
     struct gpio_dt_spec _gpio;    
     struct gpio_callback _cbData;
-    std::function<void()> _rise_callback;
+    std::function<void()> _fall_callback;
 };
 
 /** @}*/

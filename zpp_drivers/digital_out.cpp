@@ -3,10 +3,10 @@
 // Zephyr sdk
 #include <zephyr/logging/log.h>
 
-namespace zpp_lib {
-  
 LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
+namespace zpp_lib {
+  
 DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) { 
 }
 

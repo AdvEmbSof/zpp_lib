@@ -4,6 +4,7 @@
 #include <zephyr/logging/log.h>
 
 // stl
+// for std::scoped_lock definition
 #include <mutex>
 
 //#ifndef CONFIG_USERSPACE
@@ -17,8 +18,14 @@
 LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
-  
+
+// DECLARE STATIC GLOBAL VARIABLES
 K_THREAD_STACK_ARRAY_DEFINE(ZPP_THREADS, CONFIG_ZPP_THREAD_POOL_SIZE, CONFIG_ZPP_THREAD_STACK_SIZE);
+// Allocate a static k_thread array for preventing crashes in the SystemView tracing library
+// and more generally for preventing stack overflow that may happen if we allocate too large objects on the stack
+static struct k_thread _thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {0};
+
+// initialize static data members
 uint8_t Thread::_threadInstanceCount = 0;
 
 Thread::Thread(PreemptableThreadPriority priority,
@@ -60,7 +67,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
           zephyr_priority);
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
-  _tid = k_thread_create(&_thread_data, 
+  _tid = k_thread_create(&_thread_data[_threadInstanceCount], 
                          ZPP_THREADS[_threadInstanceCount],
                          K_THREAD_STACK_SIZEOF(ZPP_THREADS[_threadInstanceCount]), 
                          Thread::_thunk, 
@@ -72,6 +79,11 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
                          delay);
   if (_tid == nullptr) {        
     res.assign_error(ZephyrErrorCode::k_nomem);
+    return res;
+  }
+  auto ret = k_thread_name_set(&_thread_data[_threadInstanceCount], _name.c_str());
+  if (ret != 0) {
+    res.assign_error(zephyr_to_zpp_error_code(ret));
     return res;
   }
   

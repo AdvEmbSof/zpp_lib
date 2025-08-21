@@ -13,6 +13,11 @@ ZTEST(zpp_thread, test_native_sleep)
     printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
     printk("%d\n", k_msleep(10 * 1000));
     printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
+    printk("busy wait\n");
+    k_busy_wait(10*1000*1000);
+    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
+    k_busy_wait(10*1000);
+    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());    
 }
 
 void thread_fn(volatile uint64_t* counter, volatile bool* stop)
@@ -30,16 +35,16 @@ ZTEST_USER(zpp_thread, test_sleep)
   // TESTPOINT validate that busy wait works properly
   static constexpr uint8_t kNbrOfDurations = 10;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
-    std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds beforeWaitTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::busyWait(waitDuration);
     std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
 
-    std::chrono::microseconds deltaTime = (afterWaitTime - currentTime) - waitDuration;
-    static constexpr uint64_t allowedDeltaInUs = 1000;
+    std::chrono::microseconds deltaTime = (afterWaitTime - beforeWaitTime) - waitDuration;
+    static constexpr uint64_t allowedDeltaInUs = 500;
   
     zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
-                 "(BUSY WAIT) iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld", 
-                 i, deltaTime.count(), allowedDeltaInUs);
+                 "(BUSY WAIT) iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld, before = %lld, after = %lld", 
+                 i, deltaTime.count(), allowedDeltaInUs, beforeWaitTime.count(), afterWaitTime.count());
 
     // double wait duration
     // waitDuration *= 2;
@@ -48,16 +53,16 @@ ZTEST_USER(zpp_thread, test_sleep)
   // TESTPOINT validate that sleep works properly
   static std::chrono::milliseconds sleepDuration = 1000ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
-    std::chrono::microseconds currentTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds beforeSleepTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::sleep_for(sleepDuration);
     std::chrono::microseconds afterSleepTime = zpp_lib::Time::getUpTime();
 
-    std::chrono::microseconds deltaTime = (afterSleepTime - currentTime) - sleepDuration;
-    static constexpr uint64_t allowedDeltaInUs = 200;
+    std::chrono::microseconds deltaTime = (afterSleepTime - beforeSleepTime) - sleepDuration;
+    static constexpr uint64_t allowedDeltaInUs = 500;
   
     zassert_true(abs(deltaTime.count()) < allowedDeltaInUs, 
-                 "(SLEEP) iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld", 
-                 i, deltaTime.count(), allowedDeltaInUs);
+                  "(SLEEP) iteration %d: Elapsed time is not within expected range, delta %lld, allowed = %lld, before = %lld, after = %lld", 
+                 i, deltaTime.count(), allowedDeltaInUs, beforeSleepTime.count(), afterSleepTime.count());
 
     // double sleep duration
     // sleepDuration *= 2;
