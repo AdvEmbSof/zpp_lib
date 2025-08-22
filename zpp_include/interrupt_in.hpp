@@ -19,17 +19,16 @@ namespace zpp_lib {
  *
  * 
  */
-
+/**
+ * @brief Constant defining pressed polarity
+ * 
+ */
+static constexpr uint8_t kPolarityPressed = 1;
+  
 enum class PinName { BUTTON1 = 1, BUTTON2 = 2, BUTTON3 = 3, BUTTON4 = 4};
 template <PinName pinName>
 class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
 public:
-    /**
-     * @brief Constant defining pressed polarity
-     * 
-     */
-    static constexpr uint8_t kPolarityPressed = 1;
-
     /**
      * @brief Enumeration to be used for instanciating a specific input pin
      * 

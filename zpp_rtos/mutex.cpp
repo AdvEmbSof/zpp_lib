@@ -23,6 +23,7 @@ ZephyrResult Mutex::lock() {
   int ret = k_mutex_lock(&_mutex_obj, K_FOREVER);
   if (ret != 0) {
     LOG_ERR("Cannot lock mutex: %d", ret);
+    __ASSERT("Cannot lock mutex", false);
     res.assign_error(zephyr_to_zpp_error_code(ret));
   }
   return res;
@@ -43,6 +44,7 @@ ZephyrBoolResult Mutex::try_lock_for(const std::chrono::milliseconds& timeout) {
   else if (ret != 0) {
     // other failure -> return false with error
     LOG_ERR("Cannot lock mutex: %d", ret);
+    __ASSERT("Cannot lock mutex", false);
     res.assign_value(false);
     res.assign_error(zephyr_to_zpp_error_code(ret));
   }
