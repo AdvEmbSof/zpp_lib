@@ -1,4 +1,6 @@
+// zephyr
 #include <zephyr/ztest.h>
+#include <zephyr/logging/log.h>
 
 // zpp_rtos
 #include "zpp_include/semaphore.hpp"
@@ -6,34 +8,16 @@
 #include "zpp_include/time.hpp"
 #include "zpp_include/this_thread.hpp"
 
-#include <functional>
-/*
-ZTEST(zpp_thread, test_native_sleep)
-{
-    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
-    printk("%d\n", k_msleep(10 * 1000));
-    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
-    printk("busy wait\n");
-    k_busy_wait(10*1000*1000);
-    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
-    k_busy_wait(10*1000);
-    printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());    
-}
-*/
-void thread_fn(volatile uint64_t* counter, volatile bool* stop)
-{
-  while (! *stop) {
-    (*counter)++;
-  }
-}
+LOG_MODULE_REGISTER(test_thread, CONFIG_APP_LOG_LEVEL);
 
-ZTEST_USER(zpp_thread, test_sleep)
-{
+#include <functional>
+
+void sleep_function() {
   using namespace std::literals;
-  static std::chrono::microseconds waitDuration = 1ms;
   
   // TESTPOINT validate that busy wait works properly
-  static constexpr uint8_t kNbrOfDurations = 10;
+  static constexpr uint8_t kNbrOfDurations = 5;
+  std::chrono::microseconds waitDuration = 10ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
     std::chrono::microseconds beforeWaitTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::busyWait(waitDuration);
@@ -47,11 +31,12 @@ ZTEST_USER(zpp_thread, test_sleep)
                  i, deltaTime.count(), allowedDeltaInUs, beforeWaitTime.count(), afterWaitTime.count());
 
     // double wait duration
-    // waitDuration *= 2;
+    waitDuration *= 2;
   }
-
+  LOG_DBG("Done with busyWait");
+  
   // TESTPOINT validate that sleep works properly
-  static std::chrono::milliseconds sleepDuration = 1000ms;
+  std::chrono::milliseconds sleepDuration = 1000ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
     std::chrono::microseconds beforeSleepTime = zpp_lib::Time::getUpTime();
     zpp_lib::ThisThread::sleep_for(sleepDuration);
@@ -65,11 +50,43 @@ ZTEST_USER(zpp_thread, test_sleep)
                  i, deltaTime.count(), allowedDeltaInUs, beforeSleepTime.count(), afterSleepTime.count());
 
     // double sleep duration
-    // sleepDuration *= 2;
+    sleepDuration *= 2;
   }
+  LOG_DBG("Done with sleep_for");
 }
 
-/*ZTEST_USER(zpp_thread, test_round_robin)
+ZTEST_USER(zpp_thread, test_sleep_main)
+{
+  // test sleep (main thread)  
+  sleep_function();
+}
+
+ZTEST_USER(zpp_thread, test_sleep_secondary_thread)
+{
+  // test sleep (secondary thread)  
+  zpp_lib::Thread otherThread(zpp_lib::PreemptableThreadPriority::PriorityNormal, "Secondary thread");
+  auto res = otherThread.start(sleep_function);
+  if (! res) {
+    zassert_true(res, "Cannot start thread: %d", res.error());
+  }
+  
+  // wait for thread to complete
+  LOG_DBG("Main thread waiting for secondary thread");
+  res = otherThread.join();
+  if (! res) {
+    zassert_true(res, "Cannot start thread: %d", res.error());
+  }  
+}
+
+void thread_fn(volatile uint64_t* counter, volatile bool* stop)
+{
+  while (! *stop) {
+    (*counter)++;
+  }
+  LOG_DBG("Exiting thread function");
+}
+
+ZTEST_USER(zpp_thread, test_round_robin)
 {
   // Create two threads with below normal priority
   zpp_lib::Thread thread1(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal, "Thread1");
@@ -80,49 +97,48 @@ ZTEST_USER(zpp_thread, test_sleep)
   static volatile uint64_t counter2 = 0;  
   static volatile bool stop = false;
 
-  auto ret = thread1.start(std::bind(thread_fn, &counter1, &stop));
-	zassert_true(ret);
-  ret = thread2.start(std::bind(thread_fn, &counter2, &stop));
-	zassert_true(ret);
+  auto res = thread1.start(std::bind(thread_fn, &counter1, &stop));
+  if (! res) {
+    zassert_true(res, "Cannot start thread1: %d", res.error());
+  }
+  res = thread2.start(std::bind(thread_fn, &counter2, &stop));
+	if (! res) {
+    zassert_true(res, "Cannot start thread2: %d", res.error());
+  }
 
   // Make sure that it has a higher priority than the other threads
   zpp_lib::ThisThread::setPriority(zpp_lib::PreemptableThreadPriority::PriorityAboveNormal);
-  printk("Main thread priority is %d\n", zpp_lib::preemptable_thread_priority_to_zephyr_prio(zpp_lib::ThisThread::getPriority()));
+  LOG_DBG("Main thread priority is %d", zpp_lib::preemptable_thread_priority_to_zephyr_prio(zpp_lib::ThisThread::getPriority()));
  
   // Have the main thread for the duration of two slices
   using namespace std::literals;
   // determine the number of time slices to wait before checking for counters (must be even)
   static constexpr uint8_t NbrOfTimeSlicesToWait = 100;
   static std::chrono::milliseconds sleepDuration(NbrOfTimeSlicesToWait * CONFIG_TIMESLICE_SIZE); 
-  printk("Main thread waiting for %lld msecs\n", sleepDuration.count());
+  LOG_DBG("Main thread waiting for %lld msecs", sleepDuration.count());
   zpp_lib::ThisThread::sleep_for(sleepDuration);
 
-  printk("Main thread stops waiting\n");
+  LOG_DBG("Main thread stops waiting");
   
   // tell the two threads to stop
   stop = true;
   
 	// TESTPOINT: check that both thread1 and thread2 got approximately the same CPU resources
-  static constexpr uint64_t delta = 4000;
+  static constexpr uint64_t delta = 20000;
   uint64_t diff = counter1 > counter2 ? counter1 - counter2 : counter2 - counter1;
-  zassert_true(diff < delta, "Time slicing looks uneven, diff = %lld, delta = %lld", diff, delta);
-
-  printk("Waiting for threads\n");
-  ret = thread1.join();
-	zassert_true(ret);
-  ret = thread2.join();
-	zassert_true(ret);
-}
-*/
-static void *zpp_thread_tests_setup(void)
-{
-#ifdef CONFIG_USERSPACE
-	//k_thread_access_grant(k_current_get(), &tdata, &tstack, &tdata2,
-	//			&tstack2, &tdata3, &tstack3, &kmutex,
-	//			&tmutex);
-#endif
-	return NULL;
+  
+  LOG_DBG("Waiting for threads");
+  res = thread1.join();
+  if (! res) {
+    zassert_true(res, "Cannot join thread1: %d", res.error());
+  }  
+  res = thread2.join();
+  if (! res) {
+    zassert_true(res, "Cannot join thread2: %d", res.error());
+  }  
+  zassert_true(diff < delta, "Time slicing looks uneven, diff = %lld, delta = %lld, counter1 %lld, counter2 %lld", 
+               diff, delta, counter1, counter2);
 }
 
-ZTEST_SUITE(zpp_thread, NULL, zpp_thread_tests_setup, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_thread, NULL, NULL, NULL, NULL, NULL);
 

@@ -31,15 +31,4 @@ ZTEST_USER(zpp_mutex, test_mutex_lock_unlock)
 	zassert_true(thread.join());
 }
 
-static void *zpp_mutex_tests_setup(void)
-{
-#ifdef CONFIG_USERSPACE
-	//k_thread_access_grant(k_current_get(), &tdata, &tstack, &tdata2,
-	//			&tstack2, &tdata3, &tstack3, &kmutex,
-	//			&tmutex);
-#endif
-	return NULL;
-}
-
-
-ZTEST_SUITE(zpp_mutex, NULL, zpp_mutex_tests_setup, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_mutex, NULL, NULL, NULL, NULL, NULL);

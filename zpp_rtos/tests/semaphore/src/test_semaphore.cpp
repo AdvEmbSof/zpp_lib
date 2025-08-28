@@ -33,15 +33,4 @@ ZTEST_USER(zpp_semaphore, test_semaphore_release_acquire)
 	zassert_true(sem.acquire());  
 }
 
-static void *zpp_semaphore_tests_setup(void)
-{
-#ifdef CONFIG_USERSPACE
-	//k_thread_access_grant(k_current_get(), &tdata, &tstack, &tdata2,
-	//			&tstack2, &tdata3, &tstack3, &kmutex,
-	//			&tmutex);
-#endif
-	return NULL;
-}
-
-
-ZTEST_SUITE(zpp_semaphore, NULL, zpp_semaphore_tests_setup, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_semaphore, NULL, NULL, NULL, NULL, NULL);

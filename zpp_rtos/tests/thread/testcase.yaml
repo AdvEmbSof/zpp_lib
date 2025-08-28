@@ -3,3 +3,4 @@ tests:
     tags:
       - kernel
       - cpp
+    timeout: 120
