@@ -2,8 +2,8 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(zpp_rtos_test)
+project(zpp_rtos_test_thread)
 
-FILE(GLOB app_sources */*.cpp */src/*.cpp)
+FILE(GLOB app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
 target_include_directories(app PRIVATE ../../)

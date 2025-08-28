@@ -1,5 +1,7 @@
 #pragma once
 
+#if CONFIG_DISPLAY == 1
+
 // zephyr
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/display.h>
@@ -18,13 +20,12 @@ namespace zpp_lib {
  * @note Synchronization level: Interrupt safe
  *
  */
-#if CONFIG_DISPLAY == 1
 
 class Display : private NonCopyable<Display>
 {
 public:
     Display() = default;
-    [[nodiscard]] ZephyrResult init();
+    [[nodiscard]] ZephyrResult initialize();
     uint32_t getWidth() const;
     uint32_t getHeight() const;
     void fillDisplay(uint32_t color);
@@ -79,7 +80,6 @@ private:
     std::function<void(const uint32_t*, size_t, uint8_t*)> _fillLineFunction = nullptr;
 };
 
-#endif
-
 } // namespace zpp_lib
 
+#endif // CONFIG_DISPLAY == 1

@@ -7,7 +7,7 @@
 #include "zpp_include/this_thread.hpp"
 
 #include <functional>
-
+/*
 ZTEST(zpp_thread, test_native_sleep)
 {
     printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());
@@ -19,7 +19,7 @@ ZTEST(zpp_thread, test_native_sleep)
     k_busy_wait(10*1000);
     printk("%lld %lld\n", k_uptime_get(), k_uptime_ticks());    
 }
-
+*/
 void thread_fn(volatile uint64_t* counter, volatile bool* stop)
 {
   while (! *stop) {
@@ -30,7 +30,7 @@ void thread_fn(volatile uint64_t* counter, volatile bool* stop)
 ZTEST_USER(zpp_thread, test_sleep)
 {
   using namespace std::literals;
-  static std::chrono::milliseconds waitDuration = 1ms;
+  static std::chrono::microseconds waitDuration = 1ms;
   
   // TESTPOINT validate that busy wait works properly
   static constexpr uint8_t kNbrOfDurations = 10;

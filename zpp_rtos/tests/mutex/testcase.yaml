@@ -1,0 +1,5 @@
+tests:
+  zpp_lib.zpp_rtos.mutex:
+    tags:
+      - kernel
+      - cpp

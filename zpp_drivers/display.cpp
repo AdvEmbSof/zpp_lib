@@ -22,6 +22,8 @@
  * @version 0.0.1
  ***************************************************************************/
 
+#if CONFIG_DISPLAY == 1
+
 #include "zpp_include/display.hpp"
 
 // Zephyr sdk
@@ -31,10 +33,14 @@ LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-#if CONFIG_DISPLAY == 1
 K_HEAP_DEFINE(BUF_HEAP, 200000);
 
-ZephyrResult Display::init() {
+uint16_t min(uint32_t a, uint16_t b)
+{
+    return (b < a) ? b : (uint16_t) a;
+}
+
+ZephyrResult Display::initialize() {
     ZephyrResult res;
     _displayDevice = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
   	if (!device_is_ready(_displayDevice)) {
@@ -101,16 +107,19 @@ void Display::fillDisplay(uint32_t color) {
 }
 
 void Display::fillRectangle(uint32_t color, uint32_t xPos, uint32_t yPos, uint32_t width, uint32_t height) 
-{    
+{      
   _fillColorFunction(color, _lineBuffer, _lineBufferSize);
     
   struct display_buffer_descriptor bufDesc = {0};
 	bufDesc.buf_size = _lineBufferSize;
-	bufDesc.pitch = _displayCapabilities.x_resolution;
-	bufDesc.width = width;
+  xPos = min(_displayCapabilities.x_resolution - 1, xPos);
+	bufDesc.width = min(_displayCapabilities.x_resolution - xPos - 1, width);
+	bufDesc.pitch = bufDesc.width;
 	bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
-  for (uint32_t line = yPos; line < yPos + height; line += H_STEP) {
+  uint16_t firstLine = min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine = min(yPos + height, _displayCapabilities.y_resolution); 
+  for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (rc != 0) {
       LOG_ERR("Cannot write to display: %d", rc);
@@ -136,13 +145,16 @@ const Display::Font* Display::getFont() const {
 
 void Display::drawPicture(uint16_t xPos, uint16_t yPos, const uint32_t* pSrc, uint16_t pictureWidth, uint16_t pictureHeight) {
   struct display_buffer_descriptor bufDesc = {0};
+  xPos = min(_displayCapabilities.x_resolution - 1, xPos);
 	bufDesc.buf_size = _lineBufferSize;
-	bufDesc.pitch = pictureWidth;
-	bufDesc.width = pictureWidth;
-	bufDesc.height = H_STEP;
+	bufDesc.width = min(_displayCapabilities.x_resolution - xPos - 1, pictureWidth);
+	bufDesc.pitch = bufDesc.width;
+  bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
   // draw the picture line by line
-  for (uint32_t line = yPos; line < yPos + pictureHeight; line += H_STEP) {
+  uint16_t firstLine = min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine = min(yPos + pictureHeight, _displayCapabilities.y_resolution); 
+  for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pSrc, pictureWidth, _lineBuffer);
 		int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (rc != 0) {
@@ -252,7 +264,7 @@ void Display::drawChar(uint32_t xPos, uint32_t yPos, const uint8_t* pData) {
     }
     else {
       LOG_ERR("Not implemented");
-      __ASSERT("Not implemented", false);
+      __ASSERT(false, "Not implemented");
     }
   }
 }
@@ -290,13 +302,16 @@ void Display::fillLineRgb888(const uint32_t* pSrc, size_t srcSize, uint8_t* pBuf
 
 void Display::fillRgbRect(uint32_t xPos, uint32_t yPos, uint32_t* pData, uint32_t width, uint32_t height) {
   struct display_buffer_descriptor bufDesc = {0};
+  xPos = min(_displayCapabilities.x_resolution - 1, xPos);
 	bufDesc.buf_size = _lineBufferSize;
-	bufDesc.pitch = width;
-	bufDesc.width = width;
-	bufDesc.height = H_STEP;
+	bufDesc.width = min(_displayCapabilities.x_resolution - xPos - 1, width);
+	bufDesc.pitch = bufDesc.width;
+  bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
   // draw the rect line by line
-  for (uint32_t line = yPos; line < yPos + height; line += H_STEP) {
+  uint16_t firstLine = min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine = min(yPos + height, _displayCapabilities.y_resolution); 
+   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pData, width, _lineBuffer);
     int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (rc != 0) {
@@ -306,6 +321,6 @@ void Display::fillRgbRect(uint32_t xPos, uint32_t yPos, uint32_t* pData, uint32_
 	}
 }
 
-#endif 
-
 } // namespace zpp_lib
+
+#endif // CONFIG_DISPLAY == 1

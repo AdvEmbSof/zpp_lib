@@ -1,0 +1,5 @@
+tests:
+  zpp_lib.zpp_rtos.thread:
+    tags:
+      - kernel
+      - cpp

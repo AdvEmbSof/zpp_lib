@@ -25,7 +25,7 @@ void setPriority(PreemptableThreadPriority priority) {
   k_thread_priority_set(tid, preemptable_thread_priority_to_zephyr_prio(priority));
 }
 
-void busyWait(std::chrono::microseconds waitTime) {
+void busyWait(const std::chrono::microseconds& waitTime) {
   // k_busy_wait takes usecs
   k_busy_wait(waitTime.count());
 }

@@ -7,14 +7,6 @@
 // for std::scoped_lock definition
 #include <mutex>
 
-//#ifndef CONFIG_USERSPACE
-//#error This sample requires CONFIG_USERSPACE.
-//#endif
-
-#ifndef CONFIG_DYNAMIC_THREAD_ALLOC
-//#error This sample requires CONFIG_DYNAMIC_THREAD_ALLOC.
-#endif
-
 LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
@@ -89,9 +81,8 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   
   // update the thread instance count
   _threadInstanceCount++;
-  LOG_DBG("Thread instance count is %d", _threadInstanceCount);
-
-  LOG_DBG("Thread created");
+  LOG_DBG("Thread (instance count %d) started", _threadInstanceCount);
+  
   return res;
 }
 

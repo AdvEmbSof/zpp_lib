@@ -1,5 +1,5 @@
 tests:
-  zpp_lib.zpp_rtos:
+  zpp_lib.zpp_rtos.semaphore:
     tags:
       - kernel
       - cpp
