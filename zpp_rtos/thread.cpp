@@ -69,12 +69,15 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
                          zephyr_priority, 
                          options, 
                          delay);
+                         
   if (_tid == nullptr) {        
+    __ASSERT(false, "_tid is null");
     res.assign_error(ZephyrErrorCode::k_nomem);
     return res;
   }
   auto ret = k_thread_name_set(&_thread_data[_threadInstanceCount], _name.c_str());
   if (ret != 0) {
+    __ASSERT(false, "Cannot set name: %d", ret);
     res.assign_error(zephyr_to_zpp_error_code(ret));
     return res;
   }

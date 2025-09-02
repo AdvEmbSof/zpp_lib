@@ -1,6 +1,7 @@
 config USE_ZPP_LIB
 	bool "Support for zpp library"
 	default n
+	select THREAD_NAME
 	help
 	  This option enables the 'zpp' library
 
