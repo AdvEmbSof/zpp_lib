@@ -1,3 +1,27 @@
+// Copyright 2025 Haute école d'ingénierie et d'architecture de Fribourg
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/****************************************************************************
+ * @file zephyr_error_code.hpp
+ * @author Serge Ayer <serge.ayer@hefr.ch>
+ *
+ * @brief CPP class declaration for handling zephyr errors in a safe CPP manner
+ *
+ * @date 2025-08-31
+ * @version 1.0.0
+ ***************************************************************************/
+
 #pragma once
 
 // zephyr sdk
@@ -14,11 +38,11 @@ namespace zpp_lib {
 ///
 ////////////////////////////////////////////////////////////////////////////////
 class ZephyrResult {
-public:
+ public:
   ///
   /// @brief default initialization to ok (no error) state
   ///
-  ZephyrResult() noexcept = default;
+  ZephyrResult() noexcept : _is_ok(true), _error_value(ZephyrErrorCode::k_ok) {}
 
   ///
   /// @brief initialization to error state
@@ -26,10 +50,7 @@ public:
   /// @param rhs the error value to assign
   ///
   ZephyrResult(const ZephyrResult& res) noexcept
-    : _is_ok(false), 
-      _error_value(res.error())
-  {
-  }
+      : _is_ok(false), _error_value(res.error()) {}
 
   ///
   /// @brief initialization to error state
@@ -37,10 +58,7 @@ public:
   /// @param rhs the error value to assign
   ///
   explicit ZephyrResult(ZephyrErrorCode error) noexcept
-    : _is_ok(false), 
-      _error_value(error)
-  {
-  }
+      : _is_ok(false), _error_value(error) {}
 
   ///
   /// @brief assign error state
@@ -48,17 +66,17 @@ public:
   /// @param rhs the error value to assign
   ///
   void assign_error(ZephyrErrorCode error) noexcept {
-    _is_ok = false;
+    _is_ok       = false;
     _error_value = error;
   }
-  
+
   ///
   /// @brief assign error state
   ///
   /// @param rhs the error value to assign
   ///
   void assign_error(const ZephyrResult& res) noexcept {
-    _is_ok = false;
+    _is_ok       = false;
     _error_value = res.error();
   }
 
@@ -67,9 +85,7 @@ public:
   ///
   /// @return true if no error was assigned
   ///
-  constexpr operator bool() const noexcept {
-    return _is_ok;
-  }
+  constexpr operator bool() const noexcept { return _is_ok; }
 
   ///
   /// @brief return a reference to the error value
@@ -83,8 +99,8 @@ public:
     return _error_value;
   }
 
-private:
-  bool _is_ok{true};
+ private:
+  bool _is_ok;
   ZephyrErrorCode _error_value;
 };
 
@@ -95,11 +111,12 @@ private:
 ///
 ////////////////////////////////////////////////////////////////////////////////
 class ZephyrBoolResult {
-public:
+ public:
   ///
   /// @brief default initialization to ok (no error) state
   ///
-  ZephyrBoolResult() noexcept = default;
+  ZephyrBoolResult() noexcept
+      : _is_ok(true), _bool_result(true), _error_value(ZephyrErrorCode::k_ok) {}
 
   ///
   /// @brief initialization to error state
@@ -107,23 +124,15 @@ public:
   /// @param rhs the error value to assign
   ///
   ZephyrBoolResult(const ZephyrBoolResult& res) noexcept
-    : _is_ok(false),
-      _bool_result(false),
-      _error_value(res.error())
-  {
-  }
-  
+      : _is_ok(false), _bool_result(false), _error_value(res.error()) {}
+
   ///
   /// @brief initialization to error state
   ///
   /// @param rhs the error value to assign
   ///
   explicit ZephyrBoolResult(ZephyrErrorCode error) noexcept
-    : _is_ok(false),
-      _bool_result(false),
-      _error_value(error)
-  {
-  }
+      : _is_ok(false), _bool_result(false), _error_value(error) {}
 
   ///
   /// @brief assign return value
@@ -131,17 +140,17 @@ public:
   /// @param rhs the return value to assign
   ///
   void assign_value(const bool& v) noexcept {
-    _is_ok = true;
+    _is_ok       = true;
     _bool_result = v;
   }
-  
+
   ///
   /// @brief assign error state
   ///
   /// @param rhs the error value to assign
   ///
   void assign_error(ZephyrErrorCode error) noexcept {
-    _is_ok = false;
+    _is_ok       = false;
     _bool_result = false;
     _error_value = error;
   }
@@ -152,11 +161,11 @@ public:
   /// @param rhs the error value to assign
   ///
   void assign_error(const ZephyrBoolResult& res) noexcept {
-    _is_ok = false;
+    _is_ok       = false;
     _bool_result = false;
     _error_value = res.error();
   }
- 
+
   ///
   /// @brief convert the result to a bool
   ///
@@ -172,9 +181,7 @@ public:
   ///
   /// @return true if the result is valid
   ///
-  constexpr bool has_error() const noexcept {
-    return ! _is_ok;
-  }
+  constexpr bool has_error() const noexcept { return !_is_ok; }
 
   ///
   /// @brief return a reference to the error value
@@ -187,11 +194,11 @@ public:
     __ASSERT(has_error(), "Result is in ok state");
     return _error_value;
   }
-  
-private:
-  bool _is_ok{true};
-  bool _bool_result{true};
+
+ private:
+  bool _is_ok;
+  bool _bool_result;
   ZephyrErrorCode _error_value;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

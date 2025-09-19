@@ -1,0 +1,5 @@
+// suppress missing system include and standard include
+missingIncludeSystem:*
+missingInclude:*
+unusedStructMember:*.hpp
+unusedFunction:*.hpp

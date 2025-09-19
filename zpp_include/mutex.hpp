@@ -1,3 +1,27 @@
+// Copyright 2025 Haute école d'ingénierie et d'architecture de Fribourg
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/****************************************************************************
+ * @file mutex.hpp
+ * @author Serge Ayer <serge.ayer@hefr.ch>
+ *
+ * @brief CPP class declaration for wrapping zephyr os mutex
+ *
+ * @date 2025-08-31
+ * @version 1.0.0
+ ***************************************************************************/
+
 #pragma once
 
 // zephyr
@@ -15,66 +39,68 @@ namespace zpp_lib {
 /** The Mutex class is used to synchronize the execution of threads.
  This is, for example, used to protect access to a shared resource.
 
- @note You cannot use member functions of this class in ISR context. If you require Mutex functionality within
- ISR handler, consider using @a Semaphore.
+ @note You cannot use member functions of this class in ISR context. If you require Mutex
+ functionality within ISR handler, consider using @a Semaphore.
 */
 class Mutex : private NonCopyable<Mutex> {
-public:
-    /** Create and Initialize a Mutex object
-     *
-     * @note You cannot call this function from ISR context.
-    */
-    Mutex() noexcept;
+ public:
+  /** Create and Initialize a Mutex object
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  Mutex() noexcept;
 
-    /** Create and Initialize a Mutex object
+  /** Create and Initialize a Mutex object
 
-     @param name name to be used for this mutex. It has to stay allocated for the lifetime of the thread.
-     @note You cannot call this function from ISR context.
-    */
-    Mutex(const char *name) noexcept;
+   @param name name to be used for this mutex. It has to stay allocated for the lifetime
+   of the thread.
+   @note You cannot call this function from ISR context.
+  */
+  explicit Mutex(const char* name) noexcept;
 
-    /**
-      Wait until a Mutex becomes available.
+  /**
+    Wait until a Mutex becomes available.
 
-      @note You cannot call this function from ISR context.
-     */
-    [[nodiscard]] ZephyrResult lock();
+    @note You cannot call this function from ISR context.
+   */
+  [[nodiscard]] ZephyrResult lock();
 
-    /** Try to lock the mutex, and return immediately
-      @return true if the mutex was acquired, false otherwise.
-      @note equivalent to trylock_for(0)
+  /** Try to lock the mutex, and return immediately
+    @return true if the mutex was acquired, false otherwise.
+    @note equivalent to trylock_for(0)
 
-      @note You cannot call this function from ISR context.
-     */
-    [[nodiscard]] ZephyrBoolResult try_lock() noexcept;
+    @note You cannot call this function from ISR context.
+   */
+  [[nodiscard]] ZephyrBoolResult try_lock() noexcept;
 
-    /** Try to lock the mutex for a specified time
-      @param   rel_time  timeout value.
-      @return true if the mutex was acquired, false otherwise.
-      @note the underlying RTOS may have a limit to the maximum wait time
-            due to internal 32-bit computations, but this is guaranteed to work if the
-            wait is <= 0x7fffffff milliseconds (~24 days). If the limit is exceeded,
-            the lock attempt will time out earlier than specified.
+  /** Try to lock the mutex for a specified time
+    @param   rel_time  timeout value.
+    @return true if the mutex was acquired, false otherwise.
+    @note the underlying RTOS may have a limit to the maximum wait time
+          due to internal 32-bit computations, but this is guaranteed to work if the
+          wait is <= 0x7fffffff milliseconds (~24 days). If the limit is exceeded,
+          the lock attempt will time out earlier than specified.
 
-      @note You cannot call this function from ISR context.
-     */
-    [[nodiscard]] ZephyrBoolResult try_lock_for(const std::chrono::milliseconds& timeout) noexcept;
+    @note You cannot call this function from ISR context.
+   */
+  [[nodiscard]] ZephyrBoolResult try_lock_for(
+      const std::chrono::milliseconds& timeout) noexcept;
 
-    /**
-      Unlock the mutex that has previously been locked by the same thread
+  /**
+    Unlock the mutex that has previously been locked by the same thread
 
-      @note You cannot call this function from ISR context.
-     */
-    [[nodiscard]] ZephyrResult unlock();
+    @note You cannot call this function from ISR context.
+   */
+  [[nodiscard]] ZephyrResult unlock();
 
-    /** Mutex destructor
-     *
-     * @note You cannot call this function from ISR context.
-     */
-    ~Mutex();
+  /** Mutex destructor
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  ~Mutex();
 
-private:
-    struct k_mutex _mutex_obj;
+ private:
+  struct k_mutex _mutex_obj;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

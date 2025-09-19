@@ -1,6 +1,6 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 
-/ {  
+/ {
 	gpio0: gpio_emul_0 {
 		status = "okay";
 		compatible = "zephyr,gpio-emul";
@@ -74,5 +74,3 @@
 		width = <320>;
 	};
 };
-
-

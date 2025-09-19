@@ -1,3 +1,27 @@
+// Copyright 2025 Haute école d'ingénierie et d'architecture de Fribourg
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/****************************************************************************
+ * @file digital_out.cpp
+ * @author Serge Ayer <serge.ayer@hefr.ch>
+ *
+ * @brief CPP class implementation for wrapping zephyr os _gpio used as digital output pin
+ *
+ * @date 2025-08-31
+ * @version 1.0.0
+ ***************************************************************************/
+
 #include "zpp_include/digital_out.hpp"
 
 // Zephyr sdk
@@ -6,9 +30,8 @@
 LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
-  
-DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) { 
-}
+
+DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) {}
 
 DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
   switch (pinName) {
@@ -38,12 +61,12 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
     return;
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
-  
+
   ZephyrResult rc = write(value);
-  if (! rc) {
+  if (!rc) {
     LOG_ERR("Cannot write value %d to output (%s)", value, _gpio.port->name);
     __ASSERT(false, "Cannot write value %d to output (%s)", value, _gpio.port->name);
-    return;    
+    return;
   }
 }
 
@@ -56,9 +79,7 @@ ZephyrResult DigitalOut::write(int value) {
   }
   return res;
 }
- 
-int DigitalOut::read() {
-  return gpio_pin_get_dt(&_gpio);
-}
- 
-} // namespace zpp_lib
+
+int DigitalOut::read() { return gpio_pin_get_dt(&_gpio); }
+
+}  // namespace zpp_lib
