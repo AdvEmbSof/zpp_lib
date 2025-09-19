@@ -35,7 +35,9 @@ namespace zpp_lib {
 
 K_HEAP_DEFINE(BUF_HEAP, 200000);
 
-uint16_t min(uint32_t a, uint16_t b) { return (b < a) ? b : (uint16_t)a; }
+// we define our own min
+// NOLINTNEXTLINE(build/include_what_you_use)
+uint16_t min(uint32_t a, uint16_t b) { return (b < a) ? b : static_cast<uint16_t>(a); }
 
 ZephyrResult Display::initialize() {
   ZephyrResult res;
@@ -105,13 +107,13 @@ void Display::fillRectangle(
 
   struct display_buffer_descriptor bufDesc = {0};
   bufDesc.buf_size                         = _lineBufferSize;
-  xPos                     = min(_displayCapabilities.x_resolution - 1, xPos);
-  bufDesc.width            = min(_displayCapabilities.x_resolution - xPos - 1, width);
-  bufDesc.pitch            = bufDesc.width;
-  bufDesc.height           = H_STEP;
+  xPos           = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
+  bufDesc.width  = zpp_lib::min(_displayCapabilities.x_resolution - xPos - 1, width);
+  bufDesc.pitch  = bufDesc.width;
+  bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
-  uint16_t firstLine       = min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine        = min(yPos + height, _displayCapabilities.y_resolution);
+  uint16_t firstLine       = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (rc != 0) {
@@ -134,15 +136,17 @@ void Display::drawPicture(uint16_t xPos,
                           uint16_t pictureWidth,
                           uint16_t pictureHeight) {
   struct display_buffer_descriptor bufDesc = {0};
-  xPos             = min(_displayCapabilities.x_resolution - 1, xPos);
+  xPos             = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
   bufDesc.buf_size = _lineBufferSize;
-  bufDesc.width    = min(_displayCapabilities.x_resolution - xPos - 1, pictureWidth);
-  bufDesc.pitch    = bufDesc.width;
-  bufDesc.height   = H_STEP;
+  bufDesc.width =
+      zpp_lib::min(_displayCapabilities.x_resolution - xPos - 1, pictureWidth);
+  bufDesc.pitch            = bufDesc.width;
+  bufDesc.height           = H_STEP;
   bufDesc.frame_incomplete = true;
   // draw the picture line by line
-  uint16_t firstLine = min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine  = min(yPos + pictureHeight, _displayCapabilities.y_resolution);
+  uint16_t firstLine = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine =
+      zpp_lib::min(yPos + pictureHeight, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pSrc, pictureWidth, _lineBuffer);
     int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
@@ -173,7 +177,10 @@ void Display::drawStringAt(uint32_t xPos,
   switch (mode) {
     case AlignMode::CENTER_MODE: {
       refcolumn =
-          xPos + (((int32_t)nbrOfCharPerLine - (int32_t)nbrOfChars) * _pFont->width) / 2;
+          xPos +
+          ((static_cast<int32_t>(nbrOfCharPerLine) - static_cast<int32_t>(nbrOfChars)) *
+           _pFont->width) /
+              2;
       break;
     }
     case AlignMode::LEFT_MODE: {
@@ -246,7 +253,8 @@ void Display::drawChar(uint32_t xPos, uint32_t yPos, const uint8_t* pData) {
       uint32_t argb8888[48] = {0};
       for (uint32_t j = 0; j < width; j++) {
         // check whether the j^th bit in line is on or off
-        uint64_t bitInPixel = (uint64_t)1 << (uint64_t)(width - j + offset - 1);
+        uint64_t bitInPixel = static_cast<uint64_t>(1)
+                              << static_cast<uint64_t>(width - j + offset - 1);
         if (line & bitInPixel) {
           argb8888[j] = _textColor;
         } else {
@@ -299,15 +307,15 @@ void Display::fillLineRgb888(const uint32_t* pSrc, size_t srcSize, uint8_t* pBuf
 void Display::fillRgbRect(
     uint32_t xPos, uint32_t yPos, uint32_t* pData, uint32_t width, uint32_t height) {
   struct display_buffer_descriptor bufDesc = {0};
-  xPos                     = min(_displayCapabilities.x_resolution - 1, xPos);
-  bufDesc.buf_size         = _lineBufferSize;
-  bufDesc.width            = min(_displayCapabilities.x_resolution - xPos - 1, width);
-  bufDesc.pitch            = bufDesc.width;
-  bufDesc.height           = H_STEP;
+  xPos             = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
+  bufDesc.buf_size = _lineBufferSize;
+  bufDesc.width    = zpp_lib::min(_displayCapabilities.x_resolution - xPos - 1, width);
+  bufDesc.pitch    = bufDesc.width;
+  bufDesc.height   = H_STEP;
   bufDesc.frame_incomplete = true;
   // draw the rect line by line
-  uint16_t firstLine = min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine  = min(yPos + height, _displayCapabilities.y_resolution);
+  uint16_t firstLine = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
+  uint16_t lastLine  = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pData, width, _lineBuffer);
     int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
