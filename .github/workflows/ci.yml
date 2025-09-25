@@ -33,7 +33,6 @@ jobs:
         with:
           sdk_version: '0.17.0'
           path_west_workspace: ${{ github.workspace }}
-          path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
       - name: Run twister for zpp_lib on qemu_x86      
         shell: bash
