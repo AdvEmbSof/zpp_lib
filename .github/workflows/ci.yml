@@ -28,16 +28,19 @@ jobs:
         with:
           python-version: '3.13'
 
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup Zephyr
         uses: Tobi15/setup-zephyr-action@v1
         with:
           sdk_version: '0.17.0'
-          path_west_workspace: ${{ github.workspace }}
+          path_west_workspace: ${{ github.workspace }}/../
 
       - name: Run twister for zpp_lib on qemu_x86      
         shell: bash
         run: |
-          west twister -T deps/zpp_lib/zpp_rtos/tests \
+          west twister -T zpp_lib/zpp_rtos/tests \
             -v -p qemu_x86 \
             --inline-logs \
             --integration \
