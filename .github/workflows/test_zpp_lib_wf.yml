@@ -1,4 +1,3 @@
-
 name: Test zpp_lib
 
 on:
@@ -30,11 +29,8 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Setup Zephyr
-        uses: Tobi15/setup-zephyr-action@v1
+        uses: AdvEmbSof/setup-zephyr-action@v1
         with:
           sdk_version: '0.17.0'
           path_west_workspace: ${{ github.workspace }}/../
@@ -54,6 +50,7 @@ jobs:
         run: |
           echo "branch=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
           echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          
       - name: Archive test results
         if: success() || failure()
         uses: actions/upload-artifact@v4
@@ -66,9 +63,15 @@ jobs:
             twister-out/twister.json
             twister-out/testplan.json
             twister-out/**/*.log
-            
-      - name: Publish test results
+
+      - name: Publish test results in GitHub UI
         if: success() || failure()
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: actions/upload-test-report@v2
         with:
-          files: twister-out/twister_report.xml
+          path: twister-out/twister_report.xml
+          
+     # - name: Publish test results
+     #   if: success() || failure()
+     #   uses: EnricoMi/publish-unit-test-result-action@v2
+     #   with:
+     #     files: twister-out/twister_report.xml
