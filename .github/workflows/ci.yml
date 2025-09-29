@@ -19,6 +19,8 @@ permissions:
 jobs:       
   test:
     runs-on: ubuntu-latest
+    env:
+      ZEPHYR_MODULES: ${{ github.workspace }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,8 +46,7 @@ jobs:
             -v -p qemu_x86 \
             --inline-logs \
             --integration \
-            --outdir $GITHUB_WORKSPACE/twister-out \
-            --cmake-extra-args="-DZEPHYR_MODULES=$GITHUB_WORKSPACE"
+            --outdir $GITHUB_WORKSPACE/twister-out
             
       - name: Set variables
         if: success() || failure()
