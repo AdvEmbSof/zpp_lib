@@ -1,4 +1,4 @@
-name: Test ${{ github.event.repository.name }}
+name: Test zpp_lib
 
 on:
   push:
