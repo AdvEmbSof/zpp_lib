@@ -1,4 +1,4 @@
-name: Test zpp_lib
+name: Test ${{ github.event.repository.name }}
 
 on:
   push:
@@ -17,7 +17,7 @@ permissions:
 
 jobs:       
   ci-test-zpp-lib:
-    name: Running zpp_lib
+    name: ${{ github.event.repository.name }} RTOS tests
     runs-on: ubuntu-latest
     env:
       ZEPHYR_MODULES: ${{ github.workspace }}
@@ -70,7 +70,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: twister-out/twister_suite_report.xml
-          check_name: "Summary zpp_lib"
+          check_name: "${{ github.event.repository.name }} RTOS tests summary"
           check_run_annotations: 'all tests'
           comment_mode: always       # show results in PRs
           job_summary: true          # adds ✅/❌ summary in workflow summary
