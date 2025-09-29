@@ -64,11 +64,14 @@ jobs:
             twister-out/testplan.json
             twister-out/**/*.log
 
-      - name: Publish test results in GitHub UI
+      - name: Publish test results
         if: success() || failure()
-        uses: actions/upload-test-report@v2
+        uses: EnricoMi/publish-unit-test-result-action@v2
         with:
-          path: twister-out/twister_report.xml
+          files: twister-out/twister_report.xml
+          check_name: "Zephyr Twister Tests"
+          comment_mode: always       # show results in PRs
+          job_summary: true          # adds ✅/❌ summary in workflow summary
           
      # - name: Publish test results
      #   if: success() || failure()
