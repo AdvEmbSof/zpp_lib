@@ -23,8 +23,8 @@ config ZPP_THREAD_STACK_SIZE
   
 module = ZPP_RTOS
 module-str = ZPP_RTOS
-rsource "subsys/logging/Kconfig.template.log_config"
+rsource "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
 
 module = ZPP_DRIVERS
 module-str = ZPP_DRIVERS
-rsource "subsys/logging/Kconfig.template.log_config"
+rsource "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
