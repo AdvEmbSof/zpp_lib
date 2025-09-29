@@ -44,7 +44,8 @@ jobs:
             -v -p qemu_x86 \
             --inline-logs \
             --integration \
-            --outdir $GITHUB_WORKSPACE/twister-out
+            --outdir $GITHUB_WORKSPACE/twister-out \
+            --cmake-extra-args="-DZEPHYR_MODULES=$GITHUB_WORKSPACE"
             
       - name: Set variables
         if: success() || failure()
