@@ -23,11 +23,6 @@ repos:
       entry: lizard
       language: system
       args: [-C 12]
-#- repo: https://github.com/pocc/pre-commit-hooks
-#  rev: master
-#  hooks:
-#  -   id: cppcheck
-#      entry: cppcheck --enable=all --suppress=missingInclude:* --inline-suppr -i mbed-os --error-exitcode=1
 - repo: local
   hooks:
   -   id: cppcheck
