@@ -28,6 +28,9 @@
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/debug/cpu_load.h>
 
+// zpp_lib 
+#include "zpp_include/utils.hpp"
+
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 extern "C" {
