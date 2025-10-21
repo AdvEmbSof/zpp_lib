@@ -22,6 +22,8 @@
  * @version 1.0.0
  ***************************************************************************/
 
+#if CONFIG_EVENTS == 1
+
 // zpp_lib
 #include "zpp_include/events.hpp"
 #include "zpp_include/clock.hpp"
@@ -78,3 +80,6 @@ ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeo
 }
 
 }  // namespace zpp_lib
+
+
+#endif  // CONFIG_EVENTS == 1
