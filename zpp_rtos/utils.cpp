@@ -24,6 +24,7 @@
  ***************************************************************************/
 
  // zephyr
+#include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/sys/sys_heap.h>
 #include <zephyr/debug/cpu_load.h>
