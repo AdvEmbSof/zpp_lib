@@ -30,9 +30,9 @@ class Utils {
  public:
   Utils() = default;
 
-  static void printThreadsSummary();
-  static void printHeapSummary();
-  static void printCPULoad();
+  static void logThreadsSummary();
+  static void logHeapSummary();
+  static void logCPULoad();
 };
 
 }  // namespace zpp_lib

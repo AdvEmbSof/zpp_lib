@@ -43,7 +43,7 @@ extern struct sys_heap _system_heap;
 namespace zpp_lib {
 
 #ifdef CONFIG_THREAD_ANALYZER
-static void printThreadStatistics(const struct k_thread* thread, void* user_data) {
+static void logThreadStatistics(const struct k_thread* thread, void* user_data) {
   int* idx = static_cast<int*>(user_data);
 
   size_t total_stack  = 0;
@@ -92,14 +92,14 @@ static void printThreadStatistics(const struct k_thread* thread, void* user_data
 }
 #endif
 
-void Utils::printThreadsSummary() {
+void Utils::logThreadsSummary() {
 #if defined(CONFIG_THREAD_ANALYZER)
   LOG_INF("=== Threads Summary ===");
   LOG_INF(" # |      Thread ID | Name       | State     | Prio | Stack (used/total)");
   LOG_INF("---+----------------+------------+-----------+------+-------------------");
 
   int idx = 0;
-  k_thread_foreach(printThreadStatistics, &idx);
+  k_thread_foreach(logThreadStatistics, &idx);
 
   LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
 #else
@@ -107,7 +107,7 @@ void Utils::printThreadsSummary() {
 #endif
 }
 
-void Utils::printHeapSummary() {
+void Utils::logHeapSummary() {
 #if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
 
   struct sys_memory_stats stats;
@@ -123,7 +123,7 @@ void Utils::printHeapSummary() {
 #endif
 }
 
-void Utils::printCPULoad() {
+void Utils::logCPULoad() {
 #if defined(CONFIG_CPU_LOAD)
   int load         = cpu_load_get(true);
   uint32_t percent = load / 10;
