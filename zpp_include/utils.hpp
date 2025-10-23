@@ -26,8 +26,13 @@
 
 namespace zpp_lib {
 
-#ifdef CONFIG_CPU_LOAD
-void printCPULoad();
-#endif
+class Utils {
+public:
+    Utils() = default;
+
+    static void printThreadsSummary();
+    static void printHeapSummary();
+    static void printCPULoad();
+};
 
 } // namespace zpp_lib
