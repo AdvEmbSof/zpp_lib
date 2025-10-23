@@ -63,6 +63,11 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    */
   InterruptIn();
 
+  /** Remove callbacks added to gpio device
+   *
+   */
+  virtual ~InterruptIn();
+  
   /** Read the input, represented as 0 or 1 (int)
    *
    *  @returns
@@ -95,7 +100,7 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
                 gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
   struct gpio_callback _cbData;
-  std::function<void()> _fall_callback;
+  std::function<void()> _fall_callback = nullptr;
 };
 
 /** @}*/

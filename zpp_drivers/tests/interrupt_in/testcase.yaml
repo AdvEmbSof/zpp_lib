@@ -1,0 +1,5 @@
+tests:
+  zpp_lib.zpp_drivers.interrupt_in:
+    tags:
+      - cpp
+    timeout: 30
