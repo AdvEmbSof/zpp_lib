@@ -53,6 +53,10 @@ class Thread : private NonCopyable<Thread> {
       PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
       const char* name                   = nullptr);
 
+  /** Performs sanity checks
+  */
+  virtual ~Thread();
+
   /** Starts a thread executing the specified function.
     @param   task           function to be executed by this thread.
     @return  status code that indicates the execution status of the function,

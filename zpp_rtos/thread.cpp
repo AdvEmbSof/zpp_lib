@@ -51,6 +51,15 @@ Thread::Thread(PreemptableThreadPriority priority, const char* name) {
   constructor(priority, name);
 }
 
+Thread::~Thread() {
+  if (_tid != nullptr) {
+    auto ret = k_thread_join(_tid, K_FOREVER);
+    if (ret != 0) {
+      LOG_DBG("Failed to join: %d", ret);    
+    }
+  }  
+}
+
 void Thread::constructor(PreemptableThreadPriority priority, const char* name) {
   _priority = priority;
   _name     = name ? name : "application_unnamed_thread";
@@ -121,6 +130,9 @@ ZephyrResult Thread::join() noexcept {
     res.assign_error(zephyr_to_zpp_error_code(ret));
     return res;
   }
+
+  // reset tid
+  _tid = nullptr;
 
   return res;
 }

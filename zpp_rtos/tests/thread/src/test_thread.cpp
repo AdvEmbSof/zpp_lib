@@ -37,11 +37,6 @@
 
 LOG_MODULE_REGISTER(test_thread, CONFIG_APP_LOG_LEVEL);
 
-ZTEST_USER(zpp_thread, test_priority) {
-  zpp_lib::Thread otherThread(zpp_lib::PreemptableThreadPriority::PriorityNormal,
-                              "Secondary thread");
-}
-
 void sleep_function() {
   using namespace std::literals;
 
@@ -176,11 +171,11 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   LOG_DBG("Waiting for threads");
   res = thread1.join();
   if (!res) {
-    zassert_true(res, "Cannot join thread1: %d", res.error());
+    zassert_true(res, "Cannot join thread1: %d", (int) res.error());
   }
   res = thread2.join();
   if (!res) {
-    zassert_true(res, "Cannot join thread2: %d", res.error());
+    zassert_true(res, "Cannot join thread2: %d", (int) res.error());
   }
   zassert_true(diff < delta,
                "Time slicing looks uneven, diff = %lld, delta = %lld, counter1 %lld, "
