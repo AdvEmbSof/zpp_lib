@@ -75,7 +75,7 @@ public:
   ~Events();
 
 private:
-    struct k_event _event_obj;
+    struct k_event _event;
 };
 
 }  // namespace zpp_lib

@@ -36,31 +36,31 @@ LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-Events::Events() noexcept { k_event_init(&_event_obj);}
+Events::Events() noexcept { k_event_init(&_event);}
 
 Events::~Events() {}
 
 void Events::set(uint32_t event_flag) {
     if (k_is_in_isr()) {
-        k_event_post(&_event_obj, event_flag);
+        k_event_post(&_event, event_flag);
     } else {
-        k_event_set(&_event_obj, event_flag);
+        k_event_set(&_event, event_flag);
     }
 }
 
 void Events::wait_any(uint32_t events_flags) noexcept {
-    uint32_t ret = k_event_wait(&_event_obj, events_flags, true, K_FOREVER);
+    uint32_t ret = k_event_wait(&_event, events_flags, true, K_FOREVER);
     if (ret == 0){
-        //timeout -> return false without error
+        // timeout -> return false without error
         LOG_DBG("Timemout! unblock wihtout event...");
     }
 }
 
 ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept {
     LOG_DBG("Trying to wait on event with timeout %lld ms (ticks %lld)",
-          timeout.count(),
-          milliseconds_to_ticks(timeout).ticks);
-    auto ret = k_event_wait(&_event_obj, events_flags, true, milliseconds_to_ticks(timeout));
+            timeout.count(),
+            milliseconds_to_ticks(timeout).ticks);
+    auto ret = k_event_wait(&_event, events_flags, true, milliseconds_to_ticks(timeout));
 
     ZephyrBoolResult res;
     if (ret == 0) {
