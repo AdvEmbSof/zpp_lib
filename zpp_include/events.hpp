@@ -32,18 +32,18 @@
 // stl
 #include <chrono>
 
-//zpp_lib
+// zpp_lib
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
 
 class Events {
-public:
+ public:
   /** Create and Initialize a Events object
    *
    * @note You cannot call this function from ISR context.
    */
-  Events() noexcept; 
+  Events() noexcept;
 
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
@@ -62,20 +62,20 @@ public:
   /**
    * Wait timout until one of the specified event flags is set.
    * Up to 32 flags can be waited on simultaneously.
-   * 
+   *
    * @note Cannot be called from ISR context.
    */
   [[nodiscard]] ZephyrBoolResult try_wait_any_for(
-    const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
-  
+      const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
+
   /** Events destructor
    *
    * @note You cannot call this function from ISR context.
    */
   ~Events();
 
-private:
-    struct k_event _event;
+ private:
+  struct k_event _event;
 };
 
 }  // namespace zpp_lib

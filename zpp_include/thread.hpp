@@ -54,7 +54,7 @@ class Thread : private NonCopyable<Thread> {
       const char* name                   = nullptr);
 
   /** Performs sanity checks
-  */
+   */
   virtual ~Thread();
 
   /** Starts a thread executing the specified function.

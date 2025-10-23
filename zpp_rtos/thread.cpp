@@ -55,9 +55,9 @@ Thread::~Thread() {
   if (_tid != nullptr) {
     auto ret = k_thread_join(_tid, K_FOREVER);
     if (ret != 0) {
-      LOG_DBG("Failed to join: %d", ret);    
+      LOG_DBG("Failed to join: %d", ret);
     }
-  }  
+  }
 }
 
 void Thread::constructor(PreemptableThreadPriority priority, const char* name) {

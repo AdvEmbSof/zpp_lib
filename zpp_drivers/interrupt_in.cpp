@@ -81,13 +81,12 @@ InterruptIn<pinName>::InterruptIn() {
   LOG_DBG("Pin %s initialized", _gpio.port->name);
 }
 
-
 template <PinName pinName>
 InterruptIn<pinName>::~InterruptIn() {
   if (_fall_callback != nullptr) {
     auto ret = gpio_remove_callback(_gpio.port, &_cbData);
     if (ret != 0) {
-      __ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);      
+      __ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
     }
   }
 }
@@ -101,7 +100,7 @@ template <PinName pinName>
 void InterruptIn<pinName>::InterruptIn::fall(std::function<void()> func) {
   if (_fall_callback != nullptr) {
     LOG_ERR("Cannot set multiple callbacks to InterruptIn");
-    return;    
+    return;
   }
 
   _fall_callback = func;

@@ -35,9 +35,7 @@
 
 LOG_MODULE_REGISTER(test_interrupt_in, CONFIG_APP_LOG_LEVEL);
 
-void callback() {
-  LOG_DBG("Button1 pressed");
-}
+void callback() { LOG_DBG("Button1 pressed"); }
 
 ZTEST_USER(zpp_interrupt_in, test_destructor) {
   using namespace std::literals;
@@ -53,8 +51,8 @@ ZTEST_USER(zpp_interrupt_in, test_destructor) {
   }
 
   // the InterruptIn instance is destroyed here
-  // if the user presses the button in the next 10s, the callback message should not print 
-  // and the system should behave correctly  
+  // if the user presses the button in the next 10s, the callback message should not print
+  // and the system should behave correctly
   printk("Press button 1! -> nothing should print\n");
   zpp_lib::ThisThread::sleep_for(10s);
 }

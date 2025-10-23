@@ -24,62 +24,61 @@
 
 #if CONFIG_EVENTS == 1
 
-// zpp_lib
-#include "zpp_include/events.hpp"
-#include "zpp_include/clock.hpp"
-#include "zpp_include/zephyr_result.hpp"
-
 // Zephyr sdk
 #include <zephyr/logging/log.h>
+
+// zpp_lib
+#include "zpp_include/clock.hpp"
+#include "zpp_include/events.hpp"
+#include "zpp_include/zephyr_result.hpp"
 
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-Events::Events() noexcept { k_event_init(&_event);}
+Events::Events() noexcept { k_event_init(&_event); }
 
 Events::~Events() {}
 
 void Events::set(uint32_t event_flag) {
-    if (k_is_in_isr()) {
-        k_event_post(&_event, event_flag);
-    } else {
-        k_event_set(&_event, event_flag);
-    }
+  if (k_is_in_isr()) {
+    k_event_post(&_event, event_flag);
+  } else {
+    k_event_set(&_event, event_flag);
+  }
 }
 
 void Events::wait_any(uint32_t events_flags) noexcept {
-    uint32_t ret = k_event_wait(&_event, events_flags, true, K_FOREVER);
-    if (ret == 0){
-        // timeout -> return false without error
-        LOG_DBG("Timemout! unblock wihtout event...");
-    }
+  uint32_t ret = k_event_wait(&_event, events_flags, true, K_FOREVER);
+  if (ret == 0) {
+    // timeout -> return false without error
+    LOG_DBG("Timemout! unblock wihtout event...");
+  }
 }
 
-ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept {
-    LOG_DBG("Trying to wait on event with timeout %lld ms (ticks %lld)",
-            timeout.count(),
-            milliseconds_to_ticks(timeout).ticks);
-    auto ret = k_event_wait(&_event, events_flags, true, milliseconds_to_ticks(timeout));
+ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeout,
+                                          uint32_t events_flags) noexcept {
+  LOG_DBG("Trying to wait on event with timeout %lld ms (ticks %lld)",
+          timeout.count(),
+          milliseconds_to_ticks(timeout).ticks);
+  auto ret = k_event_wait(&_event, events_flags, true, milliseconds_to_ticks(timeout));
 
-    ZephyrBoolResult res;
-    if (ret == 0) {
-        // timeout -> return false without error
-        res.assign_value(false);
-    } else if (ret > 0) {
-        // handle event
-        res.assign_value(true);
-    } else {
-        LOG_ERR("Cannot wait on events: %d", ret);
-        __ASSERT(false, "Cannot wait on event: %d", ret);
-        res.assign_value(false);
-        res.assign_error(zephyr_to_zpp_error_code(ret));
-    }
-    return res;
-
+  ZephyrBoolResult res;
+  if (ret == 0) {
+    // timeout -> return false without error
+    res.assign_value(false);
+  } else if (ret > 0) {
+    // handle event
+    res.assign_value(true);
+  } else {
+    LOG_ERR("Cannot wait on events: %d", ret);
+    __ASSERT(false, "Cannot wait on event: %d", ret);
+    res.assign_value(false);
+    res.assign_error(zephyr_to_zpp_error_code(ret));
+  }
+  return res;
 }
 
 }  // namespace zpp_lib
-
 
 #endif  // CONFIG_EVENTS == 1

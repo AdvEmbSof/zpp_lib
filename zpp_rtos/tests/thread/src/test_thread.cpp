@@ -102,14 +102,14 @@ ZTEST_USER(zpp_thread, test_sleep_secondary_thread) {
                               "Secondary thread");
   auto res = otherThread.start(sleep_function);
   if (!res) {
-    zassert_true(res, "Cannot start thread: %d", res.error());
+    zassert_true(res, "Cannot start thread: %d", static_cast<int>(res.error()));
   }
 
   // wait for thread to complete
   LOG_DBG("Main thread waiting for secondary thread");
   res = otherThread.join();
   if (!res) {
-    zassert_true(res, "Cannot start thread: %d", res.error());
+    zassert_true(res, "Cannot start thread: %d", static_cast<int>(res.error()));
   }
 }
 
@@ -134,11 +134,11 @@ ZTEST_USER(zpp_thread, test_round_robin) {
 
   auto res = thread1.start(std::bind(thread_fn, &counter1, &stop));
   if (!res) {
-    zassert_true(res, "Cannot start thread1: %d", res.error());
+    zassert_true(res, "Cannot start thread1: %d", static_cast<int>(res.error()));
   }
   res = thread2.start(std::bind(thread_fn, &counter2, &stop));
   if (!res) {
-    zassert_true(res, "Cannot start thread2: %d", res.error());
+    zassert_true(res, "Cannot start thread2: %d", static_cast<int>(res.error()));
   }
 
   // Make sure that it has a higher priority than the other threads
@@ -171,11 +171,11 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   LOG_DBG("Waiting for threads");
   res = thread1.join();
   if (!res) {
-    zassert_true(res, "Cannot join thread1: %d", (int) res.error());
+    zassert_true(res, "Cannot join thread1: %d", static_cast<int>(res.error()));
   }
   res = thread2.join();
   if (!res) {
-    zassert_true(res, "Cannot join thread2: %d", (int) res.error());
+    zassert_true(res, "Cannot join thread2: %d", static_cast<int>(res.error()));
   }
   zassert_true(diff < delta,
                "Time slicing looks uneven, diff = %lld, delta = %lld, counter1 %lld, "

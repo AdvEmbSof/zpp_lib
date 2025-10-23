@@ -67,7 +67,7 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    *
    */
   virtual ~InterruptIn();
-  
+
   /** Read the input, represented as 0 or 1 (int)
    *
    *  @returns

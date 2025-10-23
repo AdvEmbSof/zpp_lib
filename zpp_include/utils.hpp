@@ -27,12 +27,12 @@
 namespace zpp_lib {
 
 class Utils {
-public:
-    Utils() = default;
+ public:
+  Utils() = default;
 
-    static void printThreadsSummary();
-    static void printHeapSummary();
-    static void printCPULoad();
+  static void printThreadsSummary();
+  static void printHeapSummary();
+  static void printCPULoad();
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib
