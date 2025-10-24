@@ -81,7 +81,7 @@ static void logThreadStatistics(const struct k_thread* thread, void* user_data) 
   used_stack = total_stack - unused_stack;
 #endif
 
-  LOG_INF("%2d | %14p | %-10s | %-9s | %4d | %4u / %-4u",
+  LOG_INF("%2d | %14p | %-12s | %-9s | %4d | %4u / %-4u",
           (*idx)++,
           thread_id,
           name ? name : "Unnamed",
@@ -95,8 +95,8 @@ static void logThreadStatistics(const struct k_thread* thread, void* user_data) 
 void Utils::logThreadsSummary() {
 #if defined(CONFIG_THREAD_ANALYZER)
   LOG_INF("=== Threads Summary ===");
-  LOG_INF(" # |      Thread ID | Name       | State     | Prio | Stack (used/total)");
-  LOG_INF("---+----------------+------------+-----------+------+-------------------");
+  LOG_INF(" # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
+  LOG_INF("---+----------------+--------------+-----------+------+-------------------");
 
   int idx = 0;
   k_thread_foreach(logThreadStatistics, &idx);

@@ -49,11 +49,14 @@ void Events::set(uint32_t event_flag) {
 }
 
 void Events::wait_any(uint32_t events_flags) noexcept {
-  uint32_t ret = k_event_wait(&_event, events_flags, true, K_FOREVER);
+  // do not clear the set of events before calling k_event_wait
+  uint32_t ret = k_event_wait(&_event, events_flags, false, K_FOREVER);
   if (ret == 0) {
     // timeout -> return false without error
-    LOG_DBG("Timemout! unblock wihtout event...");
+    LOG_DBG("Timemout! unblock without event...");
   }
+  // clear the event
+  k_event_clear(&_event, events_flags);
 }
 
 ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeout,
@@ -61,8 +64,9 @@ ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeo
   LOG_DBG("Trying to wait on event with timeout %lld ms (ticks %lld)",
           timeout.count(),
           milliseconds_to_ticks(timeout).ticks);
-  auto ret = k_event_wait(&_event, events_flags, true, milliseconds_to_ticks(timeout));
-
+  // do not clear the set of events before calling k_event_wait
+  auto ret = k_event_wait(&_event, events_flags, false, milliseconds_to_ticks(timeout));
+  
   ZephyrBoolResult res;
   if (ret == 0) {
     // timeout -> return false without error
@@ -76,6 +80,9 @@ ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeo
     res.assign_value(false);
     res.assign_error(zephyr_to_zpp_error_code(ret));
   }
+  // clear the event
+  k_event_clear(&_event, events_flags);
+
   return res;
 }
 
