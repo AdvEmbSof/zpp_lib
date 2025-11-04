@@ -127,7 +127,7 @@ template <PinName pinName>
 void InterruptIn<pinName>::callback(const struct device* port,
                                     struct gpio_callback* cb,
                                     gpio_port_pins_t pins) {
-  printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+  // printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
 
   if (_fall_callback != nullptr) {
     _fall_callback();
