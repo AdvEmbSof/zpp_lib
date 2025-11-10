@@ -66,7 +66,7 @@ ZephyrBoolResult Events::try_wait_any_for(const std::chrono::milliseconds& timeo
           milliseconds_to_ticks(timeout).ticks);
   // do not clear the set of events before calling k_event_wait
   auto ret = k_event_wait(&_event, events_flags, false, milliseconds_to_ticks(timeout));
-  
+
   ZephyrBoolResult res;
   if (ret == 0) {
     // timeout -> return false without error

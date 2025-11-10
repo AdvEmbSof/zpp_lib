@@ -55,13 +55,9 @@ void busyWait(const std::chrono::microseconds& waitTime) {
   k_busy_wait(waitTime.count());
 }
 
-std::chrono::microseconds sleep_for(const std::chrono::microseconds& sleep_duration) {
-  // auto res = k_sleep(milliseconds_to_ticks(sleep_duration));
-  const auto sleep_duration_ms =
-      std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
-  auto res = k_msleep(sleep_duration_ms.count());
-
-  return std::chrono::microseconds(res);
+std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& sleep_duration) {
+  auto res = k_msleep(sleep_duration.count());
+  return std::chrono::milliseconds(res);
 }
 
 }  // namespace ThisThread

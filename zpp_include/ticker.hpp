@@ -22,25 +22,24 @@
  * @version 1.0.0
  ***************************************************************************/
 
- 
 #pragma once
 
 // zephyr
 #include <zephyr/kernel.h>
 
 // zpp_lib
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/clock.hpp"
+#include "zpp_include/non_copyable.hpp"
 
 namespace zpp_lib {
 
 template <typename F>
 class Ticker : private NonCopyable<Ticker<F> > {
-public:
+ public:
   Ticker() = default;
 
-  [[nodiscard]] ZephyrResult attach(F& f, const std::chrono::milliseconds& period) {
-    ZephyrResult res;    
+  [[nodiscard]] ZephyrResult attach(const F& f, const std::chrono::milliseconds& period) {
+    ZephyrResult res;
     // reject the call if already attached
     if (_isAttached) {
       res.assign_error(ZephyrErrorCode::k_already);
@@ -49,12 +48,13 @@ public:
 
     // initialize our timer
     k_timer_init(&_timer, &Ticker::_thunk, nullptr);
-       
+
     // specify this instance as user data
-    // this cast is ugly but the only way to pass a reference to this instance to the timer
+    // this cast is ugly but the only way to pass a reference to this instance to the
+    // timer
     // cppcheck-suppress cstyleCast
     _timer.user_data = (void*)this;  // NOLINT(readability/casting)
-    
+
     // store the task
     _task = f;
 
@@ -64,18 +64,18 @@ public:
 
     // set the status
     _isAttached = true;
-    
+
     return res;
   }
 
-private:
+ private:
   static void _thunk(struct k_timer* timer_id) {
     // submit the periodic task
     if (timer_id != nullptr) {
       // get instance from user data
       // this cast is ugly but the only way to pass a reference to this instance to the
       // timer
-      // cppcheck-suppress cstyleCast      
+      // cppcheck-suppress cstyleCast
       Ticker* pTicker = (Ticker*)timer_id->user_data;  // NOLINT(readability/casting)
       // will run in ISR context (should be dispatched to a work queue)
       pTicker->_task();
@@ -88,4 +88,4 @@ private:
   F _task;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

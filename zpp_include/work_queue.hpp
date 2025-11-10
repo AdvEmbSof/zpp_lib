@@ -13,7 +13,7 @@
 // limitations under the License.
 
 /****************************************************************************
- * @file thread.hpp
+ * @file work_queue.hpp
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
  * @brief CPP class declaration/implementation wrapping zephyr OS work_queue
