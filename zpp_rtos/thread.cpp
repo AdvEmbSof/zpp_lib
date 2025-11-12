@@ -125,14 +125,21 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
 
-  auto ret = k_thread_join(_tid, K_FOREVER);
-  if (ret != 0) {
-    res.assign_error(zephyr_to_zpp_error_code(ret));
-    return res;
-  }
+  auto ret = _mutex.lock();
+  __ASSERT(ret, "Cannot lock mutex in join");
 
-  // reset tid
-  _tid = nullptr;
+  if (_tid != nullptr) {
+    auto ret = k_thread_join(_tid, K_FOREVER);
+    if (ret != 0) {
+      res.assign_error(zephyr_to_zpp_error_code(ret));
+      return res;
+    }
+
+    // reset tid
+    _tid = nullptr;
+  }
+  ret = _mutex.unlock();
+  __ASSERT(ret, "Cannot unlock mutex in join");
 
   return res;
 }
