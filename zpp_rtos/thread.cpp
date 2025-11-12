@@ -63,7 +63,6 @@ Thread::~Thread() {
 void Thread::constructor(PreemptableThreadPriority priority, const char* name) {
   _priority = priority;
   _name     = name ? name : "application_unnamed_thread";
-  _finished = false;
 }
 
 ZephyrResult Thread::start(std::function<void()> task) noexcept {
@@ -125,21 +124,29 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
 
-  auto ret = _mutex.lock();
-  __ASSERT(ret, "Cannot lock mutex in join");
+  res = _mutex.lock();
+  __ASSERT(res, "Cannot lock mutex in join: %d", (int)res.error());
 
   if (_tid != nullptr) {
+    // we need to unlock the mutex before calling k_thread_join
+    res = _mutex.unlock();
+  __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
+
     auto ret = k_thread_join(_tid, K_FOREVER);
     if (ret != 0) {
       res.assign_error(zephyr_to_zpp_error_code(ret));
       return res;
     }
 
+    res = _mutex.lock();
+    __ASSERT(res, "Cannot lock mutex in join: %d", (int)res.error());
+
     // reset tid
     _tid = nullptr;
   }
-  ret = _mutex.unlock();
-  __ASSERT(ret, "Cannot unlock mutex in join");
+   
+  res = _mutex.unlock();
+  __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
 
   return res;
 }
@@ -149,15 +156,12 @@ void Thread::_thunk(void* thread_ptr, void* a2, void* a3) {
   Thread* t = static_cast<Thread*>(thread_ptr);
   t->_task();
   LOG_DBG("Task done: exiting the thread (locking mutex)");
-  auto ret = t->_mutex.lock();
-  __ASSERT(ret, "Cannot lock mutex after task done");
-  t->_tid      = nullptr;
-  t->_finished = true;
-  // remove this thread from the existing threads
-  _threadInstanceCount--;
-  LOG_DBG("Job is marked finished, unlocking mutex");
-  ret = t->_mutex.unlock();
-  __ASSERT(ret, "Cannot unlock mutex after task done");
+  {
+    std::scoped_lock<Mutex> guard(t->_mutex);
+    // remove this thread from the existing threads
+    _threadInstanceCount--;
+    LOG_DBG("Job is marked finished, unlocking mutex");
+  }
   LOG_DBG("Exiting _thunk");
 }
 

@@ -82,7 +82,6 @@ class Thread : private NonCopyable<Thread> {
 
  private:
   std::function<void()> _task;
-  bool _finished;
   PreemptableThreadPriority _priority;
   std::string _name;
   k_tid_t _tid = nullptr;
