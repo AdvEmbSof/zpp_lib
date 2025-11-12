@@ -60,7 +60,9 @@ void busyWait(const std::chrono::microseconds& waitTime);
 ///
 /// @param wait_duration The time to sleep
 ///
+std::chrono::milliseconds sleep_for(const std::chrono::microseconds& waitTime);
 std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& waitTime);
+std::chrono::milliseconds sleep_for(const std::chrono::seconds& waitTime);
 
 }  // namespace ThisThread
 
