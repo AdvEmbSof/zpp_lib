@@ -61,13 +61,15 @@ std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& sleep_durat
 }
 
 std::chrono::milliseconds sleep_for(const std::chrono::microseconds& sleep_duration) {
-  std::chrono::milliseconds ms_sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
+  std::chrono::milliseconds ms_sleep_duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
   auto res = k_msleep(ms_sleep_duration.count());
   return std::chrono::milliseconds(res);
 }
 
 std::chrono::milliseconds sleep_for(const std::chrono::seconds& sleep_duration) {
-  std::chrono::milliseconds ms_sleep_duration = std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
+  std::chrono::milliseconds ms_sleep_duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
   auto res = k_msleep(ms_sleep_duration.count());
   return std::chrono::milliseconds(res);
 }

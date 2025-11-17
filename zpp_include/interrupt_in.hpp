@@ -30,8 +30,10 @@
 
 // stl
 #include <functional>
+#include <map>
 
 // zpp_lib
+#include "zpp_include/mutex.hpp"
 #include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
@@ -49,7 +51,13 @@ namespace zpp_lib {
  */
 static constexpr uint8_t kPolarityPressed = 1;
 
-enum class PinName { BUTTON1 = 1, BUTTON2 = 2, BUTTON3 = 3, BUTTON4 = 4 };
+enum class PinName {
+  BUTTON1     = 1,
+  BUTTON2     = 2,
+  BUTTON3     = 3,
+  BUTTON4     = 4,
+  LAST_BUTTON = 4
+};
 template <PinName pinName>
 class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
  public:
@@ -100,7 +108,12 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
                 gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
   struct gpio_callback _cbData;
-  std::function<void()> _fall_callback = nullptr;
+  static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
+  static constexpr size_t BUTTON_INDEX   = static_cast<size_t>(pinName) - 1;
+  using CallbackFunction                 = std::function<void()>;
+  using CallbackFunctionMap              = std::map<void*, CallbackFunction>;
+  static inline CallbackFunctionMap _fall_cb_map[NBR_OF_BUTTONS];
+  static inline zpp_lib::Mutex _cbMutex;
 };
 
 /** @}*/

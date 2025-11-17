@@ -57,4 +57,34 @@ ZTEST_USER(zpp_interrupt_in, test_destructor) {
   zpp_lib::ThisThread::sleep_for(10s);
 }
 
+ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
+  using namespace std::literals;
+
+  {
+    zpp_lib::InterruptIn<zpp_lib::PinName::BUTTON1> button1_1;
+    button1_1.fall(callback);
+
+    {
+      zpp_lib::InterruptIn<zpp_lib::PinName::BUTTON1> button1_2;
+      button1_2.fall(callback);
+      printk("Press button 1! -> two messages should print\n");
+
+      // if the user presses the button in the next 10s, the callback message should print
+      // twice
+      zpp_lib::ThisThread::sleep_for(10s);
+    }
+
+    printk("Press button 1! -> one message should print\n");
+
+    // if the user presses the button in the next 10s, the callback message should print
+    zpp_lib::ThisThread::sleep_for(10s);
+  }
+
+  // the InterruptIn instance is destroyed here
+  // if the user presses the button in the next 10s, the callback message should not print
+  // and the system should behave correctly
+  printk("Press button 1! -> nothing should print\n");
+  zpp_lib::ThisThread::sleep_for(10s);
+}
+
 ZTEST_SUITE(zpp_interrupt_in, NULL, NULL, NULL, NULL, NULL);

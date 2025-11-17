@@ -130,7 +130,7 @@ ZephyrResult Thread::join() noexcept {
   if (_tid != nullptr) {
     // we need to unlock the mutex before calling k_thread_join
     res = _mutex.unlock();
-  __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
+    __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
 
     auto ret = k_thread_join(_tid, K_FOREVER);
     if (ret != 0) {
@@ -144,7 +144,7 @@ ZephyrResult Thread::join() noexcept {
     // reset tid
     _tid = nullptr;
   }
-   
+
   res = _mutex.unlock();
   __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
 
