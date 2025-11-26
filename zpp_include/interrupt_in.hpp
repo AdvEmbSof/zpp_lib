@@ -25,7 +25,9 @@
 #pragma once
 
 // zephyr
+#if CONFIG_TEST != 1
 #include <zephyr/drivers/gpio.h>
+#endif
 #include <zephyr/kernel.h>
 
 // stl
@@ -82,18 +84,11 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    *    An integer representing the state of the input pin,
    *    0 for logical 0, 1 for logical 1
    */
-  int read();
+  uint8_t read();
 
   /** An operator shorthand for read()
    */
-  operator int();
-
-  /** Attach a function to call when a rising edge occurs on the input
-   *  Interrupts are enabled for the pin
-   *
-   *  @param func A pointer to a void function, or 0 to set as none
-   */
-  // void press(std::function<void()> func);
+  operator uint8_t();
 
   /** Attach a function to call when a falling edge occurs on the input
    *  Interrupts are enabled for the pin
@@ -102,12 +97,23 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    */
   void fall(std::function<void()> func);
 
+#if CONFIG_TEST == 1
+  /** Used for testing purposes
+   *  Sets the value of the input pin
+   */
+  void write(uint8_t value);
+#endif
+
  protected:
+#if CONFIG_TEST == 1
+  uint8_t _value = !kPolarityPressed;  // button not pressed by default
+#else
   void callback(const struct device* port,
                 struct gpio_callback* cb,
                 gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
   struct gpio_callback _cbData;
+#endif
   static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
   static constexpr size_t BUTTON_INDEX   = static_cast<size_t>(pinName) - 1;
   using CallbackFunction                 = std::function<void()>;

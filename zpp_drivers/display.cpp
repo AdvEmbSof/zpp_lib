@@ -115,9 +115,9 @@ void Display::fillRectangle(
   uint16_t firstLine       = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
   uint16_t lastLine = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
-    if (rc != 0) {
-      LOG_ERR("Cannot write to display: %d", rc);
+    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+    if (ret != 0) {
+      LOG_ERR("Cannot write to display: %d", ret);
     }
   }
 }
@@ -149,9 +149,9 @@ void Display::drawPicture(uint16_t xPos,
       zpp_lib::min(yPos + pictureHeight, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pSrc, pictureWidth, _lineBuffer);
-    int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
-    if (rc != 0) {
-      LOG_ERR("Cannot write to display: %d", rc);
+    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+    if (ret != 0) {
+      LOG_ERR("Cannot write to display: %d", ret);
     }
     pSrc += pictureWidth;
   }
@@ -318,9 +318,9 @@ void Display::fillRgbRect(
   uint16_t lastLine  = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
     _fillLineFunction(pData, width, _lineBuffer);
-    int rc = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
-    if (rc != 0) {
-      LOG_ERR("Cannot write to display: %d", rc);
+    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+    if (ret != 0) {
+      LOG_ERR("Cannot write to display: %d", ret);
     }
     pData += width;
   }

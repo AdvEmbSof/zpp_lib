@@ -39,8 +39,9 @@ namespace zpp_lib {
 // forward declaration for friendship
 class WorkQueue;
 
+// Allow Work instances to be copied and copy constructed
 template <typename F>
-class Work : private NonCopyable<Work<F>> {
+class Work {
  public:
   explicit Work(F f) {
     _workInfo._workFunction = f;

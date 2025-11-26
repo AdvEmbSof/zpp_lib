@@ -31,6 +31,7 @@
 #include <string>
 
 // zpp_lib
+#include "zpp_include/events.hpp"
 #include "zpp_include/mutex.hpp"
 #include "zpp_include/non_copyable.hpp"
 #include "zpp_include/types.hpp"
@@ -67,6 +68,13 @@ class Thread : private NonCopyable<Thread> {
   */
   [[nodiscard]] ZephyrResult start(std::function<void()> task) noexcept;
 
+  /** Wait for thread to have started
+    @return  status code that indicates the execution status of the function.
+
+    @note You cannot call this function from ISR context.
+  */
+  void waitStarted() noexcept;
+
   /** Wait for thread to terminate
     @return  status code that indicates the execution status of the function.
 
@@ -83,6 +91,8 @@ class Thread : private NonCopyable<Thread> {
  private:
   std::function<void()> _task;
   PreemptableThreadPriority _priority;
+  Events _events;
+  static constexpr uint32_t kStartedEvent = 0x01;
   std::string _name;
   k_tid_t _tid = nullptr;
 

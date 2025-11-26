@@ -62,10 +62,17 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
 
-  ZephyrResult rc = write(value);
-  if (!rc) {
-    LOG_ERR("Cannot write value %d to output (%s)", value, _gpio.port->name);
-    __ASSERT(false, "Cannot write value %d to output (%s)", value, _gpio.port->name);
+  ZephyrResult res = write(value);
+  if (!res) {
+    LOG_ERR("Cannot write value %d to output (%s): %d",
+            value,
+            _gpio.port->name,
+            static_cast<int>(res.error()));
+    __ASSERT(false,
+             "Cannot write value %d to output (%s): %d",
+             value,
+             _gpio.port->name,
+             static_cast<int>(res.error()));
     return;
   }
 }

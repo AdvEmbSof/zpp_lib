@@ -42,6 +42,7 @@ namespace zpp_lib {
 
 template <PinName pinName>
 InterruptIn<pinName>::InterruptIn() {
+#if CONFIG_TEST != 1
   switch (pinName) {
     case PinName::BUTTON1:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
@@ -70,8 +71,8 @@ InterruptIn<pinName>::InterruptIn() {
 
   int ret = gpio_pin_configure_dt(&_gpio, GPIO_INPUT);
   if (ret < 0) {
-    LOG_ERR("Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
-    __ASSERT(false, "Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
+    LOG_ERR("Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
+    __ASSERT(false, "Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
     return;
   }
 
@@ -85,6 +86,7 @@ InterruptIn<pinName>::InterruptIn() {
     return;
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
+#endif
 }
 
 template <PinName pinName>
@@ -93,23 +95,34 @@ InterruptIn<pinName>::~InterruptIn() {
 
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
   if (cbFunctionMap.find(this) != cbFunctionMap.end()) {
+#if CONFIG_TEST != 1
     if (cbFunctionMap.size() == 1) {
       auto ret = gpio_remove_callback(_gpio.port, &_cbData);
       if (ret != 0) {
         __ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
       }
     }
+#endif
     cbFunctionMap.erase(this);
   }
 }
 
 template <PinName pinName>
-int InterruptIn<pinName>::read() {
+uint8_t InterruptIn<pinName>::read() {
+#if CONFIG_TEST == 1
+  return _value;
+#else
   return gpio_pin_get_dt(&_gpio);
+#endif
 }
 
 template <PinName pinName>
 void InterruptIn<pinName>::fall(std::function<void()> func) {
+  if (func == nullptr) {
+    LOG_ERR("Cannot call fall with nullptr");
+    return;
+  }
+
   // We allow for multiple calls to fall() for setting multiple callbacks.
   // On first call, we configure the Zephyr driver to call the
   // InterruptIn<pinName>::callback() on button fall
@@ -117,6 +130,7 @@ void InterruptIn<pinName>::fall(std::function<void()> func) {
   std::scoped_lock<Mutex> guard(_cbMutex);
 
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+#if CONFIG_TEST != 1
   if (cbFunctionMap.empty()) {
     typedef std::function<void(
         const struct device*, struct gpio_callback*, gpio_port_pins_t)>
@@ -133,12 +147,29 @@ void InterruptIn<pinName>::fall(std::function<void()> func) {
     gpio_init_callback(&_cbData, callbackHandler, BIT(_gpio.pin));
     gpio_add_callback(_gpio.port, &_cbData);
   }
-
-  cbFunctionMap[this] = func;
-
   LOG_DBG("Set up button at %s pin %d\n", _gpio.port->name, _gpio.pin);
+#endif
+  cbFunctionMap[this] = func;
 }
 
+#if CONFIG_TEST == 1
+template <PinName pinName>
+void InterruptIn<pinName>::write(uint8_t value) {
+  bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
+  _value           = value;
+  if (edgeFalling) {
+    // printk("TEST mode: Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+    for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
+         iter != cbFunctionMap.end();
+         ++iter) {
+      iter->second();
+    }
+  }
+}
+#endif
+
+#if CONFIG_TEST != 1
 template <PinName pinName>
 void InterruptIn<pinName>::callback(const struct device* port,
                                     struct gpio_callback* cb,
@@ -151,6 +182,7 @@ void InterruptIn<pinName>::callback(const struct device* port,
     iter->second();
   }
 }
+#endif
 
 // template instantiation
 template class InterruptIn<PinName::BUTTON1>;

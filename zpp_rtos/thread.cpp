@@ -121,6 +121,8 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   return res;
 }
 
+void Thread::waitStarted() noexcept { _events.wait_any(kStartedEvent); }
+
 ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
 
@@ -154,6 +156,7 @@ ZephyrResult Thread::join() noexcept {
 void Thread::_thunk(void* thread_ptr, void* a2, void* a3) {
   LOG_DBG("Thread _thunk called");
   Thread* t = static_cast<Thread*>(thread_ptr);
+  t->_events.set(kStartedEvent);
   t->_task();
   LOG_DBG("Task done: exiting the thread (locking mutex)");
   {
