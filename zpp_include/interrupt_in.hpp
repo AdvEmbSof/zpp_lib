@@ -106,7 +106,7 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
 
  protected:
 #if CONFIG_TEST == 1
-  uint8_t _value = !kPolarityPressed;  // button not pressed by default
+  static inline uint8_t _value { !kPolarityPressed };  // button not pressed by default
 #else
   void callback(const struct device* port,
                 struct gpio_callback* cb,

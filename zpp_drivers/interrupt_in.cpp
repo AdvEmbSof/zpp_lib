@@ -116,6 +116,23 @@ uint8_t InterruptIn<pinName>::read() {
 #endif
 }
 
+#if CONFIG_TEST == 1
+template <PinName pinName>
+void InterruptIn<pinName>::write(uint8_t value) {
+  bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
+  _value           = value;
+  if (edgeFalling) {
+    // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(pinName), k_cycle_get_32());
+    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+    for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
+         iter != cbFunctionMap.end();
+         ++iter) {
+      iter->second();
+    }
+  }
+}
+#endif
+
 template <PinName pinName>
 void InterruptIn<pinName>::fall(std::function<void()> func) {
   if (func == nullptr) {
@@ -151,23 +168,6 @@ void InterruptIn<pinName>::fall(std::function<void()> func) {
 #endif
   cbFunctionMap[this] = func;
 }
-
-#if CONFIG_TEST == 1
-template <PinName pinName>
-void InterruptIn<pinName>::write(uint8_t value) {
-  bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
-  _value           = value;
-  if (edgeFalling) {
-    // printk("TEST mode: Button pressed at %" PRIu32 "\n", k_cycle_get_32());
-    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
-    for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
-         iter != cbFunctionMap.end();
-         ++iter) {
-      iter->second();
-    }
-  }
-}
-#endif
 
 #if CONFIG_TEST != 1
 template <PinName pinName>
