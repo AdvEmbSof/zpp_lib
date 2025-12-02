@@ -166,12 +166,6 @@ void Utils::logThreadsSummary() {
 #if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
 void Utils::logHeapSummary() {
 
-uint8_t* leak = new uint8_t[256];
-for (int i = 0; i < 256; i++) {
-  leak[i] = i;
-}
-printk("leak: %d", leak[100]);
-
   struct sys_memory_stats stats;
   sys_heap_runtime_stats_get(&_system_heap, &stats);
   LOG_INF("=== Heap Summary ===");
