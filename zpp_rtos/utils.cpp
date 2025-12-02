@@ -163,8 +163,14 @@ void Utils::logThreadsSummary() {
 #endif
 }
 
-void Utils::logHeapSummary() {
 #if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
+void Utils::logHeapSummary() {
+
+uint8_t* leak = new uint8_t[256];
+for (int i = 0; i < 256; i++) {
+  leak[i] = i;
+}
+printk("leak: %d", leak[100]);
 
   struct sys_memory_stats stats;
   sys_heap_runtime_stats_get(&_system_heap, &stats);
@@ -173,10 +179,8 @@ void Utils::logHeapSummary() {
   LOG_INF("\tFree:      %u bytes", stats.free_bytes);
   LOG_INF("\tMax Alloc: %u bytes\n", stats.max_allocated_bytes);
   // LOG_INF("\tBlocks:    %u", stats.blocks);
-#else
-  LOG_WRN("Heap statistics not available (enable CONFIG_SYS_HEAP_RUNTIME_STATS)");
-#endif
 }
+#endif
 
 void Utils::logCPULoad() {
 #if defined(CONFIG_CPU_LOAD)
