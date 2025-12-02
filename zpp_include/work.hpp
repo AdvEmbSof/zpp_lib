@@ -40,10 +40,10 @@ namespace zpp_lib {
 class WorkQueue;
 
 // Allow Work instances to be copied and copy constructed
-template <typename F>
-class Work {
+class Work : private NonCopyable<WorkQueue> {
  public:
-  explicit Work(F f) {
+  using FunctionType = std::function<void()>;
+  explicit Work(FunctionType f) {
     _workInfo._workFunction = f;
     k_work_init(&_workInfo._work, &Work::_thunk);
   }
@@ -63,7 +63,7 @@ class Work {
   struct WorkInfo {
     // _work must be the first attribute of the unique class attribute
     struct k_work _work;
-    F _workFunction;
+    FunctionType _workFunction;
   };
   WorkInfo _workInfo;
 };

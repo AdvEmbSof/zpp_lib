@@ -30,8 +30,13 @@ class Utils {
  public:
   Utils() = default;
 
+#if defined(CONFIG_THREAD_STACK_INFO)
+  static void logThreadsStackInfo();
+#endif
   static void logThreadsSummary();
+#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
   static void logHeapSummary();
+#endif
   static void logCPULoad();
 };
 
