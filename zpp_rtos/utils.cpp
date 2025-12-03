@@ -58,7 +58,9 @@ static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
   k_tid_t thread_id        = (k_tid_t)thread;
   size_t unused_stack_size = 0;
   auto rc                  = k_thread_stack_space_get(thread_id, &unused_stack_size);
-  __ASSERT(rc == 0, "k_thread_stack_space_get failed: %d", rc);
+  if (rc != 0) {
+    __ASSERT(false, "k_thread_stack_space_get failed: %d", rc);
+  }
   size_t used_stack_size = stack_size - unused_stack_size;
 
   const char* name    = k_thread_name_get(thread_id);

@@ -39,14 +39,44 @@ namespace zpp_lib {
 // forward declaration for friendship
 class WorkQueue;
 
-// Allow Work instances to be copied and copy constructed
-class Work : private NonCopyable<WorkQueue> {
+template <typename Obj, typename... Args>
+class Work /*: private NonCopyable<Work<Obj, Args...>> */{
  public:
-  using FunctionType = std::function<void()>;
-  explicit Work(FunctionType f) {
-    _workInfo._workFunction = f;
+  using Method = void(Obj::*)(Args...);//std::function<void()>;
+  explicit Work(Obj* obj, Method f, Args... args) noexcept {
+    _workInfo._obj = obj;
+    _workInfo._workMethod = f;
+    _workInfo._args = std::make_tuple(std::forward<Args>(args)...);
     k_work_init(&_workInfo._work, &Work::_thunk);
   }
+  
+  // do NOT allow copy/assignment/move assignment
+  Work(const Work&) = delete;
+  Work& operator=(Work&& other) {
+    // the work should NOT be submitted/running
+    __ASSERT((_workInfo._work.flags & BIT(K_WORK_QUEUED_BIT | K_WORK_RUNNING_BIT)) == 0, "Work cannot be moved when queued or running");
+    _workInfo._obj = other._workInfo._obj;
+    _workInfo._workMethod = other._workInfo._workMethod;
+    _workInfo._args = other._workInfo._args;//std::make_tuple(std::forward_as_tuple<Args>(other._workInfo._args)...);
+    // Re-init the k_work for this instance (not strictly necessary?)
+    k_work_init(&_workInfo._work, &Work::_thunk);
+
+    return *this;
+  }
+
+  Work& operator=(const Work&) = delete;
+  Work(Work&& other) = delete;
+  // allow move copy
+  // Work(Work&& other) noexcept {
+  //   // the work should NOT be submitted/running
+  //   __ASSERT(!flag_test(&_workInfo._work->flags, K_WORK_QUEUED_BIT | K_WORK_RUNNING_BIT), "Work cannot be moved when queued or running");
+  //   _workInfo._obj = other._workInfo._obj;
+  //   _workInfo._workMethod = other._workInfo._workMethod;
+  //   _workInfo._args = std::make_tuple(std::forward<Args>(other._workInfo._args)...);
+  //   // Re-init the k_work for this instance (not strictly necessary?)
+  //   k_work_init(&_workInfo._work, &Work::_thunk);
+  // }
+
 
  private:
   static void _thunk(struct k_work* item) {
@@ -57,13 +87,17 @@ class Work : private NonCopyable<WorkQueue> {
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
     // cppcheck-suppress dangerousTypeCast
     Work* pWork = (Work*)(item);  // NOLINT(readability/casting)
-    pWork->_workInfo._workFunction();
+    WorkInfo& workInfo = pWork->_workInfo;
+    std::apply([&](auto&&... params) {
+      (workInfo._obj->*workInfo._workMethod)(params...);}, workInfo._args);
   }
   friend WorkQueue;
   struct WorkInfo {
     // _work must be the first attribute of the unique class attribute
     struct k_work _work;
-    FunctionType _workFunction;
+    Obj* _obj;
+    Method _workMethod;
+    std::tuple<Args...> _args;
   };
   WorkInfo _workInfo;
 };

@@ -96,7 +96,8 @@ class WorkQueue : private NonCopyable<WorkQueue> {
 
   //  Passing a parameter as a non-const reference is accepted
   //  NOLINTNEXTLINE(runtime/references)
-  [[nodiscard]] ZephyrResult call(Work& work) {
+  template <typename Obj, typename... Args>
+  [[nodiscard]] ZephyrResult call(Work<Obj, Args...>& work) {
     ZephyrResult res;
     if (!_isStarted.load()) {
       __ASSERT(false, "Workqueue should have started before calling call()");
