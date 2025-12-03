@@ -40,7 +40,7 @@ namespace zpp_lib {
 class WorkQueue;
 
 template <typename Obj, typename... Args>
-class Work /*: private NonCopyable<Work<Obj, Args...>> */{
+class Work {
  public:
   using Method = void(Obj::*)(Args...);//std::function<void()>;
   explicit Work(Obj* obj, Method f, Args... args) noexcept {
@@ -50,8 +50,7 @@ class Work /*: private NonCopyable<Work<Obj, Args...>> */{
     k_work_init(&_workInfo._work, &Work::_thunk);
   }
   
-  // do NOT allow copy/assignment/move assignment
-  Work(const Work&) = delete;
+  // allow ONLY move assignment for use in ISR methods
   Work& operator=(Work&& other) {
     // the work should NOT be submitted/running
     __ASSERT((_workInfo._work.flags & BIT(K_WORK_QUEUED_BIT | K_WORK_RUNNING_BIT)) == 0, "Work cannot be moved when queued or running");
@@ -63,20 +62,9 @@ class Work /*: private NonCopyable<Work<Obj, Args...>> */{
 
     return *this;
   }
-
+  Work(const Work&) = delete;
   Work& operator=(const Work&) = delete;
   Work(Work&& other) = delete;
-  // allow move copy
-  // Work(Work&& other) noexcept {
-  //   // the work should NOT be submitted/running
-  //   __ASSERT(!flag_test(&_workInfo._work->flags, K_WORK_QUEUED_BIT | K_WORK_RUNNING_BIT), "Work cannot be moved when queued or running");
-  //   _workInfo._obj = other._workInfo._obj;
-  //   _workInfo._workMethod = other._workInfo._workMethod;
-  //   _workInfo._args = std::make_tuple(std::forward<Args>(other._workInfo._args)...);
-  //   // Re-init the k_work for this instance (not strictly necessary?)
-  //   k_work_init(&_workInfo._work, &Work::_thunk);
-  // }
-
 
  private:
   static void _thunk(struct k_work* item) {
