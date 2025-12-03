@@ -57,8 +57,8 @@ class Work /*: private NonCopyable<Work<Obj, Args...>> */{
     __ASSERT((_workInfo._work.flags & BIT(K_WORK_QUEUED_BIT | K_WORK_RUNNING_BIT)) == 0, "Work cannot be moved when queued or running");
     _workInfo._obj = other._workInfo._obj;
     _workInfo._workMethod = other._workInfo._workMethod;
-    _workInfo._args = other._workInfo._args;//std::make_tuple(std::forward_as_tuple<Args>(other._workInfo._args)...);
-    // Re-init the k_work for this instance (not strictly necessary?)
+    _workInfo._args = other._workInfo._args;
+    // Re-init the k_work for this instance
     k_work_init(&_workInfo._work, &Work::_thunk);
 
     return *this;
