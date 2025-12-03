@@ -167,7 +167,6 @@ void Utils::logThreadsSummary() {
 
 #if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
 void Utils::logHeapSummary() {
-
   struct sys_memory_stats stats;
   sys_heap_runtime_stats_get(&_system_heap, &stats);
   LOG_INF("=== Heap Summary ===");
