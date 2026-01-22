@@ -60,6 +60,13 @@ class WorkQueue : private NonCopyable<WorkQueue> {
     _thread.waitStarted();
   }
 
+  ~WorkQueue() {
+    auto res = stop();
+    if (! res) {
+      __ASSERT(false, "Failed to stop work queue at destruction: %d", (int)res.error());
+    }
+  }
+
   void run() {
     if (_isStarted.load()) {
       return;
