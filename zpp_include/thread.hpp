@@ -31,7 +31,7 @@
 #include <string>
 
 // zpp_lib
-#include "zpp_include/events.hpp"
+#include "zpp_include/event.hpp"
 #include "zpp_include/mutex.hpp"
 #include "zpp_include/non_copyable.hpp"
 #include "zpp_include/types.hpp"
@@ -91,7 +91,7 @@ class Thread : private NonCopyable<Thread> {
  private:
   std::function<void()> _task;
   PreemptableThreadPriority _priority;
-  Events _events;
+  Event _event;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::string _name;
   k_tid_t _tid = nullptr;

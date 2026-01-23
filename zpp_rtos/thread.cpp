@@ -36,7 +36,7 @@ LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 namespace zpp_lib {
 
 // DECLARE STATIC GLOBAL VARIABLES
-K_THREAD_STACK_ARRAY_DEFINE(ZPP_THREADS,
+K_THREAD_STACK_ARRAY_DEFINE(ZPP_THREADS_STACKS,
                             CONFIG_ZPP_THREAD_POOL_SIZE,
                             CONFIG_ZPP_THREAD_STACK_SIZE);
 // Allocate a static k_thread array for preventing crashes in the SystemView tracing
@@ -83,17 +83,21 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   _task = task;
 
   // create the thread
+#if CONFIG_USERSPACE==1
+  uint32_t options    = K_USER | K_INHERIT_PERMS;
+#else
   uint32_t options    = 0;
+#endif  
   k_timeout_t delay   = K_NO_WAIT;
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
   LOG_DBG("Creating thread with stack size %d and priority %d",
-          K_THREAD_STACK_SIZEOF(ZPP_THREADS[_threadInstanceCount]),
+          K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
           zephyr_priority);
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
   _tid = k_thread_create(&_thread_data[_threadInstanceCount],
-                         ZPP_THREADS[_threadInstanceCount],
-                         K_THREAD_STACK_SIZEOF(ZPP_THREADS[_threadInstanceCount]),
+                         ZPP_THREADS_STACKS[_threadInstanceCount],
+                         K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
                          Thread::_thunk,
                          this,
                          nullptr,
@@ -114,6 +118,10 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
     return res;
   }
 
+#if CONFIG_USERSPACE==1
+  k_object_access_grant(&_events._event, _tid);
+#endif
+
   // update the thread instance count
   _threadInstanceCount++;
   LOG_DBG("Thread (instance count %d) started", _threadInstanceCount);
@@ -121,7 +129,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   return res;
 }
 
-void Thread::waitStarted() noexcept { _events.wait_any(kStartedEvent); }
+void Thread::waitStarted() noexcept { _event.wait_any(kStartedEvent); }
 
 ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
@@ -156,7 +164,7 @@ ZephyrResult Thread::join() noexcept {
 void Thread::_thunk(void* thread_ptr, void* a2, void* a3) {
   LOG_DBG("Thread _thunk called");
   Thread* t = static_cast<Thread*>(thread_ptr);
-  t->_events.set(kStartedEvent);
+  t->_event.set(kStartedEvent);
   t->_task();
   LOG_DBG("Task done: exiting the thread (locking mutex)");
   {
