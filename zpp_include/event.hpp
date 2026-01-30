@@ -33,17 +33,27 @@
 #include <chrono>
 
 // zpp_lib
+#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
 
-class Event {
+class Event : private NonCopyable<Event> {
  public:
-  /** Create and Initialize a Events object
+  /** Create and Initialize a Event object
    *
    * @note You cannot call this function from ISR context.
    */
   Event() noexcept;
+
+#if CONFIG_USERSPACE == 1
+  /*  When user mode is enabled, allow to construct an event
+      based on the kernel object. This allows another thread
+  *   to access the kernel object without accessing an unallowed
+  *   memory section (such as another thread's stack).
+  */
+  explicit Event(k_event* pEvent) noexcept;
+#endif
 
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
@@ -68,14 +78,27 @@ class Event {
   [[nodiscard]] ZephyrBoolResult try_wait_any_for(
       const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
 
-  /** Events destructor
+#if CONFIG_USERSPACE == 1
+  /**
+   * Grants access to the k_event kernel object for a specific thread
+   */
+  void grant_access(k_tid_t tid);
+#endif
+
+  /** Event destructor
    *
    * @note You cannot call this function from ISR context.
    */
   ~Event();
 
  private:
+#if CONFIG_USERSPACE == 1
+  friend class Thread;
+  static uint8_t _eventInstanceCount;
+#else
   struct k_event _event;
+#endif
+  struct k_event* _p_event = nullptr;
 };
 
 }  // namespace zpp_lib

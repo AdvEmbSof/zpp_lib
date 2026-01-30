@@ -3,6 +3,7 @@ config USE_ZPP_LIB
 	default n
 	select THREAD_NAME
 	select EVENTS
+  select CONFIG_APPLICATION_DEFINED_SYSCALL if USERSPACE
 	help
 	  This option enables the 'zpp' library
 
@@ -12,7 +13,7 @@ config ZPP_THREAD_POOL_SIZE
 	default 2
 	range 0 10
 	help		
-		This allows to pre-allocate a default number of thread objects
+		This allows to pre-allocate a default number of thread stacks
 		that are required for the use of zpp_lib (zpp_lib::Thread)
 
 config ZPP_THREAD_STACK_SIZE
@@ -21,7 +22,27 @@ config ZPP_THREAD_STACK_SIZE
 	default 1024
 	help
 	  This option allows to specify the default stack size to be used for user threads
-  
+
+config ZPP_EVENT_POOL_SIZE
+  int "Number of statically pre-allocated k_event object"
+	depends on USE_ZPP_LIB && USERSPACE
+	default 2
+	range 0 10
+	help 
+	  This allows to pre-allocate a default number of k_event kernel objects
+		that must allocated in static memory when user mode is activated
+		The number of pre-allocated k_event kernel objects will be ZPP_THREAD_POOL_SIZE + ZPP_EVENT_POOL_SIZE
+
+config ZPP_MUTEX_POOL_SIZE
+  int "Number of statically pre-allocated k_mutx object"
+	depends on USE_ZPP_LIB && USERSPACE
+	default 6
+	range 0 10
+	help 
+	  This allows to pre-allocate a default number of k_mutex kernel objects
+		that must allocated in static memory when user mode is activated
+		The number of pre-allocated k_mutex kernel objects will be ZPP_THREAD_POOL_SIZE + ZPP_MUTEX_POOL_SIZE
+
 module = ZPP_RTOS
 module-str = ZPP_RTOS
 rsource "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"

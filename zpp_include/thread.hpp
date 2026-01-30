@@ -66,7 +66,8 @@ class Thread : private NonCopyable<Thread> {
 
     @note You cannot call this function ISR context.
   */
-  [[nodiscard]] ZephyrResult start(std::function<void()> task) noexcept;
+  using task_function_t = std::function<void()>;
+  [[nodiscard]] ZephyrResult start(task_function_t task) noexcept;
 
   /** Wait for thread to have started
     @return  status code that indicates the execution status of the function.
@@ -86,17 +87,20 @@ class Thread : private NonCopyable<Thread> {
   // Required to share definitions without
   // delegated constructors
   void constructor(PreemptableThreadPriority priority, const char* name);
-  static void _thunk(void* thread_ptr, void* a2, void* a3);
+  static void _thunk(void* p1, void* p2, void* p3);
 
  private:
-  std::function<void()> _task;
-  PreemptableThreadPriority _priority;
+  Mutex _mutex;
   Event _event;
+#if CONFIG_USERSPACE != 1
+  Thread::task_function_t _task;
+#endif
+
+  PreemptableThreadPriority _priority;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::string _name;
   k_tid_t _tid = nullptr;
 
-  Mutex _mutex;
   // used for accessing the corresponding statically allocated stack
   static uint8_t _threadInstanceCount;
 };

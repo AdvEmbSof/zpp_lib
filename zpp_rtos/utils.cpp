@@ -42,7 +42,7 @@ extern "C" {
 extern struct sys_heap _system_heap;
 }
 
-#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
+#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS) && CONFIG_HEAP_MEM_POOL_SIZE > 0
 void* operator new(size_t size) { return k_malloc(size); }
 
 void operator delete(void* ptr) noexcept { k_free(ptr); }
@@ -50,7 +50,7 @@ void operator delete(void* ptr) noexcept { k_free(ptr); }
 
 namespace zpp_lib {
 
-#if defined(CONFIG_THREAD_STACK_INFO)
+#if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
 static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
   size_t stack_size    = thread->stack_info.size;
   size_t start_address = thread->stack_info.start;
