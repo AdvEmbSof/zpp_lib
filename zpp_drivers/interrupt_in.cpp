@@ -87,7 +87,7 @@ InterruptIn::InterruptIn(PinName pinName) {
 InterruptIn::~InterruptIn() {
   std::scoped_lock<Mutex> guard(_cbMutex);
 
-  size_t buttonIndex                 = static_cast<size_t>(_pinName);
+  size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
   LOG_DBG("Trying to unregistering callback for %p (button %d)", this, buttonIndex);
   if (cbFunctionMap.find(this) != cbFunctionMap.end()) {
@@ -143,7 +143,7 @@ void InterruptIn::fall(std::function<void()> func) {
   // On subsequent calls, we simply push the callback to the vector
   std::scoped_lock<Mutex> guard(_cbMutex);
 
-  size_t buttonIndex                 = static_cast<size_t>(_pinName);
+  size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
   LOG_DBG("Setting up callback for button %d", buttonIndex);
 #if CONFIG_INTERRUPT_IN_EMUL != 1
@@ -168,7 +168,7 @@ void InterruptIn::callback(const struct device* port,
   // cppcheck-suppress cstyleCast
   CallbackData* pCallbackData        = (CallbackData*)cb;  // NOLINT(readability/casting)
   InterruptIn* pInstance             = pCallbackData->_instance;
-  size_t buttonIndex                 = static_cast<size_t>(pInstance->_pinName);
+  size_t buttonIndex                 = static_cast<size_t>(pInstance->_pinName) - 1;
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
   for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
        iter != cbFunctionMap.end();
