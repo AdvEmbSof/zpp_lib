@@ -3,3 +3,4 @@ missingIncludeSystem:*
 missingInclude:*
 unusedStructMember:*.hpp
 unusedFunction:*.hpp
+unknownMacro:*.def

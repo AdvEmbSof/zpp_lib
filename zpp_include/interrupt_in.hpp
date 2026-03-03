@@ -25,7 +25,7 @@
 #pragma once
 
 // zephyr
-#if CONFIG_TEST != 1
+#if CONFIG_INTERRUPT_IN_EMUL != 1
 #include <zephyr/drivers/gpio.h>
 #endif
 #include <zephyr/kernel.h>
@@ -53,16 +53,16 @@ namespace zpp_lib {
  */
 static constexpr uint8_t kPolarityPressed = 1;
 
-enum class PinName {
-  BUTTON1     = 1,
-  BUTTON2     = 2,
-  BUTTON3     = 3,
-  BUTTON4     = 4,
-  LAST_BUTTON = 4
-};
-template <PinName pinName>
-class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
+class InterruptIn : private NonCopyable<InterruptIn> {
  public:
+  enum class PinName {
+    BUTTON1     = 1,
+    BUTTON2     = 2,
+    BUTTON3     = 3,
+    BUTTON4     = 4,
+    LAST_BUTTON = 4
+  };
+
   /**
    * @brief Enumeration to be used for instanciating a specific input pin
    *
@@ -71,7 +71,7 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    *
    *  @param pin InterruptIn pin to connect to
    */
-  InterruptIn();
+  explicit InterruptIn(PinName pinName);
 
   /** Remove callbacks added to gpio device
    *
@@ -97,7 +97,7 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
    */
   void fall(std::function<void()> func);
 
-#if CONFIG_TEST == 1
+#if CONFIG_INTERRUPT_IN_EMUL == 1
   /** Used for testing purposes
    *  Sets the value of the input pin
    */
@@ -105,19 +105,23 @@ class InterruptIn : private NonCopyable<InterruptIn<pinName> > {
 #endif
 
  protected:
-#if CONFIG_TEST == 1
+#if CONFIG_INTERRUPT_IN_EMUL == 1
   static inline uint8_t _value{!kPolarityPressed};  // button not pressed by default
 #else
-  void callback(const struct device* port,
-                struct gpio_callback* cb,
-                gpio_port_pins_t pins);
+  static void callback(const struct device* port,
+                       struct gpio_callback* cb,
+                       gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
-  struct gpio_callback _cbData;
+  struct CallbackData {
+    struct gpio_callback _gpio_cb;
+    InterruptIn* _instance;
+  };
+  struct CallbackData _cbData;
 #endif
-  static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
-  static constexpr size_t BUTTON_INDEX   = static_cast<size_t>(pinName) - 1;
+  PinName _pinName;
   using CallbackFunction                 = std::function<void()>;
   using CallbackFunctionMap              = std::map<void*, CallbackFunction>;
+  static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
   static inline CallbackFunctionMap _fall_cb_map[NBR_OF_BUTTONS];
   static inline zpp_lib::Mutex _cbMutex;
 };

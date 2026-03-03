@@ -31,18 +31,12 @@
 // for std::scoped_lock definition
 #include <mutex>
 
-// zpp_lib
-#include "zpp_include/func_ptr_helper.hpp"
-
 LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-// static data member declaration
-
-template <PinName pinName>
-InterruptIn<pinName>::InterruptIn() {
-#if CONFIG_TEST != 1
+InterruptIn::InterruptIn(PinName pinName) {
+#if CONFIG_INTERRUPT_IN_EMUL != 1
   switch (pinName) {
     case PinName::BUTTON1:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
@@ -87,44 +81,47 @@ InterruptIn<pinName>::InterruptIn() {
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
 #endif
+  _pinName = pinName;
 }
 
-template <PinName pinName>
-InterruptIn<pinName>::~InterruptIn() {
+InterruptIn::~InterruptIn() {
   std::scoped_lock<Mutex> guard(_cbMutex);
 
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+  size_t buttonIndex                 = static_cast<size_t>(_pinName);
+  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
+  LOG_DBG("Trying to unregistering callback for %p (button %d)", this, buttonIndex);
   if (cbFunctionMap.find(this) != cbFunctionMap.end()) {
-#if CONFIG_TEST != 1
+#if CONFIG_INTERRUPT_IN_EMUL != 1
     if (cbFunctionMap.size() == 1) {
-      auto ret = gpio_remove_callback(_gpio.port, &_cbData);
+      auto ret = gpio_remove_callback(_gpio.port, &_cbData._gpio_cb);
       if (ret != 0) {
         __ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
       }
+      LOG_DBG("Gpio callback removed");
     }
 #endif
+    LOG_DBG("Removing callback for button %d", buttonIndex);
     cbFunctionMap.erase(this);
   }
 }
 
-template <PinName pinName>
-uint8_t InterruptIn<pinName>::read() {
-#if CONFIG_TEST == 1
+uint8_t InterruptIn::read() {
+#if CONFIG_INTERRUPT_IN_EMUL == 1
   return _value;
 #else
   return gpio_pin_get_dt(&_gpio);
 #endif
 }
 
-#if CONFIG_TEST == 1
-template <PinName pinName>
-void InterruptIn<pinName>::write(uint8_t value) {
+#if CONFIG_INTERRUPT_IN_EMUL == 1
+void InterruptIn::write(uint8_t value) {
   bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
   _value           = value;
   if (edgeFalling) {
     // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(pinName),
     // k_cycle_get_32());
-    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+    size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
+    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
     for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
          iter != cbFunctionMap.end();
          ++iter) {
@@ -134,8 +131,7 @@ void InterruptIn<pinName>::write(uint8_t value) {
 }
 #endif
 
-template <PinName pinName>
-void InterruptIn<pinName>::fall(std::function<void()> func) {
+void InterruptIn::fall(std::function<void()> func) {
   if (func == nullptr) {
     LOG_ERR("Cannot call fall with nullptr");
     return;
@@ -147,36 +143,33 @@ void InterruptIn<pinName>::fall(std::function<void()> func) {
   // On subsequent calls, we simply push the callback to the vector
   std::scoped_lock<Mutex> guard(_cbMutex);
 
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
-#if CONFIG_TEST != 1
+  size_t buttonIndex                 = static_cast<size_t>(_pinName);
+  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
+  LOG_DBG("Setting up callback for button %d", buttonIndex);
+#if CONFIG_INTERRUPT_IN_EMUL != 1
   if (cbFunctionMap.empty()) {
-    typedef std::function<void(
-        const struct device*, struct gpio_callback*, gpio_port_pins_t)>
-        CallbackFunctionType;
-    using namespace std::placeholders;
-    CallbackFunctionType callbackFunction =
-        std::bind(&InterruptIn::callback, this, _1, _2, _3);
-    gpio_callback_handler_t callbackHandler =
-        getFuncPtr<static_cast<size_t>(pinName),
-                   void,
-                   const struct device*,
-                   struct gpio_callback*,
-                   gpio_port_pins_t>(callbackFunction);
-    gpio_init_callback(&_cbData, callbackHandler, BIT(_gpio.pin));
-    gpio_add_callback(_gpio.port, &_cbData);
+    _cbData._instance = this;
+    gpio_init_callback(&_cbData._gpio_cb, &InterruptIn::callback, BIT(_gpio.pin));
+    gpio_add_callback(_gpio.port, &_cbData._gpio_cb);
+    LOG_DBG("Callback set for %s pin %d", _gpio.port->name, _gpio.pin);
   }
-  LOG_DBG("Set up button at %s pin %d\n", _gpio.port->name, _gpio.pin);
 #endif
+  LOG_DBG("Registering callback in map for %p", this);
   cbFunctionMap[this] = func;
 }
 
-#if CONFIG_TEST != 1
-template <PinName pinName>
-void InterruptIn<pinName>::callback(const struct device* port,
-                                    struct gpio_callback* cb,
-                                    gpio_port_pins_t pins) {
+#if CONFIG_INTERRUPT_IN_EMUL != 1
+void InterruptIn::callback(const struct device* port,
+                           struct gpio_callback* cb,
+                           gpio_port_pins_t pins) {
   // printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[BUTTON_INDEX];
+  // We need to cast cb for getting the instance on which the callback is running
+  // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
+  // cppcheck-suppress cstyleCast
+  CallbackData* pCallbackData        = (CallbackData*)cb;  // NOLINT(readability/casting)
+  InterruptIn* pInstance             = pCallbackData->_instance;
+  size_t buttonIndex                 = static_cast<size_t>(pInstance->_pinName);
+  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
   for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
        iter != cbFunctionMap.end();
        ++iter) {
@@ -184,11 +177,5 @@ void InterruptIn<pinName>::callback(const struct device* port,
   }
 }
 #endif
-
-// template instantiation
-template class InterruptIn<PinName::BUTTON1>;
-template class InterruptIn<PinName::BUTTON2>;
-template class InterruptIn<PinName::BUTTON3>;
-template class InterruptIn<PinName::BUTTON4>;
 
 }  // namespace zpp_lib

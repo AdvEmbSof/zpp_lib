@@ -30,7 +30,7 @@ class Utils {
  public:
   Utils() = default;
 
-#if defined(CONFIG_THREAD_STACK_INFO)
+#if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
   static void logThreadsStackInfo();
 #endif
   static void logThreadsSummary();

@@ -46,13 +46,22 @@ class Thread : private NonCopyable<Thread> {
     osPriorityNormal).
     @param   name           name to be used for this thread. It has to stay allocated
     for the lifetime of the thread (default: nullptr)
+#if CONFIG_USERSPACE == 1
+    @param   userMode       flag stating whether the thread must be created in user mode
+#endif
 
-    @note Default value of tz_module will be MBED_TZ_DEFAULT_ACCESS
     @note You cannot call this function from ISR context.
   */
+#if CONFIG_USERSPACE == 1
+  explicit Thread(
+      PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
+      const char* name                   = nullptr,
+      bool userMode                      = false);
+#else
   explicit Thread(
       PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
       const char* name                   = nullptr);
+#endif
 
   /** Performs sanity checks
    */
@@ -66,7 +75,8 @@ class Thread : private NonCopyable<Thread> {
 
     @note You cannot call this function ISR context.
   */
-  [[nodiscard]] ZephyrResult start(std::function<void()> task) noexcept;
+  using task_function_t = std::function<void()>;
+  [[nodiscard]] ZephyrResult start(task_function_t task) noexcept;
 
   /** Wait for thread to have started
     @return  status code that indicates the execution status of the function.
@@ -85,18 +95,22 @@ class Thread : private NonCopyable<Thread> {
  private:
   // Required to share definitions without
   // delegated constructors
-  void constructor(PreemptableThreadPriority priority, const char* name);
-  static void _thunk(void* thread_ptr, void* a2, void* a3);
+  static void _thunk(void* p1, void* p2, void* p3);
 
  private:
-  std::function<void()> _task;
-  PreemptableThreadPriority _priority;
+  Mutex _mutex;
   Event _event;
+#if CONFIG_USERSPACE == 1
+  bool _userMode = false;
+#else
+  Thread::task_function_t _task;
+#endif
+
+  PreemptableThreadPriority _priority;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::string _name;
   k_tid_t _tid = nullptr;
 
-  Mutex _mutex;
   // used for accessing the corresponding statically allocated stack
   static uint8_t _threadInstanceCount;
 };

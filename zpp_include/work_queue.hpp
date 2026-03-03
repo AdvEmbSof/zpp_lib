@@ -62,7 +62,7 @@ class WorkQueue : private NonCopyable<WorkQueue> {
 
   ~WorkQueue() {
     auto res = stop();
-    if (! res) {
+    if (!res) {
       __ASSERT(false, "Failed to stop work queue at destruction: %d", (int)res.error());
     }
   }
