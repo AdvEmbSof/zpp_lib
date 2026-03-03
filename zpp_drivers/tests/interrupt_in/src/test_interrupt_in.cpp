@@ -36,12 +36,14 @@
 LOG_MODULE_REGISTER(test_interrupt_in, CONFIG_APP_LOG_LEVEL);
 
 void callback() { LOG_DBG("Button1 pressed"); }
+void callback1() { LOG_DBG("Button1_1 pressed"); }
+void callback2() { LOG_DBG("Button1_2 pressed"); }
 
 ZTEST_USER(zpp_interrupt_in, test_destructor) {
   using namespace std::literals;
 
   {
-    zpp_lib::InterruptIn<zpp_lib::PinName::BUTTON1> button1;
+    zpp_lib::InterruptIn button1(zpp_lib::InterruptIn::PinName::BUTTON1);
     button1.fall(callback);
 
     printk("Press button 1! -> a message should print\n");
@@ -59,14 +61,13 @@ ZTEST_USER(zpp_interrupt_in, test_destructor) {
 
 ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
   using namespace std::literals;
-
   {
-    zpp_lib::InterruptIn<zpp_lib::PinName::BUTTON1> button1_1;
-    button1_1.fall(callback);
+    zpp_lib::InterruptIn button1_1(zpp_lib::InterruptIn::PinName::BUTTON1);
+    button1_1.fall(callback1);
 
     {
-      zpp_lib::InterruptIn<zpp_lib::PinName::BUTTON1> button1_2;
-      button1_2.fall(callback);
+      zpp_lib::InterruptIn button1_2(zpp_lib::InterruptIn::PinName::BUTTON1);
+      button1_2.fall(callback2);
       printk("Press button 1! -> two messages should print\n");
 
       // if the user presses the button in the next 10s, the callback message should print

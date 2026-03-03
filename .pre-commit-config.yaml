@@ -22,7 +22,7 @@ repos:
       name: lizard
       entry: lizard
       language: system
-      args: [-C 12]
+      args: [-C 18]
 - repo: local
   hooks:
   -   id: cppcheck

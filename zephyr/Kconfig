@@ -43,6 +43,12 @@ config ZPP_MUTEX_POOL_SIZE
 		that must allocated in static memory when user mode is activated
 		The number of pre-allocated k_mutex kernel objects will be ZPP_THREAD_POOL_SIZE + ZPP_MUTEX_POOL_SIZE
 
+config INTERRUPT_IN_EMUL
+  bool "Emulate interrupt in"
+	default n
+	help 
+	  This allows to run tests by emulated button press
+
 module = ZPP_RTOS
 module-str = ZPP_RTOS
 rsource "$(ZEPHYR_BASE)/subsys/logging/Kconfig.template.log_config"
