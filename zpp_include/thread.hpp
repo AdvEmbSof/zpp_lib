@@ -46,13 +46,22 @@ class Thread : private NonCopyable<Thread> {
     osPriorityNormal).
     @param   name           name to be used for this thread. It has to stay allocated
     for the lifetime of the thread (default: nullptr)
+#if CONFIG_USERSPACE == 1
+    @param   userMode       flag stating whether the thread must be created in user mode
+#endif
 
-    @note Default value of tz_module will be MBED_TZ_DEFAULT_ACCESS
     @note You cannot call this function from ISR context.
   */
+#if CONFIG_USERSPACE == 1
+  explicit Thread(
+      PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
+      const char* name                   = nullptr,
+      bool userMode                      = false);
+#else
   explicit Thread(
       PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
       const char* name                   = nullptr);
+#endif
 
   /** Performs sanity checks
    */
@@ -86,13 +95,14 @@ class Thread : private NonCopyable<Thread> {
  private:
   // Required to share definitions without
   // delegated constructors
-  void constructor(PreemptableThreadPriority priority, const char* name);
   static void _thunk(void* p1, void* p2, void* p3);
 
  private:
   Mutex _mutex;
   Event _event;
-#if CONFIG_USERSPACE != 1
+#if CONFIG_USERSPACE == 1
+  bool _userMode = false;
+#else
   Thread::task_function_t _task;
 #endif
 

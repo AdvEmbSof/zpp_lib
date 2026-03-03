@@ -36,12 +36,12 @@
 #include "zpp_include/zephyr_result.hpp"
 
 #if CONFIG_USERSPACE == 1
-extern struct k_mem_partition app_partition;
-#define APP_DATA K_APP_DMEM(app_partition)
-#define APP_BSS K_APP_BMEM(app_partition)
+extern struct k_mem_partition zpp_lib_partition;
+#define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
+#define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
 #else
-#define APP_DATA
-#define APP_BSS
+#define ZPP_LIB_DATA
+#define ZPP_LIB_BSS
 #endif
 
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
@@ -49,13 +49,13 @@ LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 namespace zpp_lib {
 
 #if CONFIG_USERSPACE == 1
-APP_BSS uint8_t Event::_eventInstanceCount = 0;
+ZPP_LIB_BSS uint8_t Event::_eventInstanceCount = 0;
 
 #define X(name) K_EVENT_DEFINE(name)
 #include "events.def"
 #undef X
 #define X(name) &name,
-APP_DATA
+ZPP_LIB_DATA
 static struct k_event* const ZPP_EVENT_ARRAY[] = {
 #include "events.def"  // NOLINT(build/include)
 };

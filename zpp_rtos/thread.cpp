@@ -35,10 +35,10 @@
 #include <mutex>
 
 #if CONFIG_USERSPACE == 1
-extern struct k_mem_partition app_partition;
-#define APP_DATA K_APP_DMEM(app_partition)
+extern struct k_mem_partition zpp_lib_partition;
+#define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #else
-#define APP_DATA
+#define ZPP_LIB_DATA
 #endif
 
 LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
@@ -46,6 +46,7 @@ LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 namespace zpp_lib {
 
 // DECLARE STATIC GLOBAL VARIABLES
+// Allocate stacks for threads created with zpp_lib
 static K_THREAD_STACK_ARRAY_DEFINE(ZPP_THREADS_STACKS,
                                    CONFIG_ZPP_THREAD_POOL_SIZE,
                                    CONFIG_ZPP_THREAD_STACK_SIZE);
@@ -58,14 +59,22 @@ static struct k_thread _thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {0};
 // initialize static data members
 // _threadInstanceCount must be located in app domain since
 // it is accessed by the thread
-APP_DATA uint8_t Thread::_threadInstanceCount                           = 0;
-APP_DATA Thread::task_function_t ZPP_TASKS[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
+ZPP_LIB_DATA uint8_t Thread::_threadInstanceCount                           = 0;
+ZPP_LIB_DATA Thread::task_function_t ZPP_TASKS[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
 #else
 uint8_t Thread::_threadInstanceCount = 0;
 #endif
 
+#if CONFIG_USERSPACE == 1
+Thread::Thread(PreemptableThreadPriority priority, const char* name, bool userMode) {
+#else
 Thread::Thread(PreemptableThreadPriority priority, const char* name) {
-  constructor(priority, name);
+#endif
+  _priority = priority;
+  _name     = name ? name : "application_unnamed_thread";
+#if CONFIG_USERSPACE == 1
+  _userMode = userMode;
+#endif
 }
 
 Thread::~Thread() {
@@ -75,11 +84,6 @@ Thread::~Thread() {
       LOG_DBG("Failed to join: %d", ret);
     }
   }
-}
-
-void Thread::constructor(PreemptableThreadPriority priority, const char* name) {
-  _priority = priority;
-  _name     = name ? name : "application_unnamed_thread";
 }
 
 ZephyrResult Thread::start(std::function<void()> task) noexcept {
@@ -104,7 +108,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   /* In user mode, initialize this thread with K_FOREVER timeout so we can
    * modify its permissions and then start it.
    */
-  uint32_t options  = K_USER | K_INHERIT_PERMS;
+  uint32_t options  = _userMode ? (K_USER | K_INHERIT_PERMS) : K_INHERIT_PERMS;
   k_timeout_t delay = K_FOREVER;
 #else
   // initialize callback used in Thread::_thunk
