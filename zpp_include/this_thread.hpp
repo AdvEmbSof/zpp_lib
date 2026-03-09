@@ -40,29 +40,38 @@ namespace ThisThread {
 ///
 /// @param thread priority
 ///
-void setPriority(PreemptableThreadPriority priority);
+void set_priority(PreemptableThreadPriority priority);
 
 ///
 /// @brief Get the current thread priority
 ///
 ///
-PreemptableThreadPriority getPriority();
+PreemptableThreadPriority get_priority();
 
 ///
 ///
 /// @brief Perform a busy wait on the current thread
 ///
 ///
-void busyWait(const std::chrono::microseconds& waitTime);
+void busy_wait(const std::chrono::microseconds& waitTime);
 
 ///
 /// @brief Suspend the current thread for a specified time duration
 ///
-/// @param wait_duration The time to sleep
+/// @param waitTime The time to sleep
 ///
 std::chrono::milliseconds sleep_for(const std::chrono::microseconds& waitTime);
 std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& waitTime);
 std::chrono::milliseconds sleep_for(const std::chrono::seconds& waitTime);
+
+///
+/// @brief Suspend the current thread until a specified absolute time
+///
+/// @param absoluteTime The absolute time 
+///
+std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absoluteTime);
+std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absoluteTime);
+std::chrono::milliseconds sleep_until(const std::chrono::seconds& absoluteTime);
 
 }  // namespace ThisThread
 

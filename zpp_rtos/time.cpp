@@ -32,7 +32,7 @@
 
 namespace zpp_lib {
 
-std::chrono::microseconds Time::getUpTime() {
+std::chrono::microseconds Time::get_uptime() {
   // get the system uptime in system ticks
 #if CONFIG_QEMU_TARGET
   // k_uptime_ticks (on Qemu, the tick duration is 1 msec)

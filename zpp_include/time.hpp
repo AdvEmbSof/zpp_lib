@@ -38,7 +38,7 @@ namespace zpp_lib {
 
 class Time : private NonCopyable<Time> {
  public:
-  static std::chrono::microseconds getUpTime();
+  static std::chrono::microseconds get_uptime();
 };
 
 }  // namespace zpp_lib

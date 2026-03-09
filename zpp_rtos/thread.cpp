@@ -101,6 +101,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
            "Too many threads created");
 
   // create the thread
+  k_timeout_t delay = K_FOREVER;
 #if CONFIG_USERSPACE == 1
   // initialize callback used in Thread::_thunk
   ZPP_TASKS[_threadInstanceCount] = task;
@@ -109,18 +110,17 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
    * modify its permissions and then start it.
    */
   uint32_t options  = _userMode ? (K_USER | K_INHERIT_PERMS) : K_INHERIT_PERMS;
-  k_timeout_t delay = K_FOREVER;
 #else
   // initialize callback used in Thread::_thunk
   _task = task;
 
-  uint32_t options  = 0;
-  k_timeout_t delay = K_NO_WAIT;
+  uint32_t options  = 0;  
 #endif
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
-  LOG_DBG("Creating thread with stack size %d and priority %d",
+  LOG_DBG("Creating thread with stack size %d, priority %d and name %s",
           K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
-          zephyr_priority);
+          zephyr_priority,
+          _name.c_str());
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
 #if CONFIG_USERSPACE == 1
@@ -154,7 +154,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
     res.assign_error(ZephyrErrorCode::k_nomem);
     return res;
   }
-  auto ret = k_thread_name_set(&_thread_data[_threadInstanceCount], _name.c_str());
+  auto ret = k_thread_name_set(_tid, _name.c_str());
   if (ret != 0) {
     __ASSERT(false, "Cannot set name: %d", ret);
     res.assign_error(zephyr_to_zpp_error_code(ret));
@@ -165,10 +165,10 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // Grant access to the internal _event and _mutex attributes
   _event.grant_access(_tid);
   _mutex.grant_access(_tid);
-
-  // Wake up the thread (after granting access)
-  k_thread_start(_tid);
+  
 #endif
+  // Wake up the thread (after setting name and granting access)
+  k_thread_start(_tid);
 
   // update the thread instance count
   LOG_DBG("Thread (instance count %d) started", _threadInstanceCount);

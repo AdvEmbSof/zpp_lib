@@ -33,7 +33,7 @@ namespace zpp_lib {
 
 namespace ThisThread {
 
-PreemptableThreadPriority getPriority() {
+PreemptableThreadPriority get_priority() {
   k_tid_t tid = k_current_get();
 #if ASSERT
   __ASSERT(tid != nullptr, "Current thread has no tid");
@@ -42,7 +42,7 @@ PreemptableThreadPriority getPriority() {
   return prio_to_preemptable_thread_priority(prio);
 }
 
-void setPriority(PreemptableThreadPriority priority) {
+void set_priority(PreemptableThreadPriority priority) {
   k_tid_t tid = k_current_get();
 #if ASSERT
   __ASSERT(tid != nullptr, "Current thread has no tid");
@@ -50,7 +50,7 @@ void setPriority(PreemptableThreadPriority priority) {
   k_thread_priority_set(tid, preemptable_thread_priority_to_zephyr_prio(priority));
 }
 
-void busyWait(const std::chrono::microseconds& waitTime) {
+void busy_wait(const std::chrono::microseconds& waitTime) {
   // k_busy_wait takes usecs
   k_busy_wait(waitTime.count());
 }
@@ -71,6 +71,21 @@ std::chrono::milliseconds sleep_for(const std::chrono::seconds& sleep_duration) 
   std::chrono::milliseconds ms_sleep_duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
   auto res = k_msleep(ms_sleep_duration.count());
+  return std::chrono::milliseconds(res);
+}
+
+std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absoluteTime) {
+  auto res = k_sleep(K_TIMEOUT_ABS_US(absoluteTime.count()));
+  return std::chrono::milliseconds(res);
+}
+
+std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absoluteTime) {
+  auto res = k_sleep(K_TIMEOUT_ABS_MS(absoluteTime.count()));
+  return std::chrono::milliseconds(res);
+}
+
+std::chrono::milliseconds sleep_until(const std::chrono::seconds& absoluteTime) {
+  auto res = k_sleep(K_TIMEOUT_ABS_SEC(absoluteTime.count()));
   return std::chrono::milliseconds(res);
 }
 
