@@ -68,7 +68,7 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
 
 #if CONFIG_GPIO_SYS == 1
   _gpio_device = device_get_binding(GPIO_SYS_NAME);
-  if (_gpio_device == NULL) {
+  if (_gpio_device == nullptr) {
     LOG_ERR("bad gpio device");
     k_oops();
   }

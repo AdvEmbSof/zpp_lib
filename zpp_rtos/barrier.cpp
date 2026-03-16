@@ -13,45 +13,20 @@
 // limitations under the License.
 
 /****************************************************************************
- * @file non_copyable.hpp
+ * @file mutex.cpp
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief CPP class declaration declaring a class as non copyable (by inheritance)
+ * @brief Barrier class implementation
  *
  * @date 2025-08-31
  * @version 1.0.0
  ***************************************************************************/
 
-#pragma once
+#include "zpp_include/barrier.hpp"
 
 namespace zpp_lib {
 
-template <typename T>
-class NonCopyable {
- protected:
-  /**
-   * Disallow construction of NonCopyable objects from outside of its hierarchy.
-   */
-  NonCopyable() = default;
-  /**
-   * Disallow destruction of NonCopyable objects from outside of its hierarchy.
-   */
-  ~NonCopyable() = default;
-
- public:
-  /**
-   * Define copy/move constructor as deleted. Any attempt to copy/move construct
-   * a NonCopyable will fail at compile time.
-   */
-  NonCopyable(const NonCopyable&) = delete;
-  NonCopyable(NonCopyable&&)      = delete;
-
-  /**
-   * Define copy/move assignment operator as deleted. Any attempt to copy/move assign
-   * a NonCopyable will fail at compile time.
-   */
-  NonCopyable& operator=(const NonCopyable&) = delete;
-  NonCopyable& operator=(NonCopyable&&)      = delete;
-};
+using std::literals::chrono_literals::operator""us;
+std::chrono::microseconds Barrier::_startTime = 0us;
 
 }  // namespace zpp_lib

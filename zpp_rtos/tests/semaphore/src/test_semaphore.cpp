@@ -60,4 +60,4 @@ ZTEST_USER(zpp_semaphore, test_semaphore_release_acquire) {
   zassert_true(sem.acquire());
 }
 
-ZTEST_SUITE(zpp_semaphore, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_semaphore, nullptr, nullptr, nullptr, nullptr, nullptr);

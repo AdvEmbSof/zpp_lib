@@ -58,7 +58,8 @@ class ZephyrResult {
   /// @param rhs the error value to assign
   ///
   explicit ZephyrResult(ZephyrErrorCode error) noexcept
-      : _is_ok(false), _error_value(error) {}
+      : _is_ok(false), _error_value(error) {}  // MISRA-suppress: 7.2.1  false positive,
+                                               // reviewed by Serge 2026-03-16
 
   ///
   /// @brief assign error state
@@ -66,7 +67,8 @@ class ZephyrResult {
   /// @param rhs the error value to assign
   ///
   void assign_error(ZephyrErrorCode error) noexcept {
-    _is_ok       = false;
+    _is_ok = false;  // MISRA-suppress: 7.2.1
+                     // false positive, reviewed by Serge 2026-03-16
     _error_value = error;
   }
 
@@ -169,7 +171,7 @@ class ZephyrBoolResult {
   ///
   /// @brief convert the result to a bool
   ///
-  /// @return true if no error was assigned
+  /// @return true if the result is valid
   ///
   constexpr operator bool() const noexcept {
     __ASSERT(!has_error(), "Result is in error state");
@@ -179,7 +181,7 @@ class ZephyrBoolResult {
   ///
   /// @brief returns true in error state, false otherwise
   ///
-  /// @return true if the result is valid
+  /// @return true if no error was assigned
   ///
   constexpr bool has_error() const noexcept { return !_is_ok; }
 

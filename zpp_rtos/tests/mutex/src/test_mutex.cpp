@@ -54,4 +54,4 @@ ZTEST_USER(zpp_mutex, test_mutex_lock_unlock) {
   zassert_true(thread.join());
 }
 
-ZTEST_SUITE(zpp_mutex, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_mutex, nullptr, nullptr, nullptr, nullptr, nullptr);

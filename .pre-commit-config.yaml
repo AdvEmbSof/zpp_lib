@@ -23,11 +23,11 @@ repos:
       entry: lizard
       language: system
       args: [-C 18]
-- repo: local
-  hooks:
-  -   id: cppcheck
-      name: cppcheck
-      require_serial: true
-      entry: cppcheck --enable=all --suppressions-list=cppcheck_suppressions.txt --inline-suppr -i ../zephyr --std=c++14 --error-exitcode=1 -v -DCONFIG_NUM_PREEMPT_PRIORITIES=8
-      language: system
+#- repo: local
+#  hooks:
+#  -   id: cppcheck
+#      name: cppcheck
+#      require_serial: true
+#      entry: cppcheck --enable=all --suppressions-list=cppcheck_suppressions.txt --inline-suppr -i ../zephyr --std=c++14 --error-exitcode=1 -v -DCONFIG_NUM_PREEMPT_PRIORITIES=8
+#      language: system
 

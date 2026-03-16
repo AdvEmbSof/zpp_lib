@@ -82,7 +82,7 @@ Mutex::~Mutex() {}
 
 #if CONFIG_USERSPACE == 1
 Mutex::Mutex(k_mutex* pMutex) noexcept {
-  LOG_DBG("Copy mutex with address %p", (void*)pMutex);
+  LOG_DBG("Copy mutex with address %p", static_cast<void*>(pMutex));
   _p_mutex = pMutex;
 }
 #endif
@@ -134,7 +134,9 @@ ZephyrResult Mutex::unlock() {
 
 #if CONFIG_USERSPACE == 1
 void Mutex::grant_access(k_tid_t tid) {
-  LOG_DBG("Granting access to mutex %p for thread %p", (void*)_p_mutex, (void*)tid);
+  LOG_DBG("Granting access to mutex %p for thread %p",
+          static_cast<void*>(_p_mutex),
+          static_cast<void*>(tid));
   k_object_access_grant(_p_mutex, tid);
 }
 #endif

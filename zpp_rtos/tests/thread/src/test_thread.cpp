@@ -38,7 +38,7 @@
 LOG_MODULE_REGISTER(test_thread, CONFIG_APP_LOG_LEVEL);
 
 void sleep_function() {
-  using namespace std::literals;
+  using std::literals::chrono_literals::operator""ms;
 
   // TESTPOINT validate that busy wait works properly
   static constexpr uint8_t kNbrOfDurations = 5;
@@ -51,14 +51,20 @@ void sleep_function() {
     std::chrono::microseconds deltaTime = (afterWaitTime - beforeWaitTime) - waitDuration;
     static constexpr uint64_t allowedDeltaInUs = 500;
 
-    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs,
-                 "(BUSY WAIT) iteration %d: Elapsed time is not within expected "
-                 "range, delta %lld, allowed = %lld, before = %lld, after = %lld",
-                 i,
-                 deltaTime.count(),
-                 allowedDeltaInUs,
-                 beforeWaitTime.count(),
-                 afterWaitTime.count());
+    zassert_true(
+        abs(deltaTime.count()) < allowedDeltaInUs,
+        "(BUSY WAIT) iteration %d: Elapsed time is not within expected "  // MISRA-suppress:
+                                                                          // 7.2.1 false
+                                                                          // positive,
+                                                                          // reviewed by
+                                                                          // Serge
+                                                                          // 2026-03-16
+        "range, delta %lld, allowed = %lld, before = %lld, after = %lld",
+        i,
+        deltaTime.count(),
+        allowedDeltaInUs,
+        beforeWaitTime.count(),
+        afterWaitTime.count());
 
     // double wait duration
     waitDuration *= 2;
@@ -76,14 +82,21 @@ void sleep_function() {
         (afterSleepTime - beforeSleepTime) - sleepDuration;
     static constexpr uint64_t allowedDeltaInUs = 500;
 
-    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs,
-                 "(SLEEP) iteration %d: Elapsed time is not within expected range, "
-                 "delta %lld, allowed = %lld, before = %lld, after = %lld",
-                 i,
-                 deltaTime.count(),
-                 allowedDeltaInUs,
-                 beforeSleepTime.count(),
-                 afterSleepTime.count());
+    zassert_true(
+        abs(deltaTime.count()) < allowedDeltaInUs,
+        "(SLEEP) iteration %d: Elapsed time is not within expected range, "  // MISRA-suppress:
+                                                                             // 7.2.1
+                                                                             // false
+                                                                             // positive,
+                                                                             // reviewed
+                                                                             // by Serge
+                                                                             // 2026-03-16
+        "delta %lld, allowed = %lld, before = %lld, after = %lld",
+        i,
+        deltaTime.count(),
+        allowedDeltaInUs,
+        beforeSleepTime.count(),
+        afterSleepTime.count());
 
     // double sleep duration
     sleepDuration *= 2;
@@ -113,7 +126,10 @@ ZTEST_USER(zpp_thread, test_sleep_secondary_thread) {
   }
 }
 
-void thread_fn(volatile uint64_t* counter, const volatile bool* stop) {
+void thread_fn(
+    volatile uint64_t* counter,   // MISRA-suppress: 6.2.1
+    const volatile bool* stop) {  // MISRA-suppress: 6.2.1  use of volatile for preventing
+                                  // compiler optimization, reviewed by Serge 2026-03-16
   while (!*stop) {
     (*counter)++;
   }
@@ -128,9 +144,15 @@ ZTEST_USER(zpp_thread, test_round_robin) {
                           "Thread2");
 
   // Start the two threads
-  static volatile uint64_t counter1 = 0;
-  static volatile uint64_t counter2 = 0;
-  static volatile bool stop         = false;
+  static volatile uint64_t counter1 = 0;  // MISRA-suppress: 6.2.1
+                                          // use of volatile for preventing compiler
+                                          // optimization, reviewed by Serge 2026-03-16
+  static volatile uint64_t counter2 = 0;  // MISRA-suppress: 6.2.1
+                                          // use of volatile for preventing compiler
+                                          // optimization, reviewed by Serge 2026-03-16
+  static volatile bool stop = false;      // MISRA-suppress: 6.2.1
+                                          // use of volatile for preventing compiler
+                                          // optimization, reviewed by Serge 2026-03-16
 
   auto res = thread1.start(std::bind(thread_fn, &counter1, &stop));
   if (!res) {
@@ -149,7 +171,6 @@ ZTEST_USER(zpp_thread, test_round_robin) {
               zpp_lib::ThisThread::getPriority()));
 
   // Have the main thread for the duration of two slices
-  using namespace std::literals;
   // determine the number of time slices to wait before checking for counters (must be
   // even)
   static constexpr uint8_t NbrOfTimeSlicesToWait = 100;
@@ -186,4 +207,4 @@ ZTEST_USER(zpp_thread, test_round_robin) {
                counter2);
 }
 
-ZTEST_SUITE(zpp_thread, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_thread, nullptr, nullptr, nullptr, nullptr, nullptr);

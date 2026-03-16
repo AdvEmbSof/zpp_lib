@@ -166,7 +166,9 @@ void InterruptIn::callback(const struct device* port,
   // We need to cast cb for getting the instance on which the callback is running
   // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
   // cppcheck-suppress cstyleCast
-  CallbackData* pCallbackData        = (CallbackData*)cb;  // NOLINT(readability/casting)
+  // NOLINTNEXTLINE(readability/casting)
+  CallbackData* pCallbackData = (CallbackData*)cb;  // MISRA-suppress: 7.2.1  legacy API
+                                                    // reviewed by Serge 2026-03-11
   InterruptIn* pInstance             = pCallbackData->_instance;
   size_t buttonIndex                 = static_cast<size_t>(pInstance->_pinName) - 1;
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];

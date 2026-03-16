@@ -67,7 +67,7 @@ std::chrono::milliseconds sleep_for(const std::chrono::seconds& waitTime);
 ///
 /// @brief Suspend the current thread until a specified absolute time
 ///
-/// @param absoluteTime The absolute time 
+/// @param absoluteTime The absolute time
 ///
 std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absoluteTime);
 std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absoluteTime);

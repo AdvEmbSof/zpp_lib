@@ -35,17 +35,17 @@
 
 namespace zpp_lib {
 
-template <typename T, uint32_t queueSize>
-class MessageQueue : private NonCopyable<MessageQueue<T, queueSize> > {
+template <typename T, uint32_t QueueSize>
+class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
  public:
-  MessageQueue() { k_msgq_init(&_msgq, _msgq_buffer, sizeof(T), queueSize); }
+  MessageQueue() { k_msgq_init(&_msgq, _msgq_buffer, sizeof(T), QueueSize); }
 
   [[nodiscard]] ZephyrBoolResult try_put_for(const std::chrono::milliseconds& timeout,
                                              const T& data) {
     ZephyrBoolResult res;
     auto k_timeout = milliseconds_to_ticks(timeout);
     auto ret       = k_msgq_put(&_msgq, &data, k_timeout);
-    if (ret == -EBUSY) {
+    if (ret == -EAGAIN) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
@@ -61,12 +61,9 @@ class MessageQueue : private NonCopyable<MessageQueue<T, queueSize> > {
                                              T& data) {
     ZephyrBoolResult res;
     k_timeout_t k_timeout = milliseconds_to_ticks(timeout);
-    // printk("timeout value is %lld %lld\n", timeout.count(), k_timeout.ticks);
-    using namespace std::literals;
 
-    zpp_lib::ThisThread::sleep_for(1s);
     auto ret = k_msgq_get(&_msgq, &data, k_timeout);
-    if (ret == -EBUSY) {
+    if (ret == -EAGAIN) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
@@ -82,7 +79,7 @@ class MessageQueue : private NonCopyable<MessageQueue<T, queueSize> > {
 
  private:
   struct k_msgq _msgq;
-  char _msgq_buffer[sizeof(T) * queueSize];
+  char _msgq_buffer[sizeof(T) * QueueSize];
 };
 
 }  // namespace zpp_lib

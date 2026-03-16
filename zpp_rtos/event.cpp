@@ -84,13 +84,13 @@ Event::~Event() {}
 
 #if CONFIG_USERSPACE == 1
 Event::Event(k_event* pEvent) noexcept {
-  LOG_DBG("Copy event with address %p", (void*)pEvent);
+  LOG_DBG("Copy event with address %p", static_cast<void*>(pEvent));
   _p_event = pEvent;
 }
 #endif
 
 void Event::set(uint32_t event_flag) {
-  LOG_DBG("Set event at address %p", (void*)_p_event);
+  LOG_DBG("Set event at address %p", static_cast<void*>(_p_event));
   if (k_is_in_isr()) {
     k_event_post(_p_event, event_flag);
   } else {
@@ -139,7 +139,9 @@ ZephyrBoolResult Event::try_wait_any_for(const std::chrono::milliseconds& timeou
 
 #if CONFIG_USERSPACE == 1
 void Event::grant_access(k_tid_t tid) {
-  LOG_DBG("Granting access to event %p for thread %p", (void*)_p_event, (void*)tid);
+  LOG_DBG("Granting access to event %p for thread %p",
+          static_cast<void*>(_p_event),
+          static_cast<void*>(tid));
   k_object_access_grant(_p_event, tid);
 }
 #endif

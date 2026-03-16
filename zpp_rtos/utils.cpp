@@ -33,6 +33,7 @@
 
 // std
 #include <cstdlib>
+#include <cstring>
 
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
@@ -42,7 +43,7 @@ extern "C" {
 extern struct sys_heap _system_heap;
 }
 
-#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS) && CONFIG_HEAP_MEM_POOL_SIZE > 0
+#if CONFIG_SYS_HEAP_RUNTIME_STATS && CONFIG_HEAP_MEM_POOL_SIZE > 0
 void* operator new(size_t size) { return k_malloc(size); }
 
 void operator delete(void* ptr) noexcept { k_free(ptr); }
@@ -50,7 +51,7 @@ void operator delete(void* ptr) noexcept { k_free(ptr); }
 
 namespace zpp_lib {
 
-#if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
+#if CONFIG_THREAD_STACK_INFO && CONFIG_THREAD_ANALYZER
 static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
   size_t stack_size    = thread->stack_info.size;
   size_t start_address = thread->stack_info.start;
@@ -121,7 +122,7 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
   }
 
   if (is_idle) {
-    strncpy(threadStatistics.state_str, "ready", ThreadStatistics::STATE_STR_LEN);
+    std::strncpy(threadStatistics.state_str, "ready", ThreadStatistics::STATE_STR_LEN);
   }
 
 #if defined(CONFIG_THREAD_STACK_INFO)

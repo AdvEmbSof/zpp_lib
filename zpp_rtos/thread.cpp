@@ -109,12 +109,12 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   /* In user mode, initialize this thread with K_FOREVER timeout so we can
    * modify its permissions and then start it.
    */
-  uint32_t options  = _userMode ? (K_USER | K_INHERIT_PERMS) : K_INHERIT_PERMS;
+  uint32_t options = _userMode ? (K_USER | K_INHERIT_PERMS) : K_INHERIT_PERMS;
 #else
   // initialize callback used in Thread::_thunk
   _task = task;
 
-  uint32_t options  = 0;  
+  uint32_t options = 0;
 #endif
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
   LOG_DBG("Creating thread with stack size %d, priority %d and name %s",
@@ -124,30 +124,34 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
 #if CONFIG_USERSPACE == 1
+  _tid = k_thread_create(&_thread_data[_threadInstanceCount],
+                         ZPP_THREADS_STACKS[_threadInstanceCount],
+                         K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
+                         Thread::_thunk,
+                         // cppcheck-suppress cstyleCast
+                         // NOLINTNEXTLINE(readability/casting)
+                         (void*)static_cast<uint32_t>(
+                             _threadInstanceCount),  // MISRA-suppress: 7.2.1  legacy API,
+                                                     // reviewed by Serge 2026-03-11
+                         _event._p_event,
+                         _mutex._p_mutex,
+                         zephyr_priority,
+                         options,
+                         delay);
+#else
   _tid = k_thread_create(
       &_thread_data[_threadInstanceCount],
       ZPP_THREADS_STACKS[_threadInstanceCount],
       K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
       Thread::_thunk,
       // cppcheck-suppress cstyleCast
-      (void*)static_cast<uint32_t>(_threadInstanceCount),  // NOLINT(readability/casting)
-      _event._p_event,
-      _mutex._p_mutex,
+      // NOLINTNEXTLINE(readability/casting)
+      (void*)this,  // MISRA-suppress: 7.2.1  legacy API, reviewed by Serge 2026-03-11
+      nullptr,
+      nullptr,
       zephyr_priority,
       options,
       delay);
-#else
-  _tid = k_thread_create(&_thread_data[_threadInstanceCount],
-                         ZPP_THREADS_STACKS[_threadInstanceCount],
-                         K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
-                         Thread::_thunk,
-                         // cppcheck-suppress cstyleCast
-                         (void*)this,  // NOLINT(readability/casting)
-                         nullptr,
-                         nullptr,
-                         zephyr_priority,
-                         options,
-                         delay);
 #endif
   if (_tid == nullptr) {
     __ASSERT(false, "_tid is null");
@@ -165,7 +169,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // Grant access to the internal _event and _mutex attributes
   _event.grant_access(_tid);
   _mutex.grant_access(_tid);
-  
+
 #endif
   // Wake up the thread (after setting name and granting access)
   k_thread_start(_tid);
@@ -183,12 +187,12 @@ ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
 
   res = _mutex.lock();
-  __ASSERT(res, "Cannot lock mutex in join: %d", (int)res.error());
+  __ASSERT(res, "Cannot lock mutex in join: %d", static_cast<int>(res.error()));
 
   if (_tid != nullptr) {
     // we need to unlock the mutex before calling k_thread_join
     res = _mutex.unlock();
-    __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
+    __ASSERT(res, "Cannot unlock mutex in join: %d", static_cast<int>(res.error()));
 
     auto ret = k_thread_join(_tid, K_FOREVER);
     if (ret != 0) {
@@ -197,14 +201,14 @@ ZephyrResult Thread::join() noexcept {
     }
 
     res = _mutex.lock();
-    __ASSERT(res, "Cannot lock mutex in join: %d", (int)res.error());
+    __ASSERT(res, "Cannot lock mutex in join: %d", static_cast<int>(res.error()));
 
     // reset tid
     _tid = nullptr;
   }
 
   res = _mutex.unlock();
-  __ASSERT(res, "Cannot unlock mutex in join: %d", (int)res.error());
+  __ASSERT(res, "Cannot unlock mutex in join: %d", static_cast<int>(res.error()));
 
   return res;
 }

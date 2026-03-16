@@ -40,7 +40,7 @@ void callback1() { LOG_DBG("Button1_1 pressed"); }
 void callback2() { LOG_DBG("Button1_2 pressed"); }
 
 ZTEST_USER(zpp_interrupt_in, test_destructor) {
-  using namespace std::literals;
+  using std::literals::chrono_literals::operator""s;
 
   {
     zpp_lib::InterruptIn button1(zpp_lib::InterruptIn::PinName::BUTTON1);
@@ -60,7 +60,7 @@ ZTEST_USER(zpp_interrupt_in, test_destructor) {
 }
 
 ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
-  using namespace std::literals;
+  using std::literals::chrono_literals::operator""s;
   {
     zpp_lib::InterruptIn button1_1(zpp_lib::InterruptIn::PinName::BUTTON1);
     button1_1.fall(callback1);
@@ -88,4 +88,4 @@ ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
   zpp_lib::ThisThread::sleep_for(10s);
 }
 
-ZTEST_SUITE(zpp_interrupt_in, NULL, NULL, NULL, NULL, NULL);
+ZTEST_SUITE(zpp_interrupt_in, nullptr, nullptr, nullptr, nullptr, nullptr);
