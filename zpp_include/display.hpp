@@ -24,7 +24,7 @@
 
 #pragma once
 
-#if CONFIG_DISPLAY == 1
+#if CONFIG_DISPLAY
 
 // zephyr
 #include <zephyr/drivers/display.h>
@@ -111,4 +111,4 @@ class Display : private NonCopyable<Display> {
 
 }  // namespace zpp_lib
 
-#endif  // CONFIG_DISPLAY == 1
+#endif  // CONFIG_DISPLAY

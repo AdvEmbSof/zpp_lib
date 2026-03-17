@@ -46,22 +46,22 @@ class Thread : private NonCopyable<Thread> {
     osPriorityNormal).
     @param   name           name to be used for this thread. It has to stay allocated
     for the lifetime of the thread (default: nullptr)
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
     @param   userMode       flag stating whether the thread must be created in user mode
-#endif
+#endif // CONFIG_USERSPACE
 
     @note You cannot call this function from ISR context.
   */
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   explicit Thread(
       PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
       const char* name                   = nullptr,
       bool userMode                      = false);
-#else
+#else   // CONFIG_USERSPACE
   explicit Thread(
       PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
       const char* name                   = nullptr);
-#endif
+#endif  // CONFIG_USERSPACE
 
   /** Performs sanity checks
    */
@@ -100,11 +100,11 @@ class Thread : private NonCopyable<Thread> {
  private:
   Mutex _mutex;
   Event _event;
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   bool _userMode = false;
-#else
+#else   // CONFIG_USERSPACE
   Thread::task_function_t _task;
-#endif
+#endif  // CONFIG_USERSPACE
 
   PreemptableThreadPriority _priority;
   static constexpr uint32_t kStartedEvent = 0x01;

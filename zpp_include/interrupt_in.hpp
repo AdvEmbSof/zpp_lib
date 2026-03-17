@@ -97,15 +97,15 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    */
   void fall(std::function<void()> func);
 
-#if CONFIG_INTERRUPT_IN_EMUL == 1
+#if CONFIG_INTERRUPT_IN_EMUL
   /** Used for testing purposes
    *  Sets the value of the input pin
    */
   void write(uint8_t value);
-#endif
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 
  protected:
-#if CONFIG_INTERRUPT_IN_EMUL == 1
+#if CONFIG_INTERRUPT_IN_EMUL
   static inline uint8_t _value{!kPolarityPressed};  // button not pressed by default
 #else
   static void callback(const struct device* port,
@@ -117,7 +117,7 @@ class InterruptIn : private NonCopyable<InterruptIn> {
     InterruptIn* _instance;
   };
   struct CallbackData _cbData;
-#endif
+#endif  // CONFIG_INTERRUPT_IN_EMUL
   PinName _pinName;
   using CallbackFunction                 = std::function<void()>;
   using CallbackFunctionMap              = std::map<void*, CallbackFunction>;

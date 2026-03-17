@@ -22,33 +22,33 @@
  * @version 1.0.0
  ***************************************************************************/
 
-#if CONFIG_EVENTS == 1
+#if CONFIG_EVENTS
 #include "zpp_include/event.hpp"
 
 // Zephyr sdk
 #include <zephyr/logging/log.h>
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif
+#endif  // CONFIG_USERSPACE
 
 // zpp_lib
 #include "zpp_include/clock.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 extern struct k_mem_partition zpp_lib_partition;
 #define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
 #else
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif
+#endif  // CONFIG_USERSPACE
 
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 ZPP_LIB_BSS uint8_t Event::_eventInstanceCount = 0;
 
 #define X(name) K_EVENT_DEFINE(name)
@@ -62,10 +62,10 @@ static struct k_event* const ZPP_EVENT_ARRAY[] = {
 BUILD_ASSERT(ARRAY_SIZE(ZPP_EVENT_ARRAY) >=
              CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE);
 #undef X
-#endif
+#endif  // CONFIG_USERSPACE
 
 Event::Event() noexcept {
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   // kernel objects are allocated statically
   __ASSERT(_eventInstanceCount < CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE,
            "Too many events created");
@@ -74,20 +74,20 @@ Event::Event() noexcept {
   LOG_DBG("Event (instance index %d) created", _eventInstanceCount);
   _p_event = ZPP_EVENT_ARRAY[_eventInstanceCount];
   _eventInstanceCount++;
-#else
+#else   // CONFIG_USERSPACE
   k_event_init(&_event);
   _p_event = &_event;
-#endif
+#endif  // CONFIG_USERSPACE
 }
 
 Event::~Event() {}
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 Event::Event(k_event* pEvent) noexcept {
   LOG_DBG("Copy event with address %p", static_cast<void*>(pEvent));
   _p_event = pEvent;
 }
-#endif
+#endif  // CONFIG_USERSPACE
 
 void Event::set(uint32_t event_flag) {
   LOG_DBG("Set event at address %p", static_cast<void*>(_p_event));
@@ -137,15 +137,15 @@ ZephyrBoolResult Event::try_wait_any_for(const std::chrono::milliseconds& timeou
   return res;
 }
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 void Event::grant_access(k_tid_t tid) {
   LOG_DBG("Granting access to event %p for thread %p",
           static_cast<void*>(_p_event),
           static_cast<void*>(tid));
   k_object_access_grant(_p_event, tid);
 }
-#endif
+#endif  // CONFIG_USERSPACE
 
 }  // namespace zpp_lib
 
-#endif  // CONFIG_EVENTS == 1
+#endif  // CONFIG_EVENTS

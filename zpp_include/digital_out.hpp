@@ -103,19 +103,19 @@ class DigitalOut : private NonCopyable<DigitalOut> {
     return read();
   }
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   /**
    * Grants access to the kernel object for a specific thread
    *
    */
   void grant_access(k_tid_t tid);
-#endif
+#endif  // CONFIG_USERSPACE
 
  protected:
   struct gpio_dt_spec _gpio;
-#if CONFIG_GPIO_SYS == 1
+#if CONFIG_GPIO_SYS
   const struct device* _gpio_device;
-#endif
+#endif  // CONFIG_GPIO_SYS
 };
 
 /** @}*/

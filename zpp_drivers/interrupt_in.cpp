@@ -36,7 +36,7 @@ LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 namespace zpp_lib {
 
 InterruptIn::InterruptIn(PinName pinName) {
-#if CONFIG_INTERRUPT_IN_EMUL != 1
+#if !defined(CONFIG_INTERRUPT_IN_EMUL)
   switch (pinName) {
     case PinName::BUTTON1:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
@@ -80,7 +80,7 @@ InterruptIn::InterruptIn(PinName pinName) {
     return;
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
-#endif
+#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
   _pinName = pinName;
 }
 
@@ -91,7 +91,7 @@ InterruptIn::~InterruptIn() {
   CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
   LOG_DBG("Trying to unregistering callback for %p (button %d)", this, buttonIndex);
   if (cbFunctionMap.find(this) != cbFunctionMap.end()) {
-#if CONFIG_INTERRUPT_IN_EMUL != 1
+#if !defined(CONFIG_INTERRUPT_IN_EMUL)
     if (cbFunctionMap.size() == 1) {
       auto ret = gpio_remove_callback(_gpio.port, &_cbData._gpio_cb);
       if (ret != 0) {
@@ -99,21 +99,21 @@ InterruptIn::~InterruptIn() {
       }
       LOG_DBG("Gpio callback removed");
     }
-#endif
+#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
     LOG_DBG("Removing callback for button %d", buttonIndex);
     cbFunctionMap.erase(this);
   }
 }
 
 uint8_t InterruptIn::read() {
-#if CONFIG_INTERRUPT_IN_EMUL == 1
+#if CONFIG_INTERRUPT_IN_EMUL
   return _value;
-#else
+#else   // CONFIG_INTERRUPT_IN_EMUL
   return gpio_pin_get_dt(&_gpio);
-#endif
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 }
 
-#if CONFIG_INTERRUPT_IN_EMUL == 1
+#if CONFIG_INTERRUPT_IN_EMUL
 void InterruptIn::write(uint8_t value) {
   bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
   _value           = value;
@@ -129,7 +129,7 @@ void InterruptIn::write(uint8_t value) {
     }
   }
 }
-#endif
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 
 void InterruptIn::fall(std::function<void()> func) {
   if (func == nullptr) {
@@ -158,7 +158,7 @@ void InterruptIn::fall(std::function<void()> func) {
   cbFunctionMap[this] = func;
 }
 
-#if CONFIG_INTERRUPT_IN_EMUL != 1
+#if !defined(CONFIG_INTERRUPT_IN_EMUL)
 void InterruptIn::callback(const struct device* port,
                            struct gpio_callback* cb,
                            gpio_port_pins_t pins) {
@@ -178,6 +178,6 @@ void InterruptIn::callback(const struct device* port,
     iter->second();
   }
 }
-#endif
+#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
 
 }  // namespace zpp_lib

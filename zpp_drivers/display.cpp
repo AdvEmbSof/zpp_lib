@@ -22,7 +22,7 @@
  * @version 1.0.0
  ***************************************************************************/
 
-#if CONFIG_DISPLAY == 1
+#if CONFIG_DISPLAY
 
 #include "zpp_include/display.hpp"
 
@@ -328,4 +328,4 @@ void Display::fillRgbRect(
 
 }  // namespace zpp_lib
 
-#endif  // CONFIG_DISPLAY == 1
+#endif  // CONFIG_DISPLAY

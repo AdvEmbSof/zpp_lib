@@ -58,14 +58,14 @@ class Mutex : private NonCopyable<Mutex> {
   */
   explicit Mutex(const char* name) noexcept;
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   /*  When user mode is enabled, allow to construct a mutex
    *   based on the kernel object. This allows another thread
    *   to access the kernel object without accessing an unallowed
    *   memory section (such as another thread's stack)
    */
   explicit Mutex(k_mutex* pMutex) noexcept;
-#endif
+#endif  // CONFIG_USERSPACE
 
   /**
     Wait until a Mutex becomes available.
@@ -102,12 +102,12 @@ class Mutex : private NonCopyable<Mutex> {
    */
   [[nodiscard]] ZephyrResult unlock();
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   /**
    * Grants access to the k_mutex kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif
+#endif  // CONFIG_USERSPACE
 
   /** Mutex destructor
    *
@@ -116,12 +116,12 @@ class Mutex : private NonCopyable<Mutex> {
   ~Mutex();
 
  private:
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   friend class Thread;
   static uint8_t _mutexInstanceCount;
-#else
+#else   // CONFIG_USERSPACE
   struct k_mutex _mutex;
-#endif
+#endif  // CONFIG_USERSPACE
   struct k_mutex* _p_mutex = nullptr;
 };
 

@@ -26,27 +26,27 @@
 
 // Zephyr sdk
 #include <zephyr/logging/log.h>
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif
+#endif  // CONFIG_USERSPACE
 
 // zpp_lib
 #include "zpp_include/clock.hpp"
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 extern struct k_mem_partition zpp_lib_partition;
 #define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
-#else
+#else  // CONFIG_USERSPACE
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif
+#endif  // CONFIG_USERSPACE
 
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 ZPP_LIB_BSS uint8_t Mutex::_mutexInstanceCount = 0;
 
 #define X(name) K_MUTEX_DEFINE(name);
@@ -60,10 +60,10 @@ static struct k_mutex* const ZPP_MUTEX_ARRAY[] = {
 BUILD_ASSERT(ARRAY_SIZE(ZPP_MUTEX_ARRAY) >=
              CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE);
 #undef X
-#endif
+#endif  // CONFIG_USERSPACE
 
 Mutex::Mutex() noexcept {
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   // kernel objects are allocated statically
   __ASSERT(_mutexInstanceCount < CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE,
            "Too many mutexes created");
@@ -72,20 +72,20 @@ Mutex::Mutex() noexcept {
   LOG_DBG("Mutex (instance index %d) created", _mutexInstanceCount);
   _p_mutex = ZPP_MUTEX_ARRAY[_mutexInstanceCount];
   _mutexInstanceCount++;
-#else
+#else   // CONFIG_USERSPACE
   k_mutex_init(&_mutex);
   _p_mutex = &_mutex;
-#endif
+#endif  // CONFIG_USERSPACE
 }
 
 Mutex::~Mutex() {}
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 Mutex::Mutex(k_mutex* pMutex) noexcept {
   LOG_DBG("Copy mutex with address %p", static_cast<void*>(pMutex));
   _p_mutex = pMutex;
 }
-#endif
+#endif  // CONFIG_USERSPACE
 
 ZephyrResult Mutex::lock() {
   ZephyrResult res;
@@ -132,13 +132,13 @@ ZephyrResult Mutex::unlock() {
   return res;
 }
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
 void Mutex::grant_access(k_tid_t tid) {
   LOG_DBG("Granting access to mutex %p for thread %p",
           static_cast<void*>(_p_mutex),
           static_cast<void*>(tid));
   k_object_access_grant(_p_mutex, tid);
 }
-#endif
+#endif  // CONFIG_USERSPACE
 
 }  // namespace zpp_lib

@@ -24,7 +24,7 @@
 
 #pragma once
 
-#if CONFIG_EVENTS == 1
+#if CONFIG_EVENTS
 
 // zephyr
 #include <zephyr/kernel.h>
@@ -46,14 +46,14 @@ class Event : private NonCopyable<Event> {
    */
   Event() noexcept;
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   /*  When user mode is enabled, allow to construct an event
       based on the kernel object. This allows another thread
   *   to access the kernel object without accessing an unallowed
   *   memory section (such as another thread's stack).
   */
   explicit Event(k_event* pEvent) noexcept;
-#endif
+#endif  // CONFIG_USERSPACE
 
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
@@ -78,12 +78,12 @@ class Event : private NonCopyable<Event> {
   [[nodiscard]] ZephyrBoolResult try_wait_any_for(
       const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
 
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   /**
    * Grants access to the k_event kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif
+#endif  // CONFIG_USERSPACE
 
   /** Event destructor
    *
@@ -92,15 +92,15 @@ class Event : private NonCopyable<Event> {
   ~Event();
 
  private:
-#if CONFIG_USERSPACE == 1
+#if CONFIG_USERSPACE
   friend class Thread;
   static uint8_t _eventInstanceCount;
-#else
+#else   // CONFIG_USERSPACE
   struct k_event _event;
-#endif
+#endif  // CONFIG_USERSPACE
   struct k_event* _p_event = nullptr;
 };
 
 }  // namespace zpp_lib
 
-#endif  // CONFIG_EVENTS == 1
+#endif  // CONFIG_EVENTS
