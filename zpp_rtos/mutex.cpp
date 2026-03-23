@@ -88,6 +88,7 @@ Mutex::Mutex(k_mutex* pMutex) noexcept {
 #endif  // CONFIG_USERSPACE
 
 ZephyrResult Mutex::lock() {
+  LOG_DBG("Locking mutex %p", static_cast<void*>(_p_mutex));
   ZephyrResult res;
   int ret = k_mutex_lock(_p_mutex, K_FOREVER);
   if (ret != 0) {
@@ -122,6 +123,7 @@ ZephyrBoolResult Mutex::try_lock_for(const std::chrono::milliseconds& timeout) {
 }
 
 ZephyrResult Mutex::unlock() {
+  LOG_DBG("Unlocking mutex %p", static_cast<void*>(_p_mutex));
   ZephyrResult res;
   int ret = k_mutex_unlock(_p_mutex);
   if (ret != 0) {

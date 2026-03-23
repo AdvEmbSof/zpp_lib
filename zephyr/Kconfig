@@ -24,7 +24,7 @@ config ZPP_THREAD_STACK_SIZE
 	  This option allows to specify the default stack size to be used for user threads
 
 config ZPP_EVENT_POOL_SIZE
-  int "Number of statically pre-allocated k_event object"
+  int "Number of statically pre-allocated k_event objects"
 	depends on USE_ZPP_LIB && USERSPACE
 	default 2
 	range 0 10
@@ -34,7 +34,7 @@ config ZPP_EVENT_POOL_SIZE
 		The number of pre-allocated k_event kernel objects will be ZPP_THREAD_POOL_SIZE + ZPP_EVENT_POOL_SIZE
 
 config ZPP_MUTEX_POOL_SIZE
-  int "Number of statically pre-allocated k_mutx object"
+  int "Number of statically pre-allocated k_mutex objects"
 	depends on USE_ZPP_LIB && USERSPACE
 	default 6
 	range 0 10
@@ -42,6 +42,26 @@ config ZPP_MUTEX_POOL_SIZE
 	  This allows to pre-allocate a default number of k_mutex kernel objects
 		that must allocated in static memory when user mode is activated
 		The number of pre-allocated k_mutex kernel objects will be ZPP_THREAD_POOL_SIZE + ZPP_MUTEX_POOL_SIZE
+
+config ZPP_SEMAPHORE_POOL_SIZE
+  int "Number of statically pre-allocated k_sem objects"
+	depends on USE_ZPP_LIB && USERSPACE
+	default 2
+	range 0 10
+	help 
+	  This allows to pre-allocate a default number of k_sem kernel objects
+		that must allocated in static memory when user mode is activated
+		The number of pre-allocated k_sem kernel objects will be ZPP_SEMAPHORE_POOL_SIZE
+
+config ZPP_MSGQ_POOL_SIZE
+  int "Number of statically pre-allocated k_msgq objects"
+	depends on USE_ZPP_LIB && USERSPACE
+	default 2
+	range 0 10
+	help 
+	  This allows to pre-allocate a default number of k_msgq kernel objects
+		that must allocated in static memory when user mode is activated
+		The number of pre-allocated k_msgq kernel objects will be ZPP_MSGQ_POOL_SIZE
 
 config INTERRUPT_IN_EMUL
   bool "Emulate interrupt in"

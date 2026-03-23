@@ -92,6 +92,13 @@ class Thread : private NonCopyable<Thread> {
   */
   [[nodiscard]] ZephyrResult join() noexcept;
 
+#if CONFIG_USERSPACE
+  /** Returns the thread tid (required for granting access to kernel objects)
+    @return  thread tid
+  */
+  k_tid_t get_tid() const noexcept;
+#endif  // CONFIG_USERSPACE
+
  private:
   // Required to share definitions without
   // delegated constructors

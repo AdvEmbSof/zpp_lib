@@ -117,7 +117,8 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   uint32_t options = 0;
 #endif  // CONFIG_USERSPACE
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
-  LOG_DBG("Creating thread with stack size %d, priority %d and name %s",
+  LOG_DBG("Creating thread with stack at %p of size %d, priority %d and name %s",
+          ZPP_THREADS_STACKS[_threadInstanceCount], 
           K_THREAD_STACK_SIZEOF(ZPP_THREADS_STACKS[_threadInstanceCount]),
           zephyr_priority,
           _name.c_str());
@@ -212,6 +213,12 @@ ZephyrResult Thread::join() noexcept {
 
   return res;
 }
+
+#if CONFIG_USERSPACE
+k_tid_t Thread::get_tid() const noexcept {
+  return _tid;
+}
+#endif  // CONFIG_USERSPACE
 
 void Thread::_thunk(void* p1, void* p2, void* p3) {
 #if CONFIG_USERSPACE

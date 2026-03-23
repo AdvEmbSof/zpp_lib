@@ -75,8 +75,21 @@ class Semaphore : private NonCopyable<Semaphore> {
   */
   [[nodiscard]] ZephyrResult release(void);
 
+#if CONFIG_USERSPACE
+  /**
+   * Grants access to the k_mutex kernel object for a specific thread
+   */
+  void grant_access(k_tid_t tid);
+#endif  // CONFIG_USERSPACE
+
  private:
-  struct k_sem _sem_obj;
+ 
+#if CONFIG_USERSPACE
+  static uint8_t _semaphoreInstanceCount;
+#else   // CONFIG_USERSPACE
+  struct k_sem _sem;
+#endif  // CONFIG_USERSPACE
+  struct k_sem* _p_sem = nullptr;
 };
 
 }  // namespace zpp_lib
