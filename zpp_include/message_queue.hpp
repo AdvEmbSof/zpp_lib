@@ -52,7 +52,6 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
     // update the thread instance count
     k_msgq_init(&ZPP_MESSAGE_QUEUE_ARRAY[gMsgqInstanceCount], msgqBuffer, sizeof(T), QueueSize);
     _p_msgq = &ZPP_MESSAGE_QUEUE_ARRAY[gMsgqInstanceCount];
-    printk("Message queue with address %p (index %d) created\n", static_cast<void*>(_p_msgq), gMsgqInstanceCount);
     gMsgqInstanceCount++;
 #else // CONFIG_USERSPACE
   MessageQueue() {
@@ -102,9 +101,6 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
 
 #if CONFIG_USERSPACE
   void grant_access(k_tid_t tid) {
-    printk("Granting access to msgq %p for thread %p",
-          static_cast<void*>(_p_msgq),
-          static_cast<void*>(tid));
     k_object_access_grant(_p_msgq, tid);
   }
 #endif // CONFIG_USERSPACE
