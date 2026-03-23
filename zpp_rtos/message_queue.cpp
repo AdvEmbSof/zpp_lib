@@ -22,8 +22,8 @@
  * @version 1.0.0
  ***************************************************************************/
 
- #include "zpp_include/message_queue.hpp"
- 
+#include "zpp_include/message_queue.hpp"
+
 // Zephyr sdk
 #include <zephyr/logging/log.h>
 #if CONFIG_USERSPACE
@@ -44,8 +44,8 @@ extern struct k_mem_partition zpp_lib_partition;
 namespace zpp_lib {
 
 #if CONFIG_USERSPACE
-ZPP_LIB_DATA uint8_t gMsgqInstanceCount = 0;
+ZPP_LIB_DATA uint8_t gMsgqInstanceCount                          = 0;
 struct k_msgq ZPP_MESSAGE_QUEUE_ARRAY[CONFIG_ZPP_MSGQ_POOL_SIZE] = {};
 #endif  // CONFIG_USERSPACE
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

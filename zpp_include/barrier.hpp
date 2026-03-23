@@ -44,13 +44,13 @@ class Barrier : NonCopyable<Barrier> {
   explicit Barrier(uint32_t nbrOfThreads)
       : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
 
-  /** Wait for all thread to reach the barrier, last thread gets the time and 
+  /** Wait for all thread to reach the barrier, last thread gets the time and
    *  all threads get the same synchronized time
    *
    *  @note This function is NOT ISR-safe.
    */
   std::chrono::microseconds wait();
-  
+
 #if CONFIG_USERSPACE
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE

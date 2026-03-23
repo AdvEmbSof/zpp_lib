@@ -45,13 +45,13 @@ std::chrono::microseconds Time::get_uptime() {
       sys_clock_cycle_get_64();  // CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC25_000_000
 #else
 #if CONFIG_USERSPACE
-  uint32_t cycles = userspace_cycle_get_32(); // call k_cycle_get_32 via syscall
-#else // CONFIG_USERSPACE
+  uint32_t cycles = userspace_cycle_get_32();  // call k_cycle_get_32 via syscall
+#else   // CONFIG_USERSPACE
   uint32_t cycles = sys_clock_cycle_get_32();
-#endif // CONFIG_USERSPACE
-#endif // CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
+#endif  // CONFIG_USERSPACE
+#endif  // CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
   uint64_t us = k_cyc_to_us_floor64(cycles);
-#endif // CONFIG_QEMU_TARGET
+#endif  // CONFIG_QEMU_TARGET
   std::chrono::microseconds now(us);
   return now;
 }

@@ -46,7 +46,7 @@ namespace zpp_lib {
 using std::literals::chrono_literals::operator""us;
 ZPP_LIB_DATA std::chrono::microseconds Barrier::_startTime = 0us;
 
-std::chrono::microseconds Barrier::wait() {    
+std::chrono::microseconds Barrier::wait() {
   auto res = _mutex.lock();
   if (!res) {
     __ASSERT(false, "Cannot lock mutex: %d", static_cast<int>(res.error()));
@@ -82,7 +82,7 @@ void Barrier::grant_access(k_tid_t tid) {
   LOG_DBG("Granting access to barrier for thread %p", static_cast<void*>(tid));
   _waitSemaphore.grant_access(tid);
   _mutex.grant_access(tid);
-}  
+}
 #endif  // CONFIG_USERSPACE
 
 }  // namespace zpp_lib

@@ -44,7 +44,7 @@ extern struct k_mem_partition zpp_lib_partition;
 namespace zpp_lib {
 
 #if CONFIG_USERSPACE
-ZPP_LIB_BSS uint8_t Semaphore::_semaphoreInstanceCount = 0;
+ZPP_LIB_BSS uint8_t Semaphore::_semaphoreInstanceCount                  = 0;
 static struct k_sem ZPP_SEMAPHORE_ARRAY[CONFIG_ZPP_SEMAPHORE_POOL_SIZE] = {};
 #endif  // CONFIG_USERSPACE
 
@@ -56,18 +56,20 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
 
   // update the thread instance count
   LOG_DBG("Semaphore (instance index %d) created", _semaphoreInstanceCount);
-  __ASSERT_EVAL(k_sem_init(&ZPP_SEMAPHORE_ARRAY[_semaphoreInstanceCount], initial_count, max_count),
-                auto ret = k_sem_init(&ZPP_SEMAPHORE_ARRAY[_semaphoreInstanceCount], initial_count, max_count),
-                ret == 0,
-                "Cannot create semaphore: %d", 
-                ret);
+  __ASSERT_EVAL(
+      k_sem_init(&ZPP_SEMAPHORE_ARRAY[_semaphoreInstanceCount], initial_count, max_count),
+      auto ret = k_sem_init(
+          &ZPP_SEMAPHORE_ARRAY[_semaphoreInstanceCount], initial_count, max_count),
+      ret == 0,
+      "Cannot create semaphore: %d",
+      ret);
   _p_sem = &ZPP_SEMAPHORE_ARRAY[_semaphoreInstanceCount];
   _semaphoreInstanceCount++;
-#else   // CONFIG_USERSPACE  
-  __ASSERT_EVAL( k_sem_init(&_sem, initial_count, max_count),
-                auto ret =  k_sem_init(&_sem, initial_count, max_count),
+#else   // CONFIG_USERSPACE
+  __ASSERT_EVAL(k_sem_init(&_sem, initial_count, max_count),
+                auto ret = k_sem_init(&_sem, initial_count, max_count),
                 ret == 0,
-                "Cannot create semaphore: %d", 
+                "Cannot create semaphore: %d",
                 ret);
   _p_sem = &_sem;
 #endif  // CONFIG_USERSPACE

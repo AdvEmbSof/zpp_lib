@@ -83,7 +83,6 @@ class Semaphore : private NonCopyable<Semaphore> {
 #endif  // CONFIG_USERSPACE
 
  private:
- 
 #if CONFIG_USERSPACE
   static uint8_t _semaphoreInstanceCount;
 #else   // CONFIG_USERSPACE
