@@ -33,6 +33,10 @@
 #include "zpp_include/semaphore.hpp"
 #include "zpp_include/time.hpp"
 
+#if CONFIG_USERSPACE
+#include <zephyr/syscalls/time_syscalls.h>
+#endif
+
 namespace zpp_lib {
 
 class Barrier : NonCopyable<Barrier> {
@@ -40,35 +44,16 @@ class Barrier : NonCopyable<Barrier> {
   explicit Barrier(uint32_t nbrOfThreads)
       : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
 
-  std::chrono::microseconds wait() {
-    auto res = _mutex.lock();
-    if (!res) {
-      __ASSERT(false, "Cannot lock mutex: %d", static_cast<int>(res.error()));
-    }
-    _count--;
-    if (_count == 0) {
-      // Last thread to arrive — get start time and release all
-      _startTime = zpp_lib::Time::get_uptime();
-      for (uint32_t i = 0; i < _total; i++) {
-        res = _waitSemaphore.release();
-        if (!res) {
-          __ASSERT(false, "Cannot release semaphore: %d", static_cast<int>(res.error()));
-        }
-      }
-    }
-    res = _mutex.unlock();
-    if (!res) {
-      __ASSERT(false, "Cannot unlock mutex: %d", static_cast<int>(res.error()));
-    }
-
-    res = _waitSemaphore.acquire();
-    if (!res) {
-      __ASSERT(false, "Cannot acquire semaphore: %d", static_cast<int>(res.error()));
-    }
-
-    // _startTime is the same value for all threads
-    return _startTime;
-  }
+  /** Wait for all thread to reach the barrier, last thread gets the time and 
+   *  all threads get the same synchronized time
+   *
+   *  @note This function is NOT ISR-safe.
+   */
+  std::chrono::microseconds wait();
+  
+#if CONFIG_USERSPACE
+  void grant_access(k_tid_t tid);
+#endif  // CONFIG_USERSPACE
 
  private:
   zpp_lib::Semaphore _waitSemaphore;
