@@ -30,6 +30,10 @@
 #include <zephyr/app_memory/app_memdomain.h>
 #endif  // CONFIG_USERSPACE
 
+#if CONFIG_SEGGER_SYSTEMVIEW
+#include "SEGGER_SYSVIEW.h"
+#endif  // CONFIG_SEGGER_SYSTEMVIEW
+
 LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 #if CONFIG_USERSPACE
@@ -55,6 +59,12 @@ std::chrono::microseconds Barrier::wait() {
   if (_count == 0) {
     // Last thread to arrive — get start time and release all
     _startTime = zpp_lib::Time::get_uptime();
+
+#if CONFIG_SEGGER_SYSTEMVIEW
+#define SYSVIEW_MARK_TIME_ZERO 255U
+    SEGGER_SYSVIEW_Mark(SYSVIEW_MARK_TIME_ZERO);
+#endif  // CONFIG_SEGGER_SYSTEMVIEW
+
     for (uint32_t i = 0; i < _total; i++) {
       res = _waitSemaphore.release();
       if (!res) {
