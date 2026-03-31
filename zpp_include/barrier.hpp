@@ -26,6 +26,7 @@
 
 // stl
 #include <chrono>
+#include <functional>
 
 // zpp_lib
 #include "zpp_include/mutex.hpp"
@@ -49,7 +50,12 @@ class Barrier : NonCopyable<Barrier> {
    *
    *  @note This function is NOT ISR-safe.
    */
+#if CONFIG_TEST
+  using ZeroTimeCB = std::function<void(const std::chrono::microseconds&)>;
+  std::chrono::microseconds wait(ZeroTimeCB zeroTimeCB);
+#else
   std::chrono::microseconds wait();
+#endif
 
 #if CONFIG_USERSPACE
   void grant_access(k_tid_t tid);

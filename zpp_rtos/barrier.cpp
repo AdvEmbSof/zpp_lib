@@ -50,7 +50,11 @@ namespace zpp_lib {
 using std::literals::chrono_literals::operator""us;
 ZPP_LIB_DATA std::chrono::microseconds Barrier::_startTime = 0us;
 
+#if CONFIG_TEST
+std::chrono::microseconds Barrier::wait(Barrier::ZeroTimeCB zeroTimeCB) {
+#else
 std::chrono::microseconds Barrier::wait() {
+#endif
   auto res = _mutex.lock();
   if (!res) {
     __ASSERT(false, "Cannot lock mutex: %d", static_cast<int>(res.error()));
@@ -59,6 +63,10 @@ std::chrono::microseconds Barrier::wait() {
   if (_count == 0) {
     // Last thread to arrive — get start time and release all
     _startTime = zpp_lib::Time::get_uptime();
+
+#if CONFIG_TEST
+    zeroTimeCB(_startTime);
+#endif
 
 #if CONFIG_SEGGER_SYSTEMVIEW
 #define SYSVIEW_MARK_TIME_ZERO 255U
