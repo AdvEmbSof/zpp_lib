@@ -50,6 +50,9 @@ namespace zpp_lib {
 
 #if CONFIG_USERSPACE
 ZPP_LIB_BSS uint8_t Event::_eventInstanceCount = 0;
+// we use busy semantics to avoid initialization
+ZPP_LIB_BSS bool
+    ZPP_EVENT_ARRAY_BUSY[CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE];
 
 #define X(name) K_EVENT_DEFINE(name)
 #include "events.def"
@@ -67,20 +70,56 @@ BUILD_ASSERT(ARRAY_SIZE(ZPP_EVENT_ARRAY) >=
 Event::Event() noexcept {
 #if CONFIG_USERSPACE
   // kernel objects are allocated statically
-  __ASSERT(_eventInstanceCount < CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE,
-           "Too many events created");
+  static constexpr uint8_t totalNbrOfEvents =
+      CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
+  __ASSERT(_eventInstanceCount < totalNbrOfEvents, "Too many mutexes created");
 
-  // update the thread instance count
-  LOG_DBG("Event (instance index %d) created", _eventInstanceCount);
-  _p_event = ZPP_EVENT_ARRAY[_eventInstanceCount];
+  // find a free mutex
+  uint8_t index = 0;
+  for (; index < totalNbrOfEvents; index++) {
+    if (!ZPP_EVENT_ARRAY_BUSY[index]) {
+      break;
+    }
+  }
+  __ASSERT(index < totalNbrOfEvents, "Internal error: free event not found");
+
+  ZPP_EVENT_ARRAY_BUSY[index] = true;
+  _p_event                    = ZPP_EVENT_ARRAY[_eventInstanceCount];
   _eventInstanceCount++;
+  LOG_DBG("Event %p allocated (instance index %d, total %d)",
+          static_cast<void*>(_p_event),
+          index,
+          _eventInstanceCount);
 #else   // CONFIG_USERSPACE
   k_event_init(&_event);
   _p_event = &_event;
 #endif  // CONFIG_USERSPACE
 }
 
-Event::~Event() {}
+#if CONFIG_USERSPACE
+Event::~Event() {
+  bool found = false;
+  static constexpr uint8_t totalNbrOfEvents =
+      CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
+  for (uint8_t index = 0; index < totalNbrOfEvents; index++) {
+    if (_p_event == ZPP_EVENT_ARRAY[index]) {
+      // clear all events
+      static constexpr uint32_t kAllEvents = 0xFFFFFFFF;
+      k_event_clear(_p_event, kAllEvents);
+      // flag it as free
+      ZPP_EVENT_ARRAY_BUSY[index] = false;
+      _eventInstanceCount--;
+      LOG_DBG("Event %p freed (instance index %d, total %d)",
+              static_cast<void*>(_p_event),
+              index,
+              _eventInstanceCount);
+      found = true;
+      break;
+    }
+  }
+  __ASSERT(found, "Event %p not found", static_cast<void*>(_p_event));
+}
+#endif  // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
 Event::Event(k_event* pEvent) noexcept {
@@ -91,11 +130,16 @@ Event::Event(k_event* pEvent) noexcept {
 
 void Event::set(uint32_t event_flag) {
   LOG_DBG("Set event at address %p", static_cast<void*>(_p_event));
+  // Cannot access k_is_in_isr() in user mode on qemu
+#if CONFIG_QEMU_TARGET && CONFIG_USERSPACE
+  k_event_post(_p_event, event_flag);
+#else   // CONFIG_QEMU_TARGET && CONFIG_USERSPACE
   if (k_is_in_isr()) {
     k_event_post(_p_event, event_flag);
   } else {
     k_event_set(_p_event, event_flag);
   }
+#endif  // CONFIG_QEMU_TARGET && CONFIG_USERSPACE
 }
 
 void Event::wait_any(uint32_t events_flags) noexcept {

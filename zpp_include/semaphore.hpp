@@ -82,6 +82,14 @@ class Semaphore : private NonCopyable<Semaphore> {
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
 
+#if CONFIG_USERSPACE
+  /** Semaphore destructor
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  ~Semaphore();
+#endif
+
  private:
 #if CONFIG_USERSPACE
   static uint8_t _semaphoreInstanceCount;

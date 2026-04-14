@@ -85,11 +85,13 @@ class Event : private NonCopyable<Event> {
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
 
+#if CONFIG_USERSPACE
   /** Event destructor
    *
    * @note You cannot call this function from ISR context.
    */
   ~Event();
+#endif
 
  private:
 #if CONFIG_USERSPACE

@@ -42,8 +42,9 @@ namespace zpp_lib {
 
 class Barrier : NonCopyable<Barrier> {
  public:
-  explicit Barrier(uint32_t nbrOfThreads)
-      : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
+  // constructor and destructor
+  explicit Barrier(uint32_t nbrOfThreads);
+  ~Barrier();
 
   /** Wait for all thread to reach the barrier, last thread gets the time and
    *  all threads get the same synchronized time

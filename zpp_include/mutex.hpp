@@ -109,11 +109,13 @@ class Mutex : private NonCopyable<Mutex> {
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
 
+#if CONFIG_USERSPACE
   /** Mutex destructor
    *
    * @note You cannot call this function from ISR context.
    */
   ~Mutex();
+#endif
 
  private:
 #if CONFIG_USERSPACE

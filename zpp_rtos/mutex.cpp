@@ -48,6 +48,9 @@ namespace zpp_lib {
 
 #if CONFIG_USERSPACE
 ZPP_LIB_BSS uint8_t Mutex::_mutexInstanceCount = 0;
+// we use busy semantics to avoid initialization
+ZPP_LIB_BSS bool
+    ZPP_MUTEX_ARRAY_BUSY[CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE];
 
 #define X(name) K_MUTEX_DEFINE(name);
 #include "mutexes.def"
@@ -65,20 +68,56 @@ BUILD_ASSERT(ARRAY_SIZE(ZPP_MUTEX_ARRAY) >=
 Mutex::Mutex() noexcept {
 #if CONFIG_USERSPACE
   // kernel objects are allocated statically
-  __ASSERT(_mutexInstanceCount < CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE,
-           "Too many mutexes created");
+  static constexpr uint8_t totalNbrOfMutexes =
+      CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
+  __ASSERT(_mutexInstanceCount < totalNbrOfMutexes, "Too many mutexes created");
+
+  // find a free mutex
+  uint8_t index = 0;
+  for (; index < totalNbrOfMutexes; index++) {
+    if (!ZPP_MUTEX_ARRAY_BUSY[index]) {
+      break;
+    }
+  }
+  __ASSERT(index < totalNbrOfMutexes, "Internal error: free mutex not found");
 
   // update the thread instance count
-  LOG_DBG("Mutex (instance index %d) created", _mutexInstanceCount);
-  _p_mutex = ZPP_MUTEX_ARRAY[_mutexInstanceCount];
+  ZPP_MUTEX_ARRAY_BUSY[index] = true;
+  _p_mutex                    = ZPP_MUTEX_ARRAY[index];
   _mutexInstanceCount++;
+  LOG_DBG("Mutex %p allocated (instance index %d, total %d)",
+          static_cast<void*>(_p_mutex),
+          index,
+          _mutexInstanceCount);
 #else   // CONFIG_USERSPACE
   k_mutex_init(&_mutex);
   _p_mutex = &_mutex;
 #endif  // CONFIG_USERSPACE
 }
 
-Mutex::~Mutex() {}
+#if CONFIG_USERSPACE
+Mutex::~Mutex() {
+  bool found = false;
+  static constexpr uint8_t totalNbrOfMutexes =
+      CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
+  for (uint8_t index = 0; index < totalNbrOfMutexes; index++) {
+    if (_p_mutex == ZPP_MUTEX_ARRAY[index]) {
+      // reinitialize the mutex
+      k_mutex_init(_p_mutex);
+      // flag it as free
+      ZPP_MUTEX_ARRAY_BUSY[index] = false;
+      _mutexInstanceCount--;
+      LOG_DBG("Mutex %p freed (instance index %d, total %d)",
+              static_cast<void*>(_p_mutex),
+              index,
+              _mutexInstanceCount);
+      found = true;
+      break;
+    }
+  }
+  __ASSERT(found, "Mutex %p not found", static_cast<void*>(_p_mutex));
+}
+#endif  // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
 Mutex::Mutex(k_mutex* pMutex) noexcept {

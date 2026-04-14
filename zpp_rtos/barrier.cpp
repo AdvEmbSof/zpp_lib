@@ -50,6 +50,11 @@ namespace zpp_lib {
 using std::literals::chrono_literals::operator""us;
 ZPP_LIB_DATA std::chrono::microseconds Barrier::_startTime = 0us;
 
+Barrier::Barrier(uint32_t nbrOfThreads)
+    : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
+
+Barrier::~Barrier() { LOG_DBG("Destructing barrier"); }
+
 #if CONFIG_TEST
 std::chrono::microseconds Barrier::wait(Barrier::ZeroTimeCB zeroTimeCB) {
 #else

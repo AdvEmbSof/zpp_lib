@@ -78,6 +78,7 @@ Thread::Thread(PreemptableThreadPriority priority, const char* name) {
 }
 
 Thread::~Thread() {
+  LOG_DBG("Destructing thread %p", static_cast<void*>(_tid));
   if (_tid != nullptr) {
     auto ret = k_thread_join(_tid, K_FOREVER);
     if (ret != 0) {
@@ -173,10 +174,12 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 #endif  // CONFIG_USERSPACE
 
   // Wake up the thread (after setting name and granting access)
+  LOG_DBG("Thread %p (instance count %d) starting",
+          static_cast<void*>(_tid),
+          _threadInstanceCount);
   k_thread_start(_tid);
 
   // update the thread instance count
-  LOG_DBG("Thread (instance count %d) started", _threadInstanceCount);
   _threadInstanceCount++;
 
   return res;
@@ -222,7 +225,9 @@ void Thread::_thunk(void* p1, void* p2, void* p3) {
 #if CONFIG_USERSPACE
   // cppcheck-suppress cstyleCast
   uint32_t threadInstanceIndex = (uint32_t)p1;  // NOLINT(readability/casting)
-  LOG_DBG("Thread _thunk called for thread index %d", threadInstanceIndex);
+  LOG_DBG("Thread _thunk called for thread %p (index %d)",
+          static_cast<void*>(k_current_get()),
+          threadInstanceIndex);
   Event event(static_cast<k_event*>(p2));
   Mutex mutex(static_cast<k_mutex*>(p3));
 #else   // CONFIG_USERSPACE
@@ -235,6 +240,7 @@ void Thread::_thunk(void* p1, void* p2, void* p3) {
   event.set(kStartedEvent);
 
   // invoke the task
+  LOG_DBG("Invoking the thread task");
 #if CONFIG_USERSPACE
   ZPP_TASKS[threadInstanceIndex]();
 #else   // CONFIG_USERSPACE
