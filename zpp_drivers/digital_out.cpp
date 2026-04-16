@@ -27,8 +27,11 @@
 // Zephyr sdk
 #include <zephyr/logging/log.h>
 
-#if CONFIG_GPIO_SYS
-#include <zephyr/gpio_sys.h>
+// our syscalls
+#if CONFIG_USERSPACE
+#include <zephyr/syscalls/gpio_syscalls.h>
+
+#include "syscalls/gpio_syscalls_driver.h"
 #endif
 
 LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
@@ -66,14 +69,14 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
   }
   LOG_DBG("Pin %s initialized", _gpio.port->name);
 
-#if CONFIG_GPIO_SYS
-  _gpio_device = device_get_binding(GPIO_SYS_NAME);
+#if CONFIG_USERSPACE
+  _gpio_device = device_get_binding(GPIO_SYSCALL_DRIVER_NAME);
   if (_gpio_device == nullptr) {
     LOG_ERR("bad gpio device");
     k_oops();
   }
   k_thread_access_grant(k_current_get(), _gpio_device);
-#endif  // CONFIG_GPIO_SYS
+#endif  // CONFIG_USERSPACE
 
   ZephyrResult res = write(value);
   if (!res) {
@@ -92,11 +95,11 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
 
 ZephyrResult DigitalOut::write(int value) {
   ZephyrResult res;
-#if CONFIG_GPIO_SYS
-  auto ret = gpio_sys_set(_gpio_device, &_gpio, value);
-#else   // CONFIG_GPIO_SYS
+#if CONFIG_USERSPACE
+  auto ret = gpio_syscall_set(_gpio_device, &_gpio, value);
+#else   // CONFIG_USERSPACE
   auto ret = gpio_pin_set_dt(&_gpio, value);
-#endif  // CONFIG_GPIO_SYS
+#endif  // CONFIG_USERSPACE
   if (ret != 0) {
     res.assign_error(zephyr_to_zpp_error_code(ret));
     LOG_ERR("Cannot set value %d to pin %s", value, _gpio.port->name);
@@ -105,11 +108,11 @@ ZephyrResult DigitalOut::write(int value) {
 }
 
 int DigitalOut::read() {
-#if CONFIG_GPIO_SYS
-  return gpio_sys_get(_gpio_device, &_gpio);
-#else   // CONFIG_GPIO_SYS
+#if CONFIG_USERSPACE
+  return gpio_syscall_get(_gpio_device, &_gpio);
+#else   // CONFIG_USERSPACE
   return gpio_pin_get_dt(&_gpio);
-#endif  // CONFIG_GPIO_SYS
+#endif  // CONFIG_USERSPACE
 }
 
 #if CONFIG_USERSPACE

@@ -16,24 +16,12 @@
  * @file time_syscalls.h
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief Syscall implementation for k_cycle_get_32() function
+ * @brief Syscall driver declaration for gpio_pin_get()/gpio_pin_set() function
  *
  *
  * @date 2026-04-01
  * @version 1.0.0
  ***************************************************************************/
+#pragma once
 
-// zephyr
-#include "time_syscalls.h"
-
-#include <zephyr/internal/syscall_handler.h>
-
-// Implementation runs in supervisor mode — safe to read hardware registers
-uint32_t z_impl_userspace_cycle_get_32(void) { return k_cycle_get_32(); }
-
-// Verification function — no parameters to validate
-static inline uint32_t z_vrfy_userspace_cycle_get_32(void) {
-  return z_impl_userspace_cycle_get_32();
-}
-
-#include <zephyr/syscalls/userspace_cycle_get_32_mrsh.c>  // NOLINT(build/include)
+#define GPIO_SYSCALL_DRIVER_NAME "GPIO_SYSCALL"

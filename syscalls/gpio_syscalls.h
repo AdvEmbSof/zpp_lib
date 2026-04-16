@@ -16,24 +16,38 @@
  * @file time_syscalls.h
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief Syscall implementation for k_cycle_get_32() function
+ * @brief Syscall declaration for gpio_pin_get()/gpio_pin_set() function
  *
  *
  * @date 2026-04-01
  * @version 1.0.0
  ***************************************************************************/
 
-// zephyr
-#include "time_syscalls.h"
+#pragma once
 
-#include <zephyr/internal/syscall_handler.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 
-// Implementation runs in supervisor mode — safe to read hardware registers
-uint32_t z_impl_userspace_cycle_get_32(void) { return k_cycle_get_32(); }
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-// Verification function — no parameters to validate
-static inline uint32_t z_vrfy_userspace_cycle_get_32(void) {
-  return z_impl_userspace_cycle_get_32();
+typedef int (*gpio_syscall_set_t)(const struct device*, struct gpio_dt_spec*, int);
+typedef int (*gpio_syscall_get_t)(const struct device*, struct gpio_dt_spec*);
+
+__subsystem struct gpio_syscall_driver_api {
+  gpio_syscall_set_t set;
+  gpio_syscall_get_t get;
+};
+
+__syscall int gpio_syscall_set(const struct device* dev,
+                               struct gpio_dt_spec* gpio,
+                               int value);
+
+__syscall int gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio);
+
+#include <zephyr/syscalls/gpio_syscalls.h>
+
+#ifdef __cplusplus
 }
-
-#include <zephyr/syscalls/userspace_cycle_get_32_mrsh.c>  // NOLINT(build/include)
+#endif

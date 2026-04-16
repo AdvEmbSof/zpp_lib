@@ -1,7 +1,7 @@
 if(CONFIG_USE_ZPP_LIB)
   zephyr_include_directories(../)
 if(CONFIG_USERSPACE)
-  FILE(GLOB app_sources ../zpp_rtos/*.cpp ../zpp_drivers/*.cpp ../syscalls/time_syscalls.c)
+  FILE(GLOB app_sources ../zpp_rtos/*.cpp ../zpp_drivers/*.cpp ../syscalls/*.c)
 else()
   FILE(GLOB app_sources ../zpp_rtos/*.cpp ../zpp_drivers/*.cpp)
 endif()

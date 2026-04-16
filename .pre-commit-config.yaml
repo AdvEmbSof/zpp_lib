@@ -1,4 +1,4 @@
-files: ^(zpp_rtos/)|^(zpp_include/)|^(zpp_drivers/)
+files: ^(zpp_rtos/)|^(zpp_include/)|^(zpp_drivers/)|^(syscalls/)
 exclude: .*\.(yaml|conf|overlay|txt)$|(Kconfig)$
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks

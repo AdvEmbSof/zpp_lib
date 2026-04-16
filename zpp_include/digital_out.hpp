@@ -113,9 +113,9 @@ class DigitalOut : private NonCopyable<DigitalOut> {
 
  protected:
   struct gpio_dt_spec _gpio;
-#if CONFIG_GPIO_SYS
+#if CONFIG_USERSPACE
   const struct device* _gpio_device;
-#endif  // CONFIG_GPIO_SYS
+#endif  // CONFIG_USERSPACE
 };
 
 /** @}*/
