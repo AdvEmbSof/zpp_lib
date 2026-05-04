@@ -26,6 +26,7 @@
 
 // zephyr
 #include <zephyr/kernel.h>
+#include <zephyr/sys/clock.h>
 
 // zpp_lib
 #include "zpp_include/clock.hpp"
@@ -47,7 +48,8 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
   explicit MessageQueue(char* msgqBuffer) {
     // kernel objects are allocated statically
     __ASSERT(gMsgqInstanceCount < CONFIG_ZPP_MSGQ_POOL_SIZE,
-             "Too many message queues created");
+             "Too many message queues created (pool size is %d)",
+             CONFIG_ZPP_MSGQ_POOL_SIZE);
 
     // update the thread instance count
     k_msgq_init(
@@ -66,12 +68,13 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
     auto k_timeout = milliseconds_to_ticks(timeout);
     auto ret       = k_msgq_put(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
-    if (ret == -ENOMSG) {
+    if ((K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -ENOMSG) || 
+        (!K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -EAGAIN)) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
       // other failure -> return false with error
-      __ASSERT(false, "Cannot put message: %d", ret);
+      __ASSERT(false, "Cannot put message: %d (timeout is %lld msecs)", ret, timeout.count());
       res.assign_value(false);
       res.assign_error(zephyr_to_zpp_error_code(ret));
     }
@@ -83,12 +86,13 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
     k_timeout_t k_timeout = milliseconds_to_ticks(timeout);
     auto ret              = k_msgq_get(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
-    if (ret == -ENOMSG) {
+    if ((K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -ENOMSG) || 
+        (!K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -EAGAIN)) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
       // other failure -> return false with error
-      __ASSERT(false, "Cannot get message: %d", ret);
+      __ASSERT(false, "Cannot get message: %d (timeout is %lld msecs)", ret, timeout.count());
       res.assign_value(false);
       res.assign_error(zephyr_to_zpp_error_code(ret));
     }
