@@ -26,23 +26,24 @@
 
 namespace zpp_lib {
 
-// we expect CONFIG_NUM_PREEMPT_PRIORITIES to be at least 9
-#if CONFIG_NUM_PREEMPT_PRIORITIES < 9
-#error zpp_lib requires CONFIG_NUM_PREEMPT_PRIORITIES >= 9
+// we expect CONFIG_NUM_PREEMPT_PRIORITIES to be at least 10
+#if CONFIG_NUM_PREEMPT_PRIORITIES < 10
+#error zpp_lib requires CONFIG_NUM_PREEMPT_PRIORITIES >= 10
 #endif
 
 // Preemptable thread priority values
 enum class PreemptableThreadPriority {
-  PriorityIdle        = CONFIG_NUM_PREEMPT_PRIORITIES - 1,  ///< Reserved for Idle thread.
-  PriorityVeryLow     = CONFIG_NUM_PREEMPT_PRIORITIES - 2,  ///< Priority: low
-  PriorityLow         = CONFIG_NUM_PREEMPT_PRIORITIES - 3,  ///< Priority: low
-  PriorityBelowNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 4,  ///< Priority: below normal
-  PriorityNormal      = CONFIG_NUM_PREEMPT_PRIORITIES - 5,  ///< Priority: normal
-  PriorityAboveNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 6,  ///< Priority: above normal
-  PriorityHigh        = CONFIG_NUM_PREEMPT_PRIORITIES - 7,  ///< Priority: high
-  PriorityRealtime    = CONFIG_NUM_PREEMPT_PRIORITIES - 8,  ///< Priority: realtime
-  PriorityISR = -CONFIG_NUM_PREEMPT_PRIORITIES  ///< Highest priority (Reserved for ISR
-                                                ///< deferred thread)
+  PriorityIdle        = CONFIG_NUM_PREEMPT_PRIORITIES - 1,  ///< Reserved for Idle thread
+  PriorityMinimal     = CONFIG_NUM_PREEMPT_PRIORITIES - 2,
+  PriorityVeryLow     = CONFIG_NUM_PREEMPT_PRIORITIES - 3,
+  PriorityLow         = CONFIG_NUM_PREEMPT_PRIORITIES - 4,
+  PriorityBelowNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 5,
+  PriorityNormal      = CONFIG_NUM_PREEMPT_PRIORITIES - 6,  
+  PriorityAboveNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 7,  
+  PriorityHigh        = CONFIG_NUM_PREEMPT_PRIORITIES - 8,  
+  PriorityRealtime    = CONFIG_NUM_PREEMPT_PRIORITIES - 9,
+  PriorityISR         = -CONFIG_NUM_PREEMPT_PRIORITIES  ///< Highest priority (Reserved for ISR
+                                                        ///< deferred thread)
 };
 
 constexpr PreemptableThreadPriority prio_to_preemptable_thread_priority(
