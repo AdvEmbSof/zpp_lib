@@ -66,7 +66,7 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
     auto k_timeout = milliseconds_to_ticks(timeout);
     auto ret       = k_msgq_put(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
-    if (ret == -EAGAIN) {
+    if (ret == -ENOMSG) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
@@ -83,7 +83,7 @@ class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize> > {
     k_timeout_t k_timeout = milliseconds_to_ticks(timeout);
     auto ret              = k_msgq_get(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
-    if (ret == -EAGAIN) {
+    if (ret == -ENOMSG) {
       // timeout -> return false without error
       res.assign_value(false);
     } else if (ret != 0) {
