@@ -38,12 +38,12 @@ enum class PreemptableThreadPriority {
   PriorityVeryLow     = CONFIG_NUM_PREEMPT_PRIORITIES - 3,
   PriorityLow         = CONFIG_NUM_PREEMPT_PRIORITIES - 4,
   PriorityBelowNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 5,
-  PriorityNormal      = CONFIG_NUM_PREEMPT_PRIORITIES - 6,  
-  PriorityAboveNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 7,  
-  PriorityHigh        = CONFIG_NUM_PREEMPT_PRIORITIES - 8,  
+  PriorityNormal      = CONFIG_NUM_PREEMPT_PRIORITIES - 6,
+  PriorityAboveNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 7,
+  PriorityHigh        = CONFIG_NUM_PREEMPT_PRIORITIES - 8,
   PriorityRealtime    = CONFIG_NUM_PREEMPT_PRIORITIES - 9,
-  PriorityISR         = -CONFIG_NUM_PREEMPT_PRIORITIES  ///< Highest priority (Reserved for ISR
-                                                        ///< deferred thread)
+  PriorityISR = -CONFIG_NUM_PREEMPT_PRIORITIES  ///< Highest priority (Reserved for ISR
+                                                ///< deferred thread)
 };
 
 constexpr PreemptableThreadPriority prio_to_preemptable_thread_priority(

@@ -72,7 +72,9 @@ Event::Event() noexcept {
   // kernel objects are allocated statically
   static constexpr uint8_t totalNbrOfEvents =
       CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
-  __ASSERT(_eventInstanceCount < totalNbrOfEvents, "Too many mutexes created");
+  __ASSERT(_eventInstanceCount < totalNbrOfEvents,
+           "Too many events created (pool size is %d)",
+           CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE);
 
   // find a free mutex
   uint8_t index = 0;

@@ -56,7 +56,8 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
 #if CONFIG_USERSPACE
   // kernel objects are allocated statically
   __ASSERT(_semaphoreInstanceCount < CONFIG_ZPP_SEMAPHORE_POOL_SIZE,
-           "Too many semaphores created");
+           "Too many semaphores created (pool size is %d)",
+           CONFIG_ZPP_SEMAPHORE_POOL_SIZE);
 
   // find a free semaphore
   uint8_t index = 0;
