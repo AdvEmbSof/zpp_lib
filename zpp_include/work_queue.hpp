@@ -45,9 +45,16 @@ class WorkQueue : private NonCopyable<WorkQueue> {
   // constructor for running the work queue from an external thread calling run()
   explicit WorkQueue(const char* name) : _name(name) { k_work_queue_init(&_workQueue); }
 
-  // constructor for running the work queue from an internal thread calling run()
+// constructor for running the work queue from an internal thread calling run()
+#if CONFIG_USERSPACE
+  explicit WorkQueue(const char* name,
+                     zpp_lib::PreemptableThreadPriority threadPriority,
+                     bool userMode)
+      : _name(name), _thread(threadPriority, name, userMode) {
+#else   // CONFIG_USERSPACE
   explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority)
       : _name(name), _thread(threadPriority, name) {
+#endif  // CONFIG_USERSPACE
     k_work_queue_init(&_workQueue);
 
     // start the _isrWorkQueueThread thread
@@ -139,6 +146,6 @@ class WorkQueue : private NonCopyable<WorkQueue> {
   Event _event;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::atomic<bool> _isStarted            = false;
-};
+};  // NOLINT(readability/braces)
 
 }  // namespace zpp_lib
