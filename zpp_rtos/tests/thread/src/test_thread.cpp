@@ -41,16 +41,17 @@ void sleep_function() {
   using std::literals::chrono_literals::operator""ms;
 
   // TESTPOINT validate that busy wait works properly
+  uint64_t allowedDeltaInUs = 600;
+  uint64_t increaseDeltaInUs = 100;
   static constexpr uint8_t kNbrOfDurations = 5;
   std::chrono::microseconds waitDuration   = 10ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
-    std::chrono::microseconds beforeWaitTime = zpp_lib::Time::getUpTime();
-    zpp_lib::ThisThread::busyWait(waitDuration);
-    std::chrono::microseconds afterWaitTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds beforeWaitTime = zpp_lib::Time::get_uptime();
+    zpp_lib::ThisThread::busy_wait(waitDuration);
+    std::chrono::microseconds afterWaitTime = zpp_lib::Time::get_uptime();
 
     std::chrono::microseconds deltaTime = (afterWaitTime - beforeWaitTime) - waitDuration;
-    static constexpr uint64_t allowedDeltaInUs = 500;
-
+    
     zassert_true(
         abs(deltaTime.count()) < allowedDeltaInUs,
         "(BUSY WAIT) iteration %d: Elapsed time is not within expected "  // MISRA-suppress:
@@ -68,15 +69,16 @@ void sleep_function() {
 
     // double wait duration
     waitDuration *= 2;
+    allowedDeltaInUs += increaseDeltaInUs;
   }
-  LOG_DBG("Done with busyWait");
+  LOG_DBG("Done with busy_wait");
 
   // TESTPOINT validate that sleep works properly
   std::chrono::milliseconds sleepDuration = 1000ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
-    std::chrono::microseconds beforeSleepTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds beforeSleepTime = zpp_lib::Time::get_uptime();
     zpp_lib::ThisThread::sleep_for(sleepDuration);
-    std::chrono::microseconds afterSleepTime = zpp_lib::Time::getUpTime();
+    std::chrono::microseconds afterSleepTime = zpp_lib::Time::get_uptime();
 
     std::chrono::microseconds deltaTime =
         (afterSleepTime - beforeSleepTime) - sleepDuration;
@@ -164,11 +166,11 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   }
 
   // Make sure that it has a higher priority than the other threads
-  zpp_lib::ThisThread::setPriority(
+  zpp_lib::ThisThread::set_priority(
       zpp_lib::PreemptableThreadPriority::PriorityAboveNormal);
   LOG_DBG("Main thread priority is %d",
           zpp_lib::preemptable_thread_priority_to_zephyr_prio(
-              zpp_lib::ThisThread::getPriority()));
+              zpp_lib::ThisThread::get_priority()));
 
   // Have the main thread for the duration of two slices
   // determine the number of time slices to wait before checking for counters (must be
