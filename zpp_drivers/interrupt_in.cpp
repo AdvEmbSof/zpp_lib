@@ -38,23 +38,31 @@ namespace zpp_lib {
 InterruptIn::InterruptIn(PinName pinName) {
 #if !defined(CONFIG_INTERRUPT_IN_EMUL)
   switch (pinName) {
+#if HAS_SW0
     case PinName::BUTTON1:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
       break;
+#endif  // HAS_SW0
 
+#if HAS_SW1
     case PinName::BUTTON2:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
       break;
+#endif  // HAS_SW1
 
+#if HAS_SW2
     case PinName::BUTTON3:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw2), gpios);
       break;
+#endif  // HAS_SW2
 
+#if HAS_SW3
     case PinName::BUTTON4:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw3), gpios);
       break;
-
+#endif  // HAS_SW3
     default:
+      LOG_ERR("Invalid pinName %d", static_cast<int>(pinName));
       break;
   }
   if (!gpio_is_ready_dt(&_gpio)) {

@@ -51,19 +51,41 @@ class Display : private NonCopyable<Display> {
   [[nodiscard]] ZephyrResult initialize();
   uint32_t getWidth() const;
   uint32_t getHeight() const;
-  void fillDisplay(uint32_t color);
-  void fillRectangle(
-      uint32_t color, uint32_t xPos, uint32_t yPos, uint32_t width, uint32_t height);
-  void setTextColor(uint32_t color);
-  void setBackColor(uint32_t color);
-  struct Font {
-    // cppcheck-suppress unusedStructMember
-    const uint8_t* table;
-    // cppcheck-suppress unusedStructMember
-    uint16_t width;
-    // cppcheck-suppress unusedStructMember
-    uint16_t height;
+  // Colors defined in ARGB888 format
+  enum class Color : uint32_t {
+    BLACK = 0xFF000000,
+    WHITE = 0xFFFFFFFF,
+    BLUE  = 0xFF0000FF,
+    GREEN = 0xFF00FF00
   };
+  void fillDisplay(Color color);
+  void setBackgroundColor(Color color);
+  void fillRectangle(
+      Color color, uint32_t xPos, uint32_t yPos, uint32_t width, uint32_t height);
+  
+  void drawHorizontalLine(
+      Color color, uint32_t xPos, uint32_t yPos, uint32_t lineWidth, uint32_t thickness);
+  void drawVerticalLine(
+      Color color, uint32_t xPos, uint32_t yPos, uint32_t lineWidth, uint32_t thickness);
+  void drawLogo(uint16_t xPos,
+                uint16_t yPos,
+                const uint32_t* pSrc,
+                uint16_t logoWidth,
+                uint16_t logoHeight);
+  // type definitions for font
+  // Character descriptor: {unicode, offset_in_table, width}
+  struct FontCharInfo {
+    uint32_t unicode;
+    uint32_t offset;
+    uint8_t  width;
+  };
+  struct Font {
+    uint8_t                    height;
+    uint32_t                   char_count;
+    const FontCharInfo        *chars;
+    const uint8_t              *table;
+  };
+  
   void setFont(const Font* pFont);
   const Font* getFont() const;
   enum class AlignMode {
@@ -71,42 +93,49 @@ class Display : private NonCopyable<Display> {
     RIGHT_MODE  = 0x02, /*!< Right mode  */
     LEFT_MODE   = 0x03  /*!< Left mode   */
   };
-  void drawTitle(const char* text, AlignMode alignMode);
-  void drawPicture(uint16_t xPos,
-                   uint16_t yPos,
-                   const uint32_t* pSrc,
-                   uint16_t pictureWidth,
-                   uint16_t pictureHeight);
-  void drawStringAtLine(uint32_t line, const char* text, AlignMode alignMode);
-  void drawStringAt(uint32_t xPos, uint32_t yPos, const char* text, AlignMode mode);
+  // returns the string length in pixels
+  uint16_t getStringWidth(const char* text) const;
+  void drawStringAtLine(Color color,
+                        uint32_t line,
+                        const char* text,
+                        AlignMode alignMode);
+  void drawStringAt(
+      Color color, uint32_t xPos, uint32_t yPos, const char* text);
 
  private:
   // private methods
-  static void fillColorArgb8888(uint32_t color, uint8_t* pBuffer, size_t bufferSize);
-  static void fillColorRgb888(uint32_t color, uint8_t* pBuffer, size_t bufferSize);
-  static void fillLineArgb8888(const uint32_t* pSrc, size_t srcSize, uint8_t* pBuffer);
-  static void fillLineRgb888(const uint32_t* pSrc, size_t srcSize, uint8_t* pBuffer);
-  uint32_t computeDisplayLineNumber(uint32_t line);
-  void displayChar(uint32_t xPos, uint32_t yPos, uint8_t ascii);
-  void drawChar(uint32_t xPos, uint32_t yPos, const uint8_t* pData);
-  void fillRgbRect(
-      uint32_t xPos, uint32_t yPos, uint32_t* pData, uint32_t width, uint32_t height);
+  static void fillColorArgb8888(Color color, uint8_t* pBuffer, size_t bufferSize);
+  static void fillColorRgb888(Color color, uint8_t* pBuffer, size_t bufferSize);
+  static void fillLineArgb8888(const uint32_t* pSrc,
+                               size_t srcSize,
+                               uint8_t* pBuffer);
+  static void fillLineRgb888(const uint32_t* pSrc,
+                             size_t srcSize,
+                             uint8_t* pBuffer);
+  uint32_t computeYPosFromLineNumber(uint32_t line);
+  void displayChar(Color color, uint32_t xPos, uint32_t yPos, uint32_t unicode);
+  void fillRgbRect(Color color,
+                   uint32_t xPos,
+                   uint32_t yPos,
+                   uint32_t* pData,
+                   uint32_t width,
+                   uint32_t height);
 
   // constants
   static constexpr uint32_t H_STEP = 1;
 
   // data members
-  const struct device* _displayDevice                                      = nullptr;
-  struct display_capabilities _displayCapabilities                         = {0};
-  uint32_t _lcdXsize                                                       = 0;
-  uint32_t _lcdYsize                                                       = 0;
-  size_t _lineBufferSize                                                   = 0;
-  uint8_t* _lineBuffer                                                     = nullptr;
-  uint32_t _textColor                                                      = 0;
-  uint32_t _backColor                                                      = 0;
-  const Font* _pFont                                                       = nullptr;
-  std::function<void(uint32_t, uint8_t*, size_t)> _fillColorFunction       = nullptr;
-  std::function<void(const uint32_t*, size_t, uint8_t*)> _fillLineFunction = nullptr;
+  const struct device* _displayDevice                             = nullptr;
+  struct display_capabilities _displayCapabilities                = {0};
+  uint32_t _lcdXsize                                              = 0;
+  uint32_t _lcdYsize                                              = 0;
+  size_t _lineBufferSize                                          = 0;
+  Color _backgroundColor                                          = Color::BLACK;
+  uint8_t* _lineBuffer                                            = nullptr;
+  const Font* _pFont                                              = nullptr;
+  std::function<void(Color, uint8_t*, size_t)> _fillColorFunction = nullptr;
+  std::function<void(const uint32_t*, size_t, uint8_t*)> _fillLineFunction =
+      nullptr;
 };
 
 }  // namespace zpp_lib
