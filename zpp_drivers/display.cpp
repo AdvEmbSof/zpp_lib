@@ -79,10 +79,18 @@ ZephyrResult Display::initialize() {
   LOG_INF("Display sample for %s", _displayDevice->name);
   display_get_capabilities(_displayDevice, &_displayCapabilities);
 
-  _lcdXsize = _displayCapabilities.x_resolution;
-  _lcdYsize = _displayCapabilities.y_resolution;
+  // Wrapper adapts to whatever driver reports (rotated or not)
+  if (_displayCapabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_90 ||
+      _displayCapabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_270 ) {
+    _lcdXsize = _displayCapabilities.y_resolution;
+    _lcdYsize = _displayCapabilities.x_resolution;
+  } else { 
+    _lcdXsize = _displayCapabilities.x_resolution;
+    _lcdYsize = _displayCapabilities.y_resolution;
+  }
 
-  _lineBufferSize = _lcdXsize;
+  // Use max dimension to accommodate both portrait and landscape rotations
+  _lineBufferSize = (_lcdXsize > _lcdYsize) ? _lcdXsize : _lcdYsize;
 
   switch (_displayCapabilities.current_pixel_format) {
     case PIXEL_FORMAT_ARGB_8888: {
@@ -112,9 +120,10 @@ ZephyrResult Display::initialize() {
     return res;
   }
 
-  LOG_INF("Display capabilities: x_res %d y_res %d",
+  LOG_INF("Display capabilities: x_res %d y_res %d pixel_format %d",
           _displayCapabilities.x_resolution,
-          _displayCapabilities.y_resolution);
+          _displayCapabilities.y_resolution,
+          _displayCapabilities.current_pixel_format);
   LOG_INF("Display size: x %d, y %d", _lcdXsize, _lcdYsize);
   LOG_INF("Buffer size: %d", _lineBufferSize);
 
@@ -130,23 +139,38 @@ void Display::fillDisplay(Color color) {
   display_blanking_off(_displayDevice);
 }
 
-void Display::setBackgroundColor(Color color) { _backgroundColor = color; }
+void Display::setBackgroundColor(Color color) { 
+  _backgroundColor = color; 
+  _backgroundColorValue = getColorValue(_backgroundColor);
+}
 
 void Display::fillRectangle(
     Color color, uint32_t xPos, uint32_t yPos, uint32_t width, uint32_t height) {
-  _fillColorFunction(color, _lineBuffer, _lineBufferSize);
+  uint32_t colorValue = getColorValue(color);
+  // LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d, height %d)",
+  //        colorValue,
+  //        xPos,
+  //        yPos,
+  //        width,
+  //        height);
+  _fillColorFunction(colorValue, _lineBuffer, _lineBufferSize);
 
   struct display_buffer_descriptor bufDesc = {0};
-  bufDesc.buf_size                         = _lineBufferSize;
-  xPos           = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
-  bufDesc.width  = zpp_lib::min(_displayCapabilities.x_resolution - xPos, width);
+  xPos           = zpp_lib::min(_lcdXsize - 1, xPos);
+  bufDesc.width  = zpp_lib::min(_lcdXsize - xPos, width);
   bufDesc.pitch  = bufDesc.width;
   bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
-  uint16_t firstLine       = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
+  // buf_size is in bytes: width * height * bytes_per_pixel
+  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+  uint16_t firstLine       = zpp_lib::min(yPos, _lcdYsize);
+  uint16_t lastLine = zpp_lib::min(yPos + height, _lcdYsize);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    // LOG_DBG("Writing buffer at post (%d - %d), width(%d)",getCharWidth xPos, line, bufDesc.width);
+    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
+    bufDesc.height = lineHeight;
+    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
     auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (ret != 0) {
       LOG_ERR("Cannot write to display: %d", ret);
@@ -184,17 +208,23 @@ void Display::drawLogo(uint16_t xPos,
                        uint16_t logoWidth,
                        uint16_t logoHeight) {
   struct display_buffer_descriptor bufDesc = {0};
-  xPos             = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
-  bufDesc.buf_size = _lineBufferSize;
-  bufDesc.width  = zpp_lib::min(_displayCapabilities.x_resolution - xPos - 1, logoWidth);
+  xPos             = zpp_lib::min(_lcdXsize - 1, xPos);
+  bufDesc.width  = zpp_lib::min(_lcdXsize - xPos, logoWidth);
   bufDesc.pitch  = bufDesc.width;
   bufDesc.height = H_STEP;
   bufDesc.frame_incomplete = true;
+  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
   // draw the picture line by line
-  uint16_t firstLine = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine  = zpp_lib::min(yPos + logoHeight, _displayCapabilities.y_resolution);
+  uint16_t firstLine = zpp_lib::min(yPos, _lcdYsize);
+  uint16_t lastLine  = zpp_lib::min(yPos + logoHeight, _lcdYsize);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    _fillLineFunction(pSrc, logoWidth, _lineBuffer);
+    // fill only the number of pixels we will write (bufDesc.width)
+    _fillLineFunction(pSrc, bufDesc.width, _lineBuffer);
+    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
+    bufDesc.height = lineHeight;
+    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
     auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (ret != 0) {
       LOG_ERR("Cannot write to display: %d", ret);
@@ -255,12 +285,12 @@ void Display::drawStringAt(Color color, uint32_t xPos, uint32_t yPos, const char
     nbrOfChars++;
   }
 
-  // get the number of pixels required for displaying the text
-  uint16_t nbrOfPixels = getStringWidth(text);
-
   // compute the starting column
   int32_t refcolumn = xPos;
-  LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, xPos, yPos, nbrOfPixels, refcolumn);
+  
+  // get the number of pixels required for displaying the text
+  // uint16_t nbrOfPixels = getStringWidth(text);
+  // LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, xPos, yPos, nbrOfPixels, refcolumn);
 
   // Check that the Start column is located in the screenascii
   if ((refcolumn < 1) || (refcolumn >= 0x8000)) {
@@ -325,9 +355,9 @@ void Display::displayChar(Color color, uint32_t xPos, uint32_t yPos, uint32_t un
         uint64_t bitInPixel = static_cast<uint64_t>(1)
                               << static_cast<uint64_t>(charWidth - j + offset - 1);
         if (line & bitInPixel) {
-          argb8888[j] = static_cast<uint32_t>(color);
+          argb8888[j] = getColorValue(color);
         } else {
-          argb8888[j] = static_cast<uint32_t>(_backgroundColor);
+          argb8888[j] = _backgroundColorValue;
         }
       }
       fillRgbRect(color, xPos, yPos++, argb8888, charWidth, 1);  // NOLINT
@@ -338,31 +368,32 @@ void Display::displayChar(Color color, uint32_t xPos, uint32_t yPos, uint32_t un
   }
 }
 
-void Display::fillColorArgb8888(Color color, uint8_t* pBuffer, size_t bufferSize) {
-  // LOG_INF("Filling buffer of size %d with value %d", buf_size, color);
+void Display::fillColorArgb8888(uint32_t colorValue, uint8_t* pBuffer, size_t bufferSize) {
+  // LOG_INF("Filling buffer of size %d with value %d", buf_size, colorValue);
   for (size_t idx = 0; idx < bufferSize; idx += 4) {
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
     // cppcheck-suppress cstyleCast
     // NOLINTNEXTLINE(readability/casting)
-    *((uint32_t*)(pBuffer + idx)) = static_cast<uint32_t>(color);
+    *((uint32_t*)(pBuffer + idx)) = colorValue;
   }
 }
-void Display::fillColorRgb888(Color color, uint8_t* pBuffer, size_t bufferSize) {
-  uint32_t c = static_cast<uint32_t>(color);
+void Display::fillColorRgb888(uint32_t colorValue, uint8_t* pBuffer, size_t bufferSize) {
   for (size_t idx = 0; idx < bufferSize; idx += 3) {
-    *(pBuffer + idx + 0) = (uint8_t)((c >> 16) & 0xFF);
-    *(pBuffer + idx + 1) = (uint8_t)((c >> 8) & 0xFF);
-    *(pBuffer + idx + 2) = (uint8_t)((c >> 0) & 0xFF);
+    // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
+    *(pBuffer + idx + 0) = (uint8_t)((colorValue >> 0) & 0xFF);
+    *(pBuffer + idx + 1) = (uint8_t)((colorValue >> 8) & 0xFF);
+    *(pBuffer + idx + 2) = (uint8_t)((colorValue >> 16) & 0xFF);
   }
 }
 
 void Display::fillLineArgb8888(const uint32_t* pSrc,
                                size_t srcSize,
                                uint8_t* pBuffer) {
-  for (size_t idx = 0; idx < srcSize; idx += 4) {
-    // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
+  // srcSize is number of pixels. Write each pixel as 4 consecutive bytes.
+  for (size_t px = 0; px < srcSize; px++) {
+    // write 32-bit pixel value into buffer at byte offset px*4
     // cppcheck-suppress cstyleCast
-    *((uint32_t*)(pBuffer + idx)) = *pSrc;  // NOLINT(readability/casting)
+    *((uint32_t*)(pBuffer + px * 4)) = *pSrc;  // NOLINT(readability/casting)
     pSrc++;
   }
 }
@@ -372,9 +403,10 @@ void Display::fillLineRgb888(const uint32_t* pSrc,
                              uint8_t* pBuffer) {
   for (size_t idx = 0; idx < srcSize; idx++) {
     uint32_t color           = *pSrc;
-    *(pBuffer + 3 * idx + 0) = (uint8_t)((color >> 16) & 0xFF);
+    // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
+    *(pBuffer + 3 * idx + 0) = (uint8_t)((color >> 0) & 0xFF);
     *(pBuffer + 3 * idx + 1) = (uint8_t)((color >> 8) & 0xFF);
-    *(pBuffer + 3 * idx + 2) = (uint8_t)((color >> 0) & 0xFF);
+    *(pBuffer + 3 * idx + 2) = (uint8_t)((color >> 16) & 0xFF);
     pSrc++;
   }
 }
@@ -386,17 +418,23 @@ void Display::fillRgbRect(Color color,
                           uint32_t width,
                           uint32_t height) {
   struct display_buffer_descriptor bufDesc = {0};
-  xPos             = zpp_lib::min(_displayCapabilities.x_resolution - 1, xPos);
-  bufDesc.buf_size = _lineBufferSize;
-  bufDesc.width    = zpp_lib::min(_displayCapabilities.x_resolution - xPos - 1, width);
+  xPos             = zpp_lib::min(_lcdXsize - 1, xPos);
+  bufDesc.width    = zpp_lib::min(_lcdXsize - xPos, width);
   bufDesc.pitch    = bufDesc.width;
   bufDesc.height   = H_STEP;
   bufDesc.frame_incomplete = true;
+  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
   // draw the rect line by line
-  uint16_t firstLine = zpp_lib::min(yPos, _displayCapabilities.y_resolution);
-  uint16_t lastLine  = zpp_lib::min(yPos + height, _displayCapabilities.y_resolution);
+  uint16_t firstLine = zpp_lib::min(yPos, _lcdYsize);
+  uint16_t lastLine  = zpp_lib::min(yPos + height, _lcdYsize);
   for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    _fillLineFunction(pData, width, _lineBuffer);
+    // fill only the number of pixels we will write (bufDesc.width)
+    _fillLineFunction(pData, bufDesc.width, _lineBuffer);
+    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
+    bufDesc.height = lineHeight;
+    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
     auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
     if (ret != 0) {
       LOG_ERR("Cannot write to display: %d", ret);
