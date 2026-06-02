@@ -109,7 +109,9 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   }
 
   // the thread stacks are allocated statically
-  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created");
+  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE,
+             "Too many threads created (pool size is %d)",
+             CONFIG_ZPP_THREAD_POOL_SIZE);
 
   // create the thread
   k_timeout_t delay = K_FOREVER;

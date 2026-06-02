@@ -47,8 +47,16 @@ public:
     k_work_queue_init(&_workQueue);
   }
 
-  // constructor for running the work queue from an internal thread calling run()
-  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority) : _name(name), _thread(threadPriority, name) {
+// constructor for running the work queue from an internal thread calling run()
+#if CONFIG_USERSPACE
+  explicit WorkQueue(const char* name,
+                     zpp_lib::PreemptableThreadPriority threadPriority,
+                     bool userMode)
+      : _name(name), _thread(threadPriority, name, userMode) {
+#else   // CONFIG_USERSPACE
+  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority)
+      : _name(name), _thread(threadPriority, name) {
+#endif  // CONFIG_USERSPACE
     k_work_queue_init(&_workQueue);
 
     // start the _isrWorkQueueThread thread
@@ -58,7 +66,7 @@ public:
     }
 
     // wait for the thread to be started
-    _thread.waitStarted();
+    _thread.wait_started();
   }
 
   ~WorkQueue() {
@@ -76,13 +84,18 @@ public:
         .name     = _name.c_str(),
         .no_yield = true,
     };
+    // flag
     _isStarted.store(true);
+
+    // signal the event
+    _event.set(kStartedEvent);
+
     k_work_queue_run(&_workQueue, &cfg);
   }
 
   [[nodiscard]] ZephyrResult stop() {
     ZephyrResult res;
-    if (!_isStarted.load()) {
+    if (!_isStarted) {
       // not started or already stopped, return silently
       return res;
     }
@@ -102,11 +115,13 @@ public:
     return res;
   }
 
+  void wait_started() noexcept { _event.wait_any(kStartedEvent); }
+
   //  Passing a parameter as a non-const reference is accepted
   //  NOLINTNEXTLINE(runtime/references)
   template <typename Obj, typename... Args> [[nodiscard]] ZephyrResult call(Work<Obj, Args...>& work) {
     ZephyrResult res;
-    if (!_isStarted.load()) {
+    if (!_isStarted) {
       __ASSERT(false, "Workqueue should have started before calling call()");
       res.assign_error(ZephyrErrorCode::k_nodev);
       return res;
@@ -129,7 +144,9 @@ private:
   struct k_work_q _workQueue;
   std::string _name;
   zpp_lib::Thread _thread;
-  std::atomic<bool> _isStarted = false;
-};
+  Event _event;
+  static constexpr uint32_t kStartedEvent = 0x01;
+  std::atomic<bool> _isStarted            = false;
+};  // NOLINT(readability/braces)
 
 } // namespace zpp_lib

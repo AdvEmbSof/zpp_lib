@@ -78,7 +78,7 @@ public:
 
     @note You cannot call this function from ISR context.
   */
-  void waitStarted() noexcept;
+  void wait_started() noexcept;
 
   /** Wait for thread to terminate
     @return  status code that indicates the execution status of the function.
