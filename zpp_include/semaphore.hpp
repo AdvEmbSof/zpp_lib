@@ -43,7 +43,7 @@ namespace zpp_lib {
  * RTOS memory pools are not being used).
  */
 class Semaphore : private NonCopyable<Semaphore> {
- public:
+public:
   /** Create and Initialize a Semaphore object used for managing resources.
     @param count number of available resources; maximum index value is (count-1).
     (default: 0).
@@ -80,7 +80,7 @@ class Semaphore : private NonCopyable<Semaphore> {
    * Grants access to the k_mutex kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
   /** Semaphore destructor
@@ -90,13 +90,13 @@ class Semaphore : private NonCopyable<Semaphore> {
   ~Semaphore();
 #endif
 
- private:
+private:
 #if CONFIG_USERSPACE
   static uint8_t _semaphoreInstanceCount;
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   struct k_sem _sem;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
   struct k_sem* _p_sem = nullptr;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

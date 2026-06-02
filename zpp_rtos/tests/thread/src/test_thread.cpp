@@ -80,25 +80,23 @@ void sleep_function() {
     zpp_lib::ThisThread::sleep_for(sleepDuration);
     std::chrono::microseconds afterSleepTime = zpp_lib::Time::get_uptime();
 
-    std::chrono::microseconds deltaTime =
-        (afterSleepTime - beforeSleepTime) - sleepDuration;
+    std::chrono::microseconds deltaTime        = (afterSleepTime - beforeSleepTime) - sleepDuration;
     static constexpr uint64_t allowedDeltaInUs = 500;
 
-    zassert_true(
-        abs(deltaTime.count()) < allowedDeltaInUs,
-        "(SLEEP) iteration %d: Elapsed time is not within expected range, "  // MISRA-suppress:
-                                                                             // 7.2.1
-                                                                             // false
-                                                                             // positive,
-                                                                             // reviewed
-                                                                             // by Serge
-                                                                             // 2026-03-16
-        "delta %lld, allowed = %lld, before = %lld, after = %lld",
-        i,
-        deltaTime.count(),
-        allowedDeltaInUs,
-        beforeSleepTime.count(),
-        afterSleepTime.count());
+    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs,
+                 "(SLEEP) iteration %d: Elapsed time is not within expected range, " // MISRA-suppress:
+                                                                                     // 7.2.1
+                                                                                     // false
+                                                                                     // positive,
+                                                                                     // reviewed
+                                                                                     // by Serge
+                                                                                     // 2026-03-16
+                 "delta %lld, allowed = %lld, before = %lld, after = %lld",
+                 i,
+                 deltaTime.count(),
+                 allowedDeltaInUs,
+                 beforeSleepTime.count(),
+                 afterSleepTime.count());
 
     // double sleep duration
     sleepDuration *= 2;
@@ -113,8 +111,7 @@ ZTEST_USER(zpp_thread, test_sleep_main) {
 
 ZTEST_USER(zpp_thread, test_sleep_secondary_thread) {
   // test sleep (secondary thread)
-  zpp_lib::Thread otherThread(zpp_lib::PreemptableThreadPriority::PriorityNormal,
-                              "Secondary thread");
+  zpp_lib::Thread otherThread(zpp_lib::PreemptableThreadPriority::PriorityNormal, "Secondary thread");
   auto res = otherThread.start(sleep_function);
   if (!res) {
     zassert_true(res, "Cannot start thread: %d", static_cast<int>(res.error()));
@@ -128,10 +125,9 @@ ZTEST_USER(zpp_thread, test_sleep_secondary_thread) {
   }
 }
 
-void thread_fn(
-    volatile uint64_t* counter,   // MISRA-suppress: 6.2.1
-    const volatile bool* stop) {  // MISRA-suppress: 6.2.1  use of volatile for preventing
-                                  // compiler optimization, reviewed by Serge 2026-03-16
+void thread_fn(volatile uint64_t* counter,  // MISRA-suppress: 6.2.1
+               const volatile bool* stop) { // MISRA-suppress: 6.2.1  use of volatile for preventing
+  // compiler optimization, reviewed by Serge 2026-03-16
   while (!*stop) {
     (*counter)++;
   }
@@ -140,21 +136,19 @@ void thread_fn(
 
 ZTEST_USER(zpp_thread, test_round_robin) {
   // Create two threads with below normal priority
-  zpp_lib::Thread thread1(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal,
-                          "Thread1");
-  zpp_lib::Thread thread2(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal,
-                          "Thread2");
+  zpp_lib::Thread thread1(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal, "Thread1");
+  zpp_lib::Thread thread2(zpp_lib::PreemptableThreadPriority::PriorityBelowNormal, "Thread2");
 
   // Start the two threads
-  static volatile uint64_t counter1 = 0;  // MISRA-suppress: 6.2.1
-                                          // use of volatile for preventing compiler
-                                          // optimization, reviewed by Serge 2026-03-16
-  static volatile uint64_t counter2 = 0;  // MISRA-suppress: 6.2.1
-                                          // use of volatile for preventing compiler
-                                          // optimization, reviewed by Serge 2026-03-16
-  static volatile bool stop = false;      // MISRA-suppress: 6.2.1
-                                          // use of volatile for preventing compiler
-                                          // optimization, reviewed by Serge 2026-03-16
+  static volatile uint64_t counter1 = 0; // MISRA-suppress: 6.2.1
+                                         // use of volatile for preventing compiler
+                                         // optimization, reviewed by Serge 2026-03-16
+  static volatile uint64_t counter2 = 0; // MISRA-suppress: 6.2.1
+                                         // use of volatile for preventing compiler
+                                         // optimization, reviewed by Serge 2026-03-16
+  static volatile bool stop = false;     // MISRA-suppress: 6.2.1
+                                         // use of volatile for preventing compiler
+                                         // optimization, reviewed by Serge 2026-03-16
 
   auto res = thread1.start(std::bind(thread_fn, &counter1, &stop));
   if (!res) {
@@ -168,16 +162,14 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   // Make sure that it has a higher priority than the other threads
   zpp_lib::ThisThread::set_priority(
       zpp_lib::PreemptableThreadPriority::PriorityAboveNormal);
-  LOG_DBG("Main thread priority is %d",
-          zpp_lib::preemptable_thread_priority_to_zephyr_prio(
-              zpp_lib::ThisThread::get_priority()));
+  ZPP_LOG_DBG("Main thread priority is %d",
+              zpp_lib::preemptable_thread_priority_to_zephyr_prio(zpp_lib::ThisThread::get_priority()));
 
   // Have the main thread for the duration of two slices
   // determine the number of time slices to wait before checking for counters (must be
   // even)
   static constexpr uint8_t NbrOfTimeSlicesToWait = 100;
-  static std::chrono::milliseconds sleepDuration(NbrOfTimeSlicesToWait *
-                                                 CONFIG_TIMESLICE_SIZE);
+  static std::chrono::milliseconds sleepDuration(NbrOfTimeSlicesToWait * CONFIG_TIMESLICE_SIZE);
   LOG_DBG("Main thread waiting for %lld msecs", sleepDuration.count());
   zpp_lib::ThisThread::sleep_for(sleepDuration);
 
@@ -189,7 +181,7 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   // TESTPOINT: check that both thread1 and thread2 got approximately the same CPU
   // resources
   static constexpr uint64_t delta = 20000;
-  uint64_t diff = counter1 > counter2 ? counter1 - counter2 : counter2 - counter1;
+  uint64_t diff                   = counter1 > counter2 ? counter1 - counter2 : counter2 - counter1;
 
   LOG_DBG("Waiting for threads");
   res = thread1.join();

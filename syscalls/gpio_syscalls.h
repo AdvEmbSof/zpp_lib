@@ -40,9 +40,7 @@ __subsystem struct gpio_syscall_driver_api {
   gpio_syscall_get_t get;
 };
 
-__syscall int gpio_syscall_set(const struct device* dev,
-                               struct gpio_dt_spec* gpio,
-                               int value);
+__syscall int gpio_syscall_set(const struct device* dev, struct gpio_dt_spec* gpio, int value);
 
 __syscall int gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio);
 

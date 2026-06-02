@@ -41,7 +41,7 @@ namespace zpp_lib {
  */
 
 class DigitalOut : private NonCopyable<DigitalOut> {
- public:
+public:
   /**
    * @brief Enumeration to be used for instanciating a specific output pin
    *
@@ -59,7 +59,7 @@ class DigitalOut : private NonCopyable<DigitalOut> {
    *  @param pin DigitalOut pin to connect to
    *  @param value the initial pin value
    */
-  explicit DigitalOut(PinName pinName, uint32_t value);
+  explicit DigitalOut(PinName pinName, int value);
 
   /** Set the output, specified as 0 or 1 (int)
    *
@@ -109,15 +109,15 @@ class DigitalOut : private NonCopyable<DigitalOut> {
    *
    */
   void grant_access(k_tid_t tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
- protected:
+protected:
   struct gpio_dt_spec _gpio;
 #if CONFIG_USERSPACE
   const struct device* _gpio_device;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 };
 
 /** @}*/
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

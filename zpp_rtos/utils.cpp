@@ -28,25 +28,33 @@
 // zephyr
 #include <zephyr/debug/cpu_load.h>
 #include <zephyr/kernel.h>
-#include <zephyr/logging/log.h>
 #include <zephyr/sys/sys_heap.h>
 
 // std
 #include <cstdlib>
 #include <cstring>
 
-LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 extern "C" {
 // Zephyr defines this symbol globally
 // To access it you need to define CONFIG_HEAP_MEM_POOL_SIZE=...
+// This is a zephyr symbol that we need to access
+// NOLINTNEXTLINE(readability-identifier-naming)
 extern struct sys_heap _system_heap;
 }
 
 #if CONFIG_SYS_HEAP_RUNTIME_STATS && CONFIG_HEAP_MEM_POOL_SIZE > 0
-void* operator new(size_t size) { return k_malloc(size); }
+void* operator new(size_t size) {
+  return k_malloc(size);
+}
 
-void operator delete(void* ptr) noexcept { k_free(ptr); }
+void operator delete(void* ptr) noexcept {
+  k_free(ptr);
+}
 #endif
 
 namespace zpp_lib {
@@ -66,27 +74,27 @@ static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
 
   const char* name    = k_thread_name_get(thread_id);
   uint32_t* threadIdx = static_cast<uint32_t*>(idx);
-  LOG_INF("%2d | %10p | %-15s | 0x%08x | %4u / %-4u",
-          (*threadIdx)++,
-          thread_id,
-          name ? name : "Unnamed",
-          start_address,
-          used_stack_size,
-          stack_size);
+  ZPP_LOG_INF("%2d | %10p | %-15s | 0x%08x | %4u / %-4u",
+              (*threadIdx)++,
+              thread_id,
+              name ? name : "Unnamed",
+              start_address,
+              used_stack_size,
+              stack_size);
 }
 
 void Utils::logThreadsStackInfo() {
-  LOG_INF("=== Threads Summary ===");
-  LOG_INF(" # |  Thread ID | Name           | Start address |Stack (used/total)");
-  LOG_INF("---+------------+----------------+---------------+------------------");
+  ZPP_LOG_INF("=== Threads Summary ===");
+  ZPP_LOG_INF(" # |  Thread ID | Name           | Start address |Stack (used/total)");
+  ZPP_LOG_INF("---+------------+----------------+---------------+------------------");
 
   int idx = 0;
   k_thread_foreach(logThreadStackInfo, &idx);
-  LOG_INF("---+------------+----------------+---------------+------------------\n");
+  ZPP_LOG_INF("---+------------+----------------+---------------+------------------\n");
 }
 #endif
 
-#ifdef CONFIG_THREAD_ANALYZER
+#if CONFIG_THREAD_ANALYZER
 struct ThreadStatistics {
   k_tid_t thread_id                      = nullptr;
   const char* name                       = nullptr;
@@ -102,14 +110,12 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
   threadStatistics.thread_id = (k_tid_t)thread;
 
   k_thread_runtime_stats_t rt_stats_thread = {0};
-  auto rc = k_thread_runtime_stats_get(threadStatistics.thread_id, &rt_stats_thread);
+  auto rc                                  = k_thread_runtime_stats_get(threadStatistics.thread_id, &rt_stats_thread);
   __ASSERT(rc == 0, "k_thread_runtime_stats_get failed: %d", rc);
 
   threadStatistics.name = k_thread_name_get(threadStatistics.thread_id);
   threadStatistics.prio = k_thread_priority_get(threadStatistics.thread_id);
-  k_thread_state_str(threadStatistics.thread_id,
-                     threadStatistics.state_str,
-                     sizeof(threadStatistics.state_str));
+  k_thread_state_str(threadStatistics.thread_id, threadStatistics.state_str, sizeof(threadStatistics.state_str));
 
   /* --- Detect idle thread --- */
   // By default, zephyr does not add metadata for idle thread.
@@ -125,13 +131,13 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
     std::strncpy(threadStatistics.state_str, "ready", ThreadStatistics::STATE_STR_LEN);
   }
 
-#if defined(CONFIG_THREAD_STACK_INFO)
+#if CONFIG_THREAD_STACK_INFO
   threadStatistics.stack_size = thread->stack_info.size;
   size_t unused_stack_size    = 0;
-  rc = k_thread_stack_space_get(threadStatistics.thread_id, &unused_stack_size);
+  rc                          = k_thread_stack_space_get(threadStatistics.thread_id, &unused_stack_size);
   __ASSERT(rc == 0, "k_thread_stack_space_get failed: %d", rc);
   threadStatistics.used_stack_size = threadStatistics.stack_size - unused_stack_size;
-#endif
+#endif // CONFIG_THREAD_STACK_INFO
 
   return threadStatistics;
 }
@@ -140,54 +146,54 @@ static void logThreadStatistics(const struct k_thread* thread, void* idx) {
   ThreadStatistics threadStatistics = getThreadStatistics(thread);
 
   uint32_t* threadIdx = static_cast<uint32_t*>(idx);
-  LOG_INF("%2d | %14p | %-12s | %-9s | %4d | %4u / %-4u",
-          (*threadIdx)++,
-          threadStatistics.thread_id,
-          threadStatistics.name ? threadStatistics.name : "Unnamed",
-          threadStatistics.state_str,
-          threadStatistics.prio,
-          threadStatistics.used_stack_size,
-          threadStatistics.stack_size);
+  ZPP_LOG_INF("%2d | %14p | %-12s | %-9s | %4d | %4u / %-4u",
+              (*threadIdx)++,
+              threadStatistics.thread_id,
+              threadStatistics.name ? threadStatistics.name : "Unnamed",
+              threadStatistics.state_str,
+              threadStatistics.prio,
+              threadStatistics.used_stack_size,
+              threadStatistics.stack_size);
 }
-#endif
+#endif // CONFIG_THREAD_ANALYZER
 
 void Utils::logThreadsSummary() {
-#if defined(CONFIG_THREAD_ANALYZER)
-  LOG_INF("=== Threads Summary ===");
-  LOG_INF(" # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
-  LOG_INF("---+----------------+--------------+-----------+------+-------------------");
+#if CONFIG_THREAD_ANALYZER
+  ZPP_LOG_INF("=== Threads Summary ===");
+  ZPP_LOG_INF(" # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
+  ZPP_LOG_INF("---+----------------+--------------+-----------+------+-------------------");
 
   int idx = 0;
   k_thread_foreach(logThreadStatistics, &idx);
 
-  LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
-#else
-  LOG_WRN("Thread statistics not available (enable CONFIG_THREAD_ANALYZER)");
-#endif
+  ZPP_LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
+#else  // CONFIG_THREAD_ANALYZER
+  ZPP_LOG_WRN("Thread statistics not available (enable CONFIG_THREAD_ANALYZER)");
+#endif // CONFIG_THREAD_ANALYZER
 }
 
-#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
+#if CONFIG_SYS_HEAP_RUNTIME_STATS
 void Utils::logHeapSummary() {
   struct sys_memory_stats stats;
   sys_heap_runtime_stats_get(&_system_heap, &stats);
-  LOG_INF("=== Heap Summary ===");
-  LOG_INF("\tAllocated: %u bytes", stats.allocated_bytes);
-  LOG_INF("\tFree:      %u bytes", stats.free_bytes);
-  LOG_INF("\tMax Alloc: %u bytes\n", stats.max_allocated_bytes);
-  // LOG_INF("\tBlocks:    %u", stats.blocks);
+  ZPP_LOG_INF("=== Heap Summary ===");
+  ZPP_LOG_INF("\tAllocated: %u bytes", stats.allocated_bytes);
+  ZPP_LOG_INF("\tFree:      %u bytes", stats.free_bytes);
+  ZPP_LOG_INF("\tMax Alloc: %u bytes\n", stats.max_allocated_bytes);
+  // ZPP_LOG_INF("\tBlocks:    %u", stats.blocks);
 }
-#endif
+#endif // CONFIG_SYS_HEAP_RUNTIME_STATS
 
 void Utils::logCPULoad() {
-#if defined(CONFIG_CPU_LOAD)
+#if CONFIG_CPU_LOAD
   int load         = cpu_load_get(true);
   uint32_t percent = load / 10;
   int32_t fraction = load % 10;
-  LOG_INF("=== CPU Load Summary ===");
-  LOG_INF("\tCPU Load: %d.%03d%%\n", percent, fraction);
-#else
-  LOG_WRN("CPU Load not available (enable CONFIG_CPU_LOAD)");
-#endif
+  ZPP_LOG_INF("=== CPU Load Summary ===");
+  ZPP_LOG_INF("\tCPU Load: %d.%03d%%\n", percent, fraction);
+#else  // CONFIG_CPU_LOAD
+  ZPP_LOG_WRN("CPU Load not available (enable CONFIG_CPU_LOAD)");
+#endif // CONFIG_CPU_LOAD
 }
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

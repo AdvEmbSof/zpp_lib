@@ -31,9 +31,7 @@
 // zpp_lib
 #include "zpp_include/types.hpp"
 
-namespace zpp_lib {
-
-namespace ThisThread {
+namespace zpp_lib::ThisThread {
 
 ///
 /// @brief Set the current thread priority
@@ -60,19 +58,17 @@ void busy_wait(const std::chrono::microseconds& waitTime);
 ///
 /// @param waitTime The time to sleep
 ///
-std::chrono::milliseconds sleep_for(const std::chrono::microseconds& waitTime);
-std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& waitTime);
-std::chrono::milliseconds sleep_for(const std::chrono::seconds& waitTime);
+std::chrono::milliseconds sleep_for(const std::chrono::microseconds& sleep_duration);
+std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& sleep_duration);
+std::chrono::milliseconds sleep_for(const std::chrono::seconds& sleep_duration);
 
 ///
 /// @brief Suspend the current thread until a specified absolute time
 ///
 /// @param absoluteTime The absolute time
 ///
-std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absoluteTime);
-std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absoluteTime);
-std::chrono::milliseconds sleep_until(const std::chrono::seconds& absoluteTime);
+std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absolute_time);
+std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absolute_time);
+std::chrono::milliseconds sleep_until(const std::chrono::seconds& absolute_time);
 
-}  // namespace ThisThread
-
-}  // namespace zpp_lib
+} // namespace zpp_lib::ThisThread

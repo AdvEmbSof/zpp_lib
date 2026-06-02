@@ -39,7 +39,7 @@
 namespace zpp_lib {
 
 class Event : private NonCopyable<Event> {
- public:
+public:
   /** Create and Initialize a Event object
    *
    * @note You cannot call this function from ISR context.
@@ -53,7 +53,7 @@ class Event : private NonCopyable<Event> {
   *   memory section (such as another thread's stack).
   */
   explicit Event(k_event* pEvent) noexcept;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
@@ -75,15 +75,14 @@ class Event : private NonCopyable<Event> {
    *
    * @note Cannot be called from ISR context.
    */
-  [[nodiscard]] ZephyrBoolResult try_wait_any_for(
-      const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
+  [[nodiscard]] ZephyrBoolResult try_wait_any_for(const std::chrono::milliseconds& timeout, uint32_t events_flags) noexcept;
 
 #if CONFIG_USERSPACE
   /**
    * Grants access to the k_event kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
   /** Event destructor
@@ -93,16 +92,13 @@ class Event : private NonCopyable<Event> {
   ~Event();
 #endif
 
- private:
-#if CONFIG_USERSPACE
-  friend class Thread;
-  static uint8_t _eventInstanceCount;
-#else   // CONFIG_USERSPACE
+private:
+#if !CONFIG_USERSPACE
   struct k_event _event;
-#endif  // CONFIG_USERSPACE
+#endif // !CONFIG_USERSPACE
   struct k_event* _p_event = nullptr;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib
 
-#endif  // CONFIG_EVENTS
+#endif // CONFIG_EVENTS

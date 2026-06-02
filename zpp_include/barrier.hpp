@@ -41,7 +41,7 @@
 namespace zpp_lib {
 
 class Barrier : NonCopyable<Barrier> {
- public:
+public:
   // constructor and destructor
   explicit Barrier(uint32_t nbrOfThreads);
   ~Barrier();
@@ -60,9 +60,9 @@ class Barrier : NonCopyable<Barrier> {
 
 #if CONFIG_USERSPACE
   void grant_access(k_tid_t tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
- private:
+private:
   zpp_lib::Semaphore _waitSemaphore;
   zpp_lib::Mutex _mutex;
   // number of threads still waiting
@@ -73,4 +73,4 @@ class Barrier : NonCopyable<Barrier> {
   static std::chrono::microseconds _startTime;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

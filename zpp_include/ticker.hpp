@@ -33,9 +33,8 @@
 
 namespace zpp_lib {
 
-template <typename F>
-class Ticker : private NonCopyable<Ticker<F> > {
- public:
+template <typename F> class Ticker : private NonCopyable<Ticker<F>> {
+public:
   Ticker() = default;
 
   [[nodiscard]] ZephyrResult attach(const F& f, const std::chrono::milliseconds& period) {
@@ -53,7 +52,7 @@ class Ticker : private NonCopyable<Ticker<F> > {
     // this cast is ugly but the only way to pass a reference to this instance to the
     // timer
     // cppcheck-suppress cstyleCast
-    _timer.user_data = (void*)this;  // NOLINT(readability/casting)
+    _timer.user_data = (void*)this; // NOLINT(readability/casting)
 
     // store the task
     _task = f;
@@ -68,7 +67,7 @@ class Ticker : private NonCopyable<Ticker<F> > {
     return res;
   }
 
- private:
+private:
   static void _thunk(struct k_timer* timer_id) {
     // submit the periodic task
     if (timer_id != nullptr) {
@@ -76,7 +75,7 @@ class Ticker : private NonCopyable<Ticker<F> > {
       // this cast is ugly but the only way to pass a reference to this instance to the
       // timer
       // cppcheck-suppress cstyleCast
-      Ticker* pTicker = (Ticker*)timer_id->user_data;  // NOLINT(readability/casting)
+      Ticker* pTicker = (Ticker*)timer_id->user_data; // NOLINT(readability/casting)
       // will run in ISR context (should be dispatched to a work queue)
       pTicker->_task();
     }
@@ -88,4 +87,4 @@ class Ticker : private NonCopyable<Ticker<F> > {
   F _task;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

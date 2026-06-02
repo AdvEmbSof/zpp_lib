@@ -26,9 +26,8 @@
 
 namespace zpp_lib {
 
-template <typename T>
-class NonCopyable {
- protected:
+template <typename T> class NonCopyable {
+protected:
   /**
    * Disallow construction of NonCopyable objects from outside of its hierarchy.
    */
@@ -38,7 +37,7 @@ class NonCopyable {
    */
   ~NonCopyable() = default;
 
- public:
+public:
   /**
    * Define copy/move constructor as deleted. Any attempt to copy/move construct
    * a NonCopyable will fail at compile time.
@@ -54,4 +53,4 @@ class NonCopyable {
   NonCopyable& operator=(NonCopyable&&)      = delete;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

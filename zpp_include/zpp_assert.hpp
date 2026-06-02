@@ -13,10 +13,12 @@
 // limitations under the License.
 
 /****************************************************************************
- * @file utils.hpp
+ * @file zpp_assert.hpp
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief Helper declaration for using some zephyr RTOS utilities
+ * @brief Redefinitions of zephyr assertion macros for use in zpp_lib
+ *        This prevents macro related warning when using clang-tidy and applying
+ *        some cppcoreguidelines checks
  *
  * @date 2025-08-31
  * @version 1.0.0
@@ -24,20 +26,10 @@
 
 #pragma once
 
-namespace zpp_lib {
+// NOLINTBEGIN(cppcoreguidelines-avoid-do-while)
+#include <zephyr/sys/__assert.h>
 
-class Utils {
-public:
-  Utils() = default;
-
-#if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
-  static void logThreadsStackInfo();
-#endif
-  static void logThreadsSummary();
-#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
-  static void logHeapSummary();
-#endif
-  static void logCPULoad();
-};
-
-} // namespace zpp_lib
+#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)           // NOLINT
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__) // NOLINT
+// NOLINTNEXTLINE(readability/nolint)
+// NOLINTEND(cppcoreguidelines-avoid-do-while)

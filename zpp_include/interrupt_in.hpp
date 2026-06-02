@@ -24,6 +24,15 @@
 
 #pragma once
 
+#include <zephyr/devicetree.h>
+
+// Check each alias at compile time
+#define HAS_SW0 DT_NODE_EXISTS(DT_ALIAS(sw0))
+#define HAS_SW1 DT_NODE_EXISTS(DT_ALIAS(sw1))
+#define HAS_SW2 DT_NODE_EXISTS(DT_ALIAS(sw2))
+#define HAS_SW3 DT_NODE_EXISTS(DT_ALIAS(sw3))
+#define NUM_BUTTONS (HAS_SW0 + HAS_SW1 + HAS_SW2 + HAS_SW3)
+
 // zephyr
 #if CONFIG_INTERRUPT_IN_EMUL != 1
 #include <zephyr/drivers/gpio.h>
@@ -54,13 +63,21 @@ namespace zpp_lib {
 static constexpr uint8_t kPolarityPressed = 1;
 
 class InterruptIn : private NonCopyable<InterruptIn> {
- public:
+public:
   enum class PinName {
-    BUTTON1     = 1,
-    BUTTON2     = 2,
-    BUTTON3     = 3,
-    BUTTON4     = 4,
-    LAST_BUTTON = 4
+#if HAS_SW0
+    BUTTON1 = 1,
+#if HAS_SW1
+    BUTTON2 = 2,
+#if HAS_SW2
+    BUTTON3 = 3,
+#if HAS_SW3
+    BUTTON4 = 4,
+#endif // HAS_SW3
+#endif // HAS_SW2
+#endif // HAS_SW1
+#endif // HAS_SW0
+    LAST_BUTTON = NUM_BUTTONS
   };
 
   /**
@@ -71,7 +88,7 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    *
    *  @param pin InterruptIn pin to connect to
    */
-  explicit InterruptIn(PinName pinName);
+  explicit InterruptIn(PinName pin_name);
 
   /** Remove callbacks added to gpio device
    *
@@ -95,37 +112,35 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    *
    *  @param func A pointer to a void function, or 0 to set as none
    */
-  void fall(std::function<void()> func);
+  void fall(const std::function<void()>& func);
 
 #if CONFIG_INTERRUPT_IN_EMUL
   /** Used for testing purposes
    *  Sets the value of the input pin
    */
   void write(uint8_t value);
-#endif  // CONFIG_INTERRUPT_IN_EMUL
+#endif // CONFIG_INTERRUPT_IN_EMUL
 
- protected:
+protected:
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline uint8_t _value{!kPolarityPressed};  // button not pressed by default
+  static inline uint8_t _value{!kPolarityPressed}; // button not pressed by default
 #else
-  static void callback(const struct device* port,
-                       struct gpio_callback* cb,
-                       gpio_port_pins_t pins);
+  static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
   struct CallbackData {
     struct gpio_callback _gpio_cb;
     InterruptIn* _instance;
   };
-  struct CallbackData _cbData;
-#endif  // CONFIG_INTERRUPT_IN_EMUL
-  PinName _pinName;
-  using CallbackFunction                 = std::function<void()>;
-  using CallbackFunctionMap              = std::map<void*, CallbackFunction>;
-  static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
-  static inline CallbackFunctionMap _fall_cb_map[NBR_OF_BUTTONS];
+  struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
+#endif // CONFIG_INTERRUPT_IN_EMUL
+  PinName _pin_name;
+  using CallbackFunction                = std::function<void()>;
+  using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
+  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
+  static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
   static inline zpp_lib::Mutex _cbMutex;
 };
 
 /** @}*/
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

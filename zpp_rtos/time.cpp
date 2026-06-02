@@ -25,7 +25,6 @@
 #include "zpp_include/time.hpp"
 
 // Zephyr sdk
-#include <zephyr/logging/log.h>
 #include <zephyr/sys/time_units.h>
 #if CONFIG_USERSPACE
 #include <zephyr/syscalls/time_syscalls.h>
@@ -41,19 +40,19 @@ std::chrono::microseconds Time::get_uptime() {
   uint64_t us = (k_uptime_ticks() * USEC_PER_SEC) / CONFIG_SYS_CLOCK_TICKS_PER_SEC;
 #else
 #if CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
-  uint64_t cycles =
-      sys_clock_cycle_get_64();  // CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC25_000_000
+  uint64_t cycles = sys_clock_cycle_get_64(); // CONFIG_SYS_CLOCK_HW_CYCLES_PER_SEC25_000_000
 #else
 #if CONFIG_USERSPACE
-  uint32_t cycles = userspace_cycle_get_32();  // call k_cycle_get_32 via syscall
-#else   // CONFIG_USERSPACE
+  uint32_t cycles = userspace_cycle_get_32(); // call k_cycle_get_32 via syscall
+#else  // CONFIG_USERSPACE
   uint32_t cycles = sys_clock_cycle_get_32();
-#endif  // CONFIG_USERSPACE
-#endif  // CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
+#endif // CONFIG_USERSPACE
+#endif // CONFIG_TIMER_HAS_64BIT_CYCLE_COUNTER
+  // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
   uint64_t us = k_cyc_to_us_floor64(cycles);
-#endif  // CONFIG_QEMU_TARGET
+#endif // CONFIG_QEMU_TARGET
   std::chrono::microseconds now(us);
   return now;
 }
 
-}  // namespace zpp_lib
+} // namespace zpp_lib
