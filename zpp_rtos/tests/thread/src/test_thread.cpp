@@ -41,8 +41,8 @@ void sleep_function() {
   using std::literals::chrono_literals::operator""ms;
 
   // TESTPOINT validate that busy wait works properly
-  uint64_t allowedDeltaInUs = 600;
-  uint64_t increaseDeltaInUs = 100;
+  uint64_t allowedDeltaInUs                = 600;
+  uint64_t increaseDeltaInUs               = 100;
   static constexpr uint8_t kNbrOfDurations = 5;
   std::chrono::microseconds waitDuration   = 10ms;
   for (uint8_t i = 0; i < kNbrOfDurations; i++) {
@@ -51,21 +51,20 @@ void sleep_function() {
     std::chrono::microseconds afterWaitTime = zpp_lib::Time::get_uptime();
 
     std::chrono::microseconds deltaTime = (afterWaitTime - beforeWaitTime) - waitDuration;
-    
-    zassert_true(
-        abs(deltaTime.count()) < allowedDeltaInUs,
-        "(BUSY WAIT) iteration %d: Elapsed time is not within expected "  // MISRA-suppress:
-                                                                          // 7.2.1 false
-                                                                          // positive,
-                                                                          // reviewed by
-                                                                          // Serge
-                                                                          // 2026-03-16
-        "range, delta %lld, allowed = %lld, before = %lld, after = %lld",
-        i,
-        deltaTime.count(),
-        allowedDeltaInUs,
-        beforeWaitTime.count(),
-        afterWaitTime.count());
+
+    zassert_true(abs(deltaTime.count()) < allowedDeltaInUs,
+                 "(BUSY WAIT) iteration %d: Elapsed time is not within expected " // MISRA-suppress:
+                                                                                  // 7.2.1 false
+                                                                                  // positive,
+                                                                                  // reviewed by
+                                                                                  // Serge
+                                                                                  // 2026-03-16
+                 "range, delta %lld, allowed = %lld, before = %lld, after = %lld",
+                 i,
+                 deltaTime.count(),
+                 allowedDeltaInUs,
+                 beforeWaitTime.count(),
+                 afterWaitTime.count());
 
     // double wait duration
     waitDuration *= 2;
@@ -160,10 +159,8 @@ ZTEST_USER(zpp_thread, test_round_robin) {
   }
 
   // Make sure that it has a higher priority than the other threads
-  zpp_lib::ThisThread::set_priority(
-      zpp_lib::PreemptableThreadPriority::PriorityAboveNormal);
-  ZPP_LOG_DBG("Main thread priority is %d",
-              zpp_lib::preemptable_thread_priority_to_zephyr_prio(zpp_lib::ThisThread::get_priority()));
+  zpp_lib::ThisThread::set_priority(zpp_lib::PreemptableThreadPriority::PriorityAboveNormal);
+  ZPP_LOG_DBG("Main thread priority is %d", zpp_lib::preemptable_thread_priority_to_zephyr_prio(zpp_lib::ThisThread::get_priority()));
 
   // Have the main thread for the duration of two slices
   // determine the number of time slices to wait before checking for counters (must be

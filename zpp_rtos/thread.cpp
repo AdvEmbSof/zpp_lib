@@ -109,9 +109,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   }
 
   // the thread stacks are allocated statically
-  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE,
-             "Too many threads created (pool size is %d)",
-             CONFIG_ZPP_THREAD_POOL_SIZE);
+  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created (pool size is %d)", CONFIG_ZPP_THREAD_POOL_SIZE);
 
   // create the thread
   k_timeout_t delay = K_FOREVER;
@@ -200,7 +198,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   return res;
 }
 
-void Thread::waitStarted() noexcept {
+void Thread::wait_started() noexcept {
   _event.wait_any(kStartedEvent);
 }
 

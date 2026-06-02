@@ -49,14 +49,11 @@ public:
 
 // constructor for running the work queue from an internal thread calling run()
 #if CONFIG_USERSPACE
-  explicit WorkQueue(const char* name,
-                     zpp_lib::PreemptableThreadPriority threadPriority,
-                     bool userMode)
+  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority, bool userMode)
       : _name(name), _thread(threadPriority, name, userMode) {
-#else   // CONFIG_USERSPACE
-  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority)
-      : _name(name), _thread(threadPriority, name) {
-#endif  // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
+  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority) : _name(name), _thread(threadPriority, name) {
+#endif // CONFIG_USERSPACE
     k_work_queue_init(&_workQueue);
 
     // start the _isrWorkQueueThread thread
@@ -115,7 +112,9 @@ public:
     return res;
   }
 
-  void wait_started() noexcept { _event.wait_any(kStartedEvent); }
+  void wait_started() noexcept {
+    _event.wait_any(kStartedEvent);
+  }
 
   //  Passing a parameter as a non-const reference is accepted
   //  NOLINTNEXTLINE(runtime/references)
@@ -147,6 +146,6 @@ private:
   Event _event;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::atomic<bool> _isStarted            = false;
-};  // NOLINT(readability/braces)
+}; // NOLINT(readability/braces)
 
 } // namespace zpp_lib
