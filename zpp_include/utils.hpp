@@ -27,7 +27,7 @@
 namespace zpp_lib {
 
 class Utils {
- public:
+public:
   Utils() = default;
 
 #if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
@@ -40,4 +40,4 @@ class Utils {
   static void logCPULoad();
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

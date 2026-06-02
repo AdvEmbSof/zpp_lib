@@ -41,13 +41,14 @@
 namespace zpp_lib {
 
 class WorkQueue : private NonCopyable<WorkQueue> {
- public:
+public:
   // constructor for running the work queue from an external thread calling run()
-  explicit WorkQueue(const char* name) : _name(name) { k_work_queue_init(&_workQueue); }
+  explicit WorkQueue(const char* name) : _name(name) {
+    k_work_queue_init(&_workQueue);
+  }
 
   // constructor for running the work queue from an internal thread calling run()
-  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority)
-      : _name(name), _thread(threadPriority, name) {
+  explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority) : _name(name), _thread(threadPriority, name) {
     k_work_queue_init(&_workQueue);
 
     // start the _isrWorkQueueThread thread
@@ -103,8 +104,7 @@ class WorkQueue : private NonCopyable<WorkQueue> {
 
   //  Passing a parameter as a non-const reference is accepted
   //  NOLINTNEXTLINE(runtime/references)
-  template <typename Obj, typename... Args>
-  [[nodiscard]] ZephyrResult call(Work<Obj, Args...>& work) {
+  template <typename Obj, typename... Args> [[nodiscard]] ZephyrResult call(Work<Obj, Args...>& work) {
     ZephyrResult res;
     if (!_isStarted.load()) {
       __ASSERT(false, "Workqueue should have started before calling call()");
@@ -125,11 +125,11 @@ class WorkQueue : private NonCopyable<WorkQueue> {
     return res;
   }
 
- private:
+private:
   struct k_work_q _workQueue;
   std::string _name;
   zpp_lib::Thread _thread;
   std::atomic<bool> _isStarted = false;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

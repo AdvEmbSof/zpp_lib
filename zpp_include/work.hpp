@@ -41,9 +41,8 @@ namespace zpp_lib {
 // forward declaration for friendship
 class WorkQueue;
 
-template <typename Obj, typename... Args>
-class Work {
- public:
+template <typename Obj, typename... Args> class Work {
+public:
   using Method = void (Obj::*)(Args...);
   explicit Work(Obj* obj, Method f, Args... args) noexcept {
     _workInfo._obj        = obj;
@@ -68,7 +67,7 @@ class Work {
   Work& operator=(const Work&)  = delete;
   Work(Work&& other)            = delete;
 
- private:
+private:
   static void _thunk(struct k_work* item) {
     // this ugly casting is the simplest way of getting the information
     // we need in the _thunk method
@@ -76,11 +75,9 @@ class Work {
     // IN THE CLASS (here first attribute of WorkInfo that is the unique attribute)
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
     // cppcheck-suppress dangerousTypeCast
-    Work* pWork        = (Work*)(item);  // NOLINT(readability/casting)
+    Work* pWork        = (Work*)(item); // NOLINT(readability/casting)
     WorkInfo& workInfo = pWork->_workInfo;
-    std::apply(
-        [&](auto&&... params) { (workInfo._obj->*workInfo._workMethod)(params...); },
-        workInfo._args);
+    std::apply([&](auto&&... params) { (workInfo._obj->*workInfo._workMethod)(params...); }, workInfo._args);
   }
   friend WorkQueue;
   struct WorkInfo {
@@ -93,4 +90,4 @@ class Work {
   WorkInfo _workInfo;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

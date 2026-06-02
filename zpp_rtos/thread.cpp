@@ -27,7 +27,7 @@
 // zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 // stl
 // for std::scoped_lock definition
@@ -43,7 +43,7 @@ extern struct k_mem_partition zpp_lib_partition;
 #define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #else
 #define ZPP_LIB_DATA
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 ZPP_LOG_MODULE_REGISTER(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
@@ -53,9 +53,7 @@ namespace zpp_lib {
 // Allocate stacks for threads created with zpp_lib
 // NOLINTBEGIN(readibility-identifier-naming,
 // cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-static K_THREAD_STACK_ARRAY_DEFINE(zpp_threads_stacks,
-                                   CONFIG_ZPP_THREAD_POOL_SIZE,
-                                   CONFIG_ZPP_THREAD_STACK_SIZE);
+static K_THREAD_STACK_ARRAY_DEFINE(zpp_threads_stacks, CONFIG_ZPP_THREAD_POOL_SIZE, CONFIG_ZPP_THREAD_STACK_SIZE);
 // NOLINTEND(readibility-identifier-naming,
 // cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 
@@ -71,23 +69,22 @@ static struct k_thread thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
 // it is accessed by the thread
 ZPP_LIB_DATA uint8_t Thread::_threadInstanceCount                           = 0;
 ZPP_LIB_DATA Thread::task_function_t ZPP_TASKS[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
 uint8_t Thread::_threadInstanceCount = 0;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
 Thread::Thread(PreemptableThreadPriority priority, const char* name, bool userMode)
     :
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
 Thread::Thread(PreemptableThreadPriority priority, const char* name)
     :
-#endif  // CONFIG_USERSPACE
-      _priority(priority),
-      _name(name != nullptr ? name : "application_unnamed_thread")
+#endif // CONFIG_USERSPACE
+      _priority(priority), _name(name != nullptr ? name : "application_unnamed_thread")
 #if CONFIG_USERSPACE
       ,
       _userMode(userMode)
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 {
 }
 
@@ -112,8 +109,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   }
 
   // the thread stacks are allocated statically
-  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE,
-             "Too many threads created");
+  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created");
 
   // create the thread
   k_timeout_t delay = K_FOREVER;
@@ -125,12 +121,12 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
    * modify its permissions and then start it.
    */
   uint32_t options = _userMode ? (K_USER | K_INHERIT_PERMS) : K_INHERIT_PERMS;
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   // initialize callback used in Thread::_thunk
   _task = std::move(task);
 
   uint32_t options = 0;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
   ZPP_LOG_DBG("Creating thread with stack at %p of size %d, priority %d and name %s",
               zpp_threads_stacks[_threadInstanceCount],
@@ -140,25 +136,22 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
 #if CONFIG_USERSPACE
-  _tid = k_thread_create(
-      &_thread_data[_threadInstanceCount],
-      zpp_threads_stacks
-          [_threadInstanceCount],  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-      K_THREAD_STACK_SIZEOF(
-          zpp_threads_stacks
-              [_threadInstanceCount]),  // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
-      Thread::_thunk,
-      // cppcheck-suppress cstyleCast
-      // NOLINTNEXTLINE(readability/casting)
-      (void*)static_cast<uint32_t>(
-          _threadInstanceCount),  // MISRA-suppress: 7.2.1  legacy API,
-                                  // reviewed by Serge 2026-03-11
-      _event._p_event,
-      _mutex._p_mutex,
-      zephyr_priority,
-      options,
-      delay);
-#else   // CONFIG_USERSPACE
+  _tid = k_thread_create(&_thread_data[_threadInstanceCount],
+                         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+                         zpp_threads_stacks[_threadInstanceCount],
+                         // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+                         K_THREAD_STACK_SIZEOF(zpp_threads_stacks[_threadInstanceCount]),
+                         Thread::_thunk,
+                         // cppcheck-suppress cstyleCast
+                         // NOLINTNEXTLINE(readability/casting)
+                         (void*)static_cast<uint32_t>(_threadInstanceCount), // MISRA-suppress: 7.2.1  legacy API,
+                                                                             // reviewed by Serge 2026-03-11
+                         _event._p_event,
+                         _mutex._p_mutex,
+                         zephyr_priority,
+                         options,
+                         delay);
+#else  // CONFIG_USERSPACE
   _tid = k_thread_create(
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
       &thread_data[_threadInstanceCount],
@@ -170,13 +163,13 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
       Thread::_thunk,
       // cppcheck-suppress cstyleCast
       // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
-      (void*)this,  // MISRA-suppress: 7.2.1  legacy API, reviewed by Serge 2026-03-11
+      (void*)this, // MISRA-suppress: 7.2.1  legacy API, reviewed by Serge 2026-03-11
       nullptr,
       nullptr,
       zephyr_priority,
       options,
       delay);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
   if (_tid == nullptr) {
     ZPP_ASSERT(false, "_tid is null");
     res.assign_error(ZephyrErrorCode::k_nomem);
@@ -193,12 +186,10 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // Grant access to the internal _event and _mutex attributes
   _event.grant_access(_tid);
   _mutex.grant_access(_tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   // Wake up the thread (after setting name and granting access)
-  ZPP_LOG_DBG("Thread %p (instance count %d) starting",
-              static_cast<void*>(_tid),
-              _threadInstanceCount);
+  ZPP_LOG_DBG("Thread %p (instance count %d) starting", static_cast<void*>(_tid), _threadInstanceCount);
   k_thread_start(_tid);
 
   // update the thread instance count
@@ -207,7 +198,9 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   return res;
 }
 
-void Thread::waitStarted() noexcept { _event.wait_any(kStartedEvent); }
+void Thread::waitStarted() noexcept {
+  _event.wait_any(kStartedEvent);
+}
 
 ZephyrResult Thread::join() noexcept {
   ZephyrResult res;
@@ -240,23 +233,23 @@ ZephyrResult Thread::join() noexcept {
 }
 
 #if CONFIG_USERSPACE
-k_tid_t Thread::get_tid() const noexcept { return _tid; }
-#endif  // CONFIG_USERSPACE
+k_tid_t Thread::get_tid() const noexcept {
+  return _tid;
+}
+#endif // CONFIG_USERSPACE
 
 void Thread::_thunk(void* p1, void* p2, void* p3) {
 #if CONFIG_USERSPACE
   // cppcheck-suppress cstyleCast
-  uint32_t threadInstanceIndex = (uint32_t)p1;  // NOLINT(readability/casting)
-  ZPP_LOG_DBG("Thread _thunk called for thread %p (index %d)",
-              static_cast<void*>(k_current_get()),
-              threadInstanceIndex);
+  uint32_t threadInstanceIndex = (uint32_t)p1; // NOLINT(readability/casting)
+  ZPP_LOG_DBG("Thread _thunk called for thread %p (index %d)", static_cast<void*>(k_current_get()), threadInstanceIndex);
   Event event(static_cast<k_event*>(p2));
   Mutex mutex(static_cast<k_mutex*>(p3));
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   auto* t      = static_cast<Thread*>(p1);
   Event& event = t->_event;
   Mutex& mutex = t->_mutex;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   // signal that the start was effectively started
   event.set(kStartedEvent);
@@ -265,9 +258,9 @@ void Thread::_thunk(void* p1, void* p2, void* p3) {
   ZPP_LOG_DBG("Invoking the thread task");
 #if CONFIG_USERSPACE
   ZPP_TASKS[threadInstanceIndex]();
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   t->_task();
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   ZPP_LOG_DBG("Task done: exiting the thread (locking mutex)");
   {
@@ -279,4 +272,4 @@ void Thread::_thunk(void* p1, void* p2, void* p3) {
   ZPP_LOG_DBG("Exiting _thunk");
 }
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

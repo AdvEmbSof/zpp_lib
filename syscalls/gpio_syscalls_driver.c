@@ -48,9 +48,7 @@ struct gpio_syscall_dev_data {
   const struct device* dev;
 };
 
-static int gpio_syscall_set_impl(const struct device* dev,
-                                 struct gpio_dt_spec* gpio,
-                                 int value) {
+static int gpio_syscall_set_impl(const struct device* dev, struct gpio_dt_spec* gpio, int value) {
   LOG_DBG("%s(%p, %d)", __func__, dev, value);
 
   // we expect that gpio has already been configured correctly
@@ -64,10 +62,11 @@ static int gpio_syscall_get_impl(const struct device* dev, struct gpio_dt_spec* 
   return gpio_pin_get(gpio->port, gpio->pin);
 }
 
-static DEVICE_API(gpio_syscall, gpio_syscall_api) = {.set = gpio_syscall_set_impl,
-                                                     .get = gpio_syscall_get_impl};
+static DEVICE_API(gpio_syscall, gpio_syscall_api) = {.set = gpio_syscall_set_impl, .get = gpio_syscall_get_impl};
 
-static int gpio_syscall_init(const struct device* dev) { return 0; }
+static int gpio_syscall_init(const struct device* dev) {
+  return 0;
+}
 
 static struct gpio_syscall_dev_data gpio_syscall_dev_data;
 

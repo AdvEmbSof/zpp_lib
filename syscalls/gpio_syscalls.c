@@ -30,30 +30,24 @@
 #include <zephyr/kernel.h>
 
 /* Kernel implementation */
-int z_impl_gpio_syscall_set(const struct device* dev,
-                            struct gpio_dt_spec* gpio,
-                            int value) {
-  const struct gpio_syscall_driver_api* api =
-      (const struct gpio_syscall_driver_api*)dev->api;
+int z_impl_gpio_syscall_set(const struct device* dev, struct gpio_dt_spec* gpio, int value) {
+  const struct gpio_syscall_driver_api* api = (const struct gpio_syscall_driver_api*)dev->api;
 
   return api->set(dev, gpio, value);
 }
 
-int z_vrfy_gpio_syscall_set(const struct device* dev,
-                            struct gpio_dt_spec* gpio,
-                            int value) {
+int z_vrfy_gpio_syscall_set(const struct device* dev, struct gpio_dt_spec* gpio, int value) {
   if (K_SYSCALL_DRIVER_GPIO_SYSCALL(dev, set)) {
     return -EINVAL;
   }
   return z_impl_gpio_syscall_set(dev, gpio, value);
 }
 
-#include <zephyr/syscalls/gpio_syscall_set_mrsh.c>  // NOLINT(build/include)
+#include <zephyr/syscalls/gpio_syscall_set_mrsh.c> // NOLINT(build/include)
 
 /* Kernel implementation */
 int z_impl_gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio) {
-  const struct gpio_syscall_driver_api* api =
-      (const struct gpio_syscall_driver_api*)dev->api;
+  const struct gpio_syscall_driver_api* api = (const struct gpio_syscall_driver_api*)dev->api;
 
   return api->get(dev, gpio);
 }
@@ -65,4 +59,4 @@ int z_vrfy_gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio)
   return z_impl_gpio_syscall_get(dev, gpio);
 }
 
-#include <zephyr/syscalls/gpio_syscall_get_mrsh.c>  // NOLINT(build/include)
+#include <zephyr/syscalls/gpio_syscall_get_mrsh.c> // NOLINT(build/include)

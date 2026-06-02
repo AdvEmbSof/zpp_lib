@@ -27,22 +27,22 @@
 // zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
 extern struct k_mem_partition zpp_lib_partition;
 #define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
-#else  // CONFIG_USERSPACE
+#else // CONFIG_USERSPACE
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 namespace zpp_lib {
 
 #if CONFIG_USERSPACE
 ZPP_LIB_DATA uint8_t gMsgqInstanceCount                          = 0;
 struct k_msgq ZPP_MESSAGE_QUEUE_ARRAY[CONFIG_ZPP_MSGQ_POOL_SIZE] = {};
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

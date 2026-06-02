@@ -27,11 +27,11 @@
 // zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_SEGGER_SYSTEMVIEW
 #include "SEGGER_SYSVIEW.h"
-#endif  // CONFIG_SEGGER_SYSTEMVIEW
+#endif // CONFIG_SEGGER_SYSTEMVIEW
 
 // zpp_lib
 #include "zpp_include/zpp_assert.hpp"
@@ -46,17 +46,18 @@ extern struct k_mem_partition zpp_lib_partition;
 #else
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 namespace zpp_lib {
 
 using std::literals::chrono_literals::operator""us;
 ZPP_LIB_DATA std::chrono::microseconds Barrier::_startTime = 0us;
 
-Barrier::Barrier(uint32_t nbrOfThreads)
-    : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
+Barrier::Barrier(uint32_t nbrOfThreads) : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
 
-Barrier::~Barrier() { ZPP_LOG_DBG("Destructing barrier"); }
+Barrier::~Barrier() {
+  ZPP_LOG_DBG("Destructing barrier");
+}
 
 #if CONFIG_TEST
 std::chrono::microseconds Barrier::wait(Barrier::ZeroTimeCB zeroTimeCB) {
@@ -79,7 +80,7 @@ std::chrono::microseconds Barrier::wait() {
 #if CONFIG_SEGGER_SYSTEMVIEW
 #define SYSVIEW_MARK_TIME_ZERO 255U
     SEGGER_SYSVIEW_Mark(SYSVIEW_MARK_TIME_ZERO);
-#endif  // CONFIG_SEGGER_SYSTEMVIEW
+#endif // CONFIG_SEGGER_SYSTEMVIEW
 
     for (uint32_t i = 0; i < _total; i++) {
       res = _waitSemaphore.release();
@@ -109,6 +110,6 @@ void Barrier::grant_access(k_tid_t tid) {
   _waitSemaphore.grant_access(tid);
   _mutex.grant_access(tid);
 }
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

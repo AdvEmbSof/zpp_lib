@@ -48,9 +48,13 @@ extern struct sys_heap _system_heap;
 }
 
 #if CONFIG_SYS_HEAP_RUNTIME_STATS && CONFIG_HEAP_MEM_POOL_SIZE > 0
-void* operator new(size_t size) { return k_malloc(size); }
+void* operator new(size_t size) {
+  return k_malloc(size);
+}
 
-void operator delete(void* ptr) noexcept { k_free(ptr); }
+void operator delete(void* ptr) noexcept {
+  k_free(ptr);
+}
 #endif
 
 namespace zpp_lib {
@@ -106,14 +110,12 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
   threadStatistics.thread_id = (k_tid_t)thread;
 
   k_thread_runtime_stats_t rt_stats_thread = {0};
-  auto rc = k_thread_runtime_stats_get(threadStatistics.thread_id, &rt_stats_thread);
+  auto rc                                  = k_thread_runtime_stats_get(threadStatistics.thread_id, &rt_stats_thread);
   __ASSERT(rc == 0, "k_thread_runtime_stats_get failed: %d", rc);
 
   threadStatistics.name = k_thread_name_get(threadStatistics.thread_id);
   threadStatistics.prio = k_thread_priority_get(threadStatistics.thread_id);
-  k_thread_state_str(threadStatistics.thread_id,
-                     threadStatistics.state_str,
-                     sizeof(threadStatistics.state_str));
+  k_thread_state_str(threadStatistics.thread_id, threadStatistics.state_str, sizeof(threadStatistics.state_str));
 
   /* --- Detect idle thread --- */
   // By default, zephyr does not add metadata for idle thread.
@@ -132,10 +134,10 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
 #if CONFIG_THREAD_STACK_INFO
   threadStatistics.stack_size = thread->stack_info.size;
   size_t unused_stack_size    = 0;
-  rc = k_thread_stack_space_get(threadStatistics.thread_id, &unused_stack_size);
+  rc                          = k_thread_stack_space_get(threadStatistics.thread_id, &unused_stack_size);
   __ASSERT(rc == 0, "k_thread_stack_space_get failed: %d", rc);
   threadStatistics.used_stack_size = threadStatistics.stack_size - unused_stack_size;
-#endif  // CONFIG_THREAD_STACK_INFO
+#endif // CONFIG_THREAD_STACK_INFO
 
   return threadStatistics;
 }
@@ -153,24 +155,21 @@ static void logThreadStatistics(const struct k_thread* thread, void* idx) {
               threadStatistics.used_stack_size,
               threadStatistics.stack_size);
 }
-#endif  // CONFIG_THREAD_ANALYZER
+#endif // CONFIG_THREAD_ANALYZER
 
 void Utils::logThreadsSummary() {
 #if CONFIG_THREAD_ANALYZER
   ZPP_LOG_INF("=== Threads Summary ===");
-  ZPP_LOG_INF(
-      " # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
-  ZPP_LOG_INF(
-      "---+----------------+--------------+-----------+------+-------------------");
+  ZPP_LOG_INF(" # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
+  ZPP_LOG_INF("---+----------------+--------------+-----------+------+-------------------");
 
   int idx = 0;
   k_thread_foreach(logThreadStatistics, &idx);
 
-  ZPP_LOG_INF(
-      "---+----------------+------------+-----------+------+-------------------\n");
-#else   // CONFIG_THREAD_ANALYZER
+  ZPP_LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
+#else  // CONFIG_THREAD_ANALYZER
   ZPP_LOG_WRN("Thread statistics not available (enable CONFIG_THREAD_ANALYZER)");
-#endif  // CONFIG_THREAD_ANALYZER
+#endif // CONFIG_THREAD_ANALYZER
 }
 
 #if CONFIG_SYS_HEAP_RUNTIME_STATS
@@ -183,7 +182,7 @@ void Utils::logHeapSummary() {
   ZPP_LOG_INF("\tMax Alloc: %u bytes\n", stats.max_allocated_bytes);
   // ZPP_LOG_INF("\tBlocks:    %u", stats.blocks);
 }
-#endif  // CONFIG_SYS_HEAP_RUNTIME_STATS
+#endif // CONFIG_SYS_HEAP_RUNTIME_STATS
 
 void Utils::logCPULoad() {
 #if CONFIG_CPU_LOAD
@@ -192,9 +191,9 @@ void Utils::logCPULoad() {
   int32_t fraction = load % 10;
   ZPP_LOG_INF("=== CPU Load Summary ===");
   ZPP_LOG_INF("\tCPU Load: %d.%03d%%\n", percent, fraction);
-#else   // CONFIG_CPU_LOAD
+#else  // CONFIG_CPU_LOAD
   ZPP_LOG_WRN("CPU Load not available (enable CONFIG_CPU_LOAD)");
-#endif  // CONFIG_CPU_LOAD
+#endif // CONFIG_CPU_LOAD
 }
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

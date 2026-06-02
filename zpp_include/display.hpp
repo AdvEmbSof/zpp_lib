@@ -47,7 +47,7 @@ namespace zpp_lib {
  */
 
 class Display : private NonCopyable<Display> {
- public:
+public:
   Display() = default;
   [[nodiscard]] ZephyrResult initialize();
   uint32_t get_width() const;
@@ -55,24 +55,11 @@ class Display : private NonCopyable<Display> {
   enum class Color { Black, White, Blue, Green };
   void fill_display(Color color);
   void set_background_color(Color color);
-  void fill_rectangle(
-      Color color, uint32_t x_pos, uint32_t y_pos, uint32_t width, uint32_t height);
+  void fill_rectangle(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t width, uint32_t height);
 
-  void draw_horizontal_line(Color color,
-                            uint32_t x_pos,
-                            uint32_t y_pos,
-                            uint32_t line_length,
-                            uint32_t thickness);
-  void draw_vertical_line(Color color,
-                          uint32_t x_pos,
-                          uint32_t y_pos,
-                          uint32_t line_length,
-                          uint32_t thickness);
-  void draw_icon(uint16_t x_pos,
-                 uint16_t y_pos,
-                 const uint32_t* p_src,
-                 uint16_t logo_width,
-                 uint16_t logo_height);
+  void draw_horizontal_line(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t line_length, uint32_t thickness);
+  void draw_vertical_line(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t line_length, uint32_t thickness);
+  void draw_icon(uint16_t x_pos, uint16_t y_pos, const uint32_t* p_src, uint16_t logo_width, uint16_t logo_height);
   // type definitions for font
   // Character descriptor: {unicode, offset_in_table, width}
   struct FontCharInfo {
@@ -92,73 +79,56 @@ class Display : private NonCopyable<Display> {
   enum class AlignMode { Center = 0x01, Right = 0x02, Left = 0x03 };
   // returns the string length in pixels
   uint16_t get_string_width(const std::string& text) const;
-  void draw_string_at_line(Color color,
-                           uint32_t line,
-                           const std::string& text,
-                           AlignMode mode);
-  void draw_string_at(Color color,
-                      uint32_t x_pos,
-                      uint32_t y_pos,
-                      const std::string& text);
+  void draw_string_at_line(Color color, uint32_t line, const std::string& text, AlignMode mode);
+  void draw_string_at(Color color, uint32_t x_pos, uint32_t y_pos, const std::string& text);
 
- private:
+private:
   // private methods
-  static void fill_color_argb8888(uint32_t color_value,
-                                  uint8_t* p_buffer,
-                                  size_t buffer_size);
-  static void fill_color_rgb888(uint32_t color_value,
-                                uint8_t* p_buffer,
-                                size_t buffer_size);
-  static void fill_line_argb8888(const uint32_t* p_src,
-                                 size_t src_size,
-                                 uint8_t* p_buffer);
+  static void fill_color_argb8888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size);
+  static void fill_color_rgb888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size);
+  static void fill_line_argb8888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer);
   static void fill_line_rgb888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer);
   uint32_t compute_ypos_from_line_number(uint32_t line) const;
   void display_char(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t unicode);
-  void fill_rgb_rect(Color color,
-                     uint32_t x_pos,
-                     uint32_t y_pos,
-                     uint32_t* p_data,
-                     uint32_t width,
-                     uint32_t height);
+  void fill_rgb_rect(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t* p_data, uint32_t width, uint32_t height);
 
   inline uint32_t get_color_value(Color color) const {
     switch (_display_capabilities.current_pixel_format) {
-      case PIXEL_FORMAT_ARGB_8888:
-        switch (color) {
-          case Color::Black:
-            return kARGB8888Colors[0];
-          case Color::White:
-            return kARGB8888Colors[1];
-          case Color::Blue:
-            return kARGB8888Colors[2];
-          case Color::Green:
-            return kARGB8888Colors[3];
-          default:
-            __ASSERT(false, "Unsupported color");
-            return kARGB8888Colors[0];
-        }
-        break;
-      case PIXEL_FORMAT_RGB_888: {
-        switch (color) {
-          case Color::Black:
-            return kRGB8888Colors[0];
-          case Color::White:
-            return kRGB8888Colors[1];
-          case Color::Blue:
-            return kRGB8888Colors[2];
-          case Color::Green:
-            return kRGB8888Colors[3];
-          default:
-            __ASSERT(false, "Unsupported color");
-            return kRGB8888Colors[0];
-        }
-        break;
-
-        default:
-          __ASSERT(false, "Unsupported pixel format");
-          return 0;
+    case PIXEL_FORMAT_ARGB_8888:
+      switch (color) {
+      case Color::Black:
+        return kARGB8888Colors[0];
+      case Color::White:
+        return kARGB8888Colors[1];
+      case Color::Blue:
+        return kARGB8888Colors[2];
+      case Color::Green:
+        return kARGB8888Colors[3];
+      default:
+        __ASSERT(false, "Unsupported color");
+        return kARGB8888Colors[0];
       }
+      break;
+    case PIXEL_FORMAT_RGB_888: {
+      switch (color) {
+      case Color::Black:
+        return kRGB8888Colors[0];
+      case Color::White:
+        return kRGB8888Colors[1];
+      case Color::Blue:
+        return kRGB8888Colors[2];
+      case Color::Green:
+        return kRGB8888Colors[3];
+      default:
+        __ASSERT(false, "Unsupported color");
+        return kRGB8888Colors[0];
+      }
+      break;
+
+    default:
+      __ASSERT(false, "Unsupported pixel format");
+      return 0;
+    }
     }
   }
 
@@ -167,24 +137,23 @@ class Display : private NonCopyable<Display> {
 
   // Colors Black, White, Blue and Green in different formats
   // Colors in ARGB8888 format
-  static constexpr uint32_t kARGB8888Colors[] = {
-      0xFF000000, 0xFFFFFFFF, 0xFF0000FF, 0xFF00FF00};
-  static constexpr uint32_t kRGB8888Colors[] = {0x000000, 0xFFFFFF, 0x0000FF, 0x00FF00};
+  static constexpr uint32_t kARGB8888Colors[] = {0xFF000000, 0xFFFFFFFF, 0xFF0000FF, 0xFF00FF00};
+  static constexpr uint32_t kRGB8888Colors[]  = {0x000000, 0xFFFFFF, 0x0000FF, 0x00FF00};
 
   // data members
-  const struct device* _display_device                                 = nullptr;
-  struct display_capabilities _display_capabilities                    = {0};
-  uint32_t _lcd_xsize                                                  = 0;
-  uint32_t _lcd_ysize                                                  = 0;
-  size_t _line_buffer_size                                             = 0;
-  Color _background_color                                              = Color::Black;
-  uint32_t _background_color_value                                     = 0;
-  uint8_t* _line_buffer                                                = nullptr;
-  const Font* _p_font                                                  = nullptr;
-  std::function<void(uint32_t, uint8_t*, size_t)> _fill_color_function = nullptr;
+  const struct device* _display_device                                       = nullptr;
+  struct display_capabilities _display_capabilities                          = {0};
+  uint32_t _lcd_xsize                                                        = 0;
+  uint32_t _lcd_ysize                                                        = 0;
+  size_t _line_buffer_size                                                   = 0;
+  Color _background_color                                                    = Color::Black;
+  uint32_t _background_color_value                                           = 0;
+  uint8_t* _line_buffer                                                      = nullptr;
+  const Font* _p_font                                                        = nullptr;
+  std::function<void(uint32_t, uint8_t*, size_t)> _fill_color_function       = nullptr;
   std::function<void(const uint32_t*, size_t, uint8_t*)> _fill_line_function = nullptr;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib
 
-#endif  // CONFIG_DISPLAY
+#endif // CONFIG_DISPLAY

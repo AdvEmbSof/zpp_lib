@@ -43,7 +43,7 @@ namespace zpp_lib {
  functionality within ISR handler, consider using @a Semaphore.
 */
 class Mutex : private NonCopyable<Mutex> {
- public:
+public:
   /** Create and Initialize a Mutex object
    *
    * @note You cannot call this function from ISR context.
@@ -65,7 +65,7 @@ class Mutex : private NonCopyable<Mutex> {
    *   memory section (such as another thread's stack)
    */
   explicit Mutex(k_mutex* pMutex) noexcept;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   /**
     Wait until a Mutex becomes available.
@@ -92,8 +92,7 @@ class Mutex : private NonCopyable<Mutex> {
 
     @note You cannot call this function from ISR context.
    */
-  [[nodiscard]] ZephyrBoolResult try_lock_for(
-      const std::chrono::milliseconds& timeout) noexcept;
+  [[nodiscard]] ZephyrBoolResult try_lock_for(const std::chrono::milliseconds& timeout) noexcept;
 
   /**
     Unlock the mutex that has previously been locked by the same thread
@@ -107,7 +106,7 @@ class Mutex : private NonCopyable<Mutex> {
    * Grants access to the k_mutex kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
   /** Mutex destructor
@@ -117,14 +116,14 @@ class Mutex : private NonCopyable<Mutex> {
   ~Mutex();
 #endif
 
- private:
+private:
 #if CONFIG_USERSPACE
   friend class Thread;
   static uint8_t _mutexInstanceCount;
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   struct k_mutex _mutex;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
   struct k_mutex* _p_mutex = nullptr;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

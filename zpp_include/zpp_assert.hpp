@@ -17,7 +17,7 @@
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
  * @brief Redefinitions of zephyr assertion macros for use in zpp_lib
- *        This prevents macro related warning when using clang-tidy and applying 
+ *        This prevents macro related warning when using clang-tidy and applying
  *        some cppcoreguidelines checks
  *
  * @date 2025-08-31
@@ -29,6 +29,7 @@
 // NOLINTBEGIN(cppcoreguidelines-avoid-do-while)
 #include <zephyr/sys/__assert.h>
 
-#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)   // NOLINT
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)   // NOLINT
+#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)           // NOLINT
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__) // NOLINT
+// NOLINTNEXTLINE(readability/nolint)
 // NOLINTEND(cppcoreguidelines-avoid-do-while)

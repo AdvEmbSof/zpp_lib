@@ -40,7 +40,7 @@
 namespace zpp_lib {
 
 class Thread : private NonCopyable<Thread> {
- public:
+public:
   /** Allocate a new thread without starting execution
     @param   priority       initial priority of the thread function. (default:
     osPriorityNormal).
@@ -54,9 +54,9 @@ class Thread : private NonCopyable<Thread> {
   */
 #if CONFIG_USERSPACE
   explicit Thread(PreemptableThreadPriority priority, const char* name, bool userMode);
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   explicit Thread(PreemptableThreadPriority priority, const char* name);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   /** Performs sanity checks
    */
@@ -87,19 +87,19 @@ class Thread : private NonCopyable<Thread> {
   */
   [[nodiscard]] ZephyrResult join() noexcept;
 
- private:
+private:
   // Required to share definitions without
   // delegated constructors
   static void _thunk(void* p1, void* p2, void* p3);
 
- private:
+private:
   Mutex _mutex;
   Event _event;
 #if CONFIG_USERSPACE
   bool _userMode = false;
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   Thread::task_function_t _task;
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   PreemptableThreadPriority _priority;
   static constexpr uint32_t kStartedEvent = 0x01;
@@ -110,4 +110,4 @@ class Thread : private NonCopyable<Thread> {
   static uint8_t _threadInstanceCount;
 };
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

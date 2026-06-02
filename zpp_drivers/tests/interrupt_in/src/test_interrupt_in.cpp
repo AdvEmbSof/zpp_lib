@@ -35,9 +35,15 @@
 
 LOG_MODULE_REGISTER(test_interrupt_in, CONFIG_APP_LOG_LEVEL);
 
-void callback() { LOG_DBG("Button1 pressed"); }
-void callback1() { LOG_DBG("Button1_1 pressed"); }
-void callback2() { LOG_DBG("Button1_2 pressed"); }
+void callback() {
+  LOG_DBG("Button1 pressed");
+}
+void callback1() {
+  LOG_DBG("Button1_1 pressed");
+}
+void callback2() {
+  LOG_DBG("Button1_2 pressed");
+}
 
 ZTEST_USER(zpp_interrupt_in, test_destructor) {
   using std::literals::chrono_literals::operator""s;

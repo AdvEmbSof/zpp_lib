@@ -63,7 +63,7 @@ namespace zpp_lib {
 static constexpr uint8_t kPolarityPressed = 1;
 
 class InterruptIn : private NonCopyable<InterruptIn> {
- public:
+public:
   enum class PinName {
 #if HAS_SW0
     BUTTON1 = 1,
@@ -73,10 +73,10 @@ class InterruptIn : private NonCopyable<InterruptIn> {
     BUTTON3 = 3,
 #if HAS_SW3
     BUTTON4 = 4,
-#endif  // HAS_SW3
-#endif  // HAS_SW2
-#endif  // HAS_SW1
-#endif  // HAS_SW0
+#endif // HAS_SW3
+#endif // HAS_SW2
+#endif // HAS_SW1
+#endif // HAS_SW0
     LAST_BUTTON = NUM_BUTTONS
   };
 
@@ -119,22 +119,20 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    *  Sets the value of the input pin
    */
   void write(uint8_t value);
-#endif  // CONFIG_INTERRUPT_IN_EMUL
+#endif // CONFIG_INTERRUPT_IN_EMUL
 
- protected:
+protected:
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline uint8_t _value{!kPolarityPressed};  // button not pressed by default
+  static inline uint8_t _value{!kPolarityPressed}; // button not pressed by default
 #else
-  static void callback(const struct device* port,
-                       struct gpio_callback* cb,
-                       gpio_port_pins_t pins);
+  static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
   struct CallbackData {
     struct gpio_callback _gpio_cb;
     InterruptIn* _instance;
   };
   struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
-#endif  // CONFIG_INTERRUPT_IN_EMUL
+#endif // CONFIG_INTERRUPT_IN_EMUL
   PinName _pin_name;
   using CallbackFunction                = std::function<void()>;
   using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
@@ -145,4 +143,4 @@ class InterruptIn : private NonCopyable<InterruptIn> {
 
 /** @}*/
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

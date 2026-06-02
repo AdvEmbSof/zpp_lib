@@ -45,20 +45,19 @@ DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) {}
 
 // _gpio is initialized with an error in default switch case,
 // Complexity is not an issue since we only call a zephyr macro in the switch cases
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,
-// readability-function-cognitive-complexity)
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
 DigitalOut::DigitalOut(PinName pinName, int value) {
   switch (pinName) {
-    case PinName::LED0:
-      _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
-      break;
+  case PinName::LED0:
+    _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
+    break;
 
-    case PinName::LED1:
-      _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
-      break;
+  case PinName::LED1:
+    _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   if (!gpio_is_ready_dt(&_gpio)) {
@@ -83,19 +82,12 @@ DigitalOut::DigitalOut(PinName pinName, int value) {
     k_oops();
   }
   k_thread_access_grant(k_current_get(), _gpio_device);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
   ZephyrResult res = write(value);
   if (!res) {
-    ZPP_LOG_ERR("Cannot write value %d to output (%s): %d",
-                value,
-                _gpio.port->name,
-                static_cast<int>(res.error()));
-    ZPP_ASSERT(false,
-               "Cannot write value %d to output (%s): %d",
-               value,
-               _gpio.port->name,
-               static_cast<int>(res.error()));
+    ZPP_LOG_ERR("Cannot write value %d to output (%s): %d", value, _gpio.port->name, static_cast<int>(res.error()));
+    ZPP_ASSERT(false, "Cannot write value %d to output (%s): %d", value, _gpio.port->name, static_cast<int>(res.error()));
     return;
   }
 }
@@ -104,9 +96,9 @@ ZephyrResult DigitalOut::write(int value) {
   ZephyrResult res;
 #if CONFIG_USERSPACE
   auto ret = gpio_syscall_set(_gpio_device, &_gpio, value);
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   auto ret = gpio_pin_set_dt(&_gpio, value);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
   if (ret != 0) {
     res.assign_error(zephyr_to_zpp_error_code(ret));
     ZPP_LOG_ERR("Cannot set value %d to pin %s", value, _gpio.port->name);
@@ -117,9 +109,9 @@ ZephyrResult DigitalOut::write(int value) {
 int DigitalOut::read() {
 #if CONFIG_USERSPACE
   return gpio_syscall_get(_gpio_device, &_gpio);
-#else   // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
   return gpio_pin_get_dt(&_gpio);
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 }
 
 #if CONFIG_USERSPACE
@@ -128,6 +120,6 @@ void DigitalOut::grant_access(k_tid_t tid) {
   k_object_access_grant(led.port, tid);
   k_object_access_grant(_gpio.port, tid);
 }
-#endif  // CONFIG_USERSPACE
+#endif // CONFIG_USERSPACE
 
-}  // namespace zpp_lib
+} // namespace zpp_lib

@@ -29,12 +29,12 @@
 // NOLINTBEGIN(cppcoreguidelines-pro-type-vararg,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 #include <zephyr/logging/log.h>
 
-#define ZPP_LOG_MODULE_REGISTER(name, level) LOG_MODULE_REGISTER(name, level)  // NOLINT
-#define ZPP_LOG_MODULE_DECLARE(name, level) LOG_MODULE_DECLARE(name, level)    // NOLINT
+#define ZPP_LOG_MODULE_REGISTER(name, level) LOG_MODULE_REGISTER(name, level) // NOLINT
+#define ZPP_LOG_MODULE_DECLARE(name, level) LOG_MODULE_DECLARE(name, level)   // NOLINT
 
-#define ZPP_LOG_INF(...) LOG_INF(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_DBG(...) LOG_DBG(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_WRN(...) LOG_WRN(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_ERR(...) LOG_ERR(__VA_ARGS__)  // NOLINT
+#define ZPP_LOG_INF(...) LOG_INF(__VA_ARGS__) // NOLINT
+#define ZPP_LOG_DBG(...) LOG_DBG(__VA_ARGS__) // NOLINT
+#define ZPP_LOG_WRN(...) LOG_WRN(__VA_ARGS__) // NOLINT
+#define ZPP_LOG_ERR(...) LOG_ERR(__VA_ARGS__) // NOLINT
 // NOLINTNEXTLINE(readability/nolint) -- false positive
 // NOLINTEND(cppcoreguidelines-pro-type-vararg,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
