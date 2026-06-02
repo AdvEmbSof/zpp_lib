@@ -25,21 +25,30 @@
 #include "zpp_include/interrupt_in.hpp"
 
 // Zephyr sdk
-#include <zephyr/logging/log.h>
 
 // stl
 // for std::scoped_lock definition
 #include <mutex>
 
-LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-InterruptIn::InterruptIn(PinName pinName) {
-#if !defined(CONFIG_INTERRUPT_IN_EMUL)
-  switch (pinName) {
+// _gpio is initialized with an error in default switch case,
+// complexity is not an issue since we only call a zephyr macro in the switch cases
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,
+// readability-function-cognitive-complexity)
+InterruptIn::InterruptIn(PinName pin_name) {
+#if !CONFIG_INTERRUPT_IN_EMUL
+  switch (pin_name) {
 #if HAS_SW0
-    case PinName::BUTTON1:
+    case PinName::BUTTON1:  // NOLINT(bugprone-branch-clone) - this is a false positive,
+                            // the code is not duplicated since the only thing that
+                            // changes is the alias used in GPIO_DT_SPEC_GET
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
       break;
 #endif  // HAS_SW0
@@ -62,55 +71,63 @@ InterruptIn::InterruptIn(PinName pinName) {
       break;
 #endif  // HAS_SW3
     default:
-      LOG_ERR("Invalid pinName %d", static_cast<int>(pinName));
+      ZPP_ASSERT(false, "Invalid pinName %d", static_cast<int>(pin_name));
+      ZPP_LOG_ERR("Invalid pinName %d", static_cast<int>(pin_name));
       break;
   }
   if (!gpio_is_ready_dt(&_gpio)) {
-    LOG_ERR("GPIO %s not existing on platform", _gpio.port->name);
-    __ASSERT(false, "GPIO %s not existing on platform", _gpio.port->name);
+    ZPP_LOG_ERR("GPIO %s not existing on platform", _gpio.port->name);
+    ZPP_ASSERT(false, "GPIO %s not existing on platform", _gpio.port->name);
     return;
   }
 
   int ret = gpio_pin_configure_dt(&_gpio, GPIO_INPUT);
   if (ret < 0) {
-    LOG_ERR("Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
-    __ASSERT(false, "Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
+    ZPP_LOG_ERR("Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
+    ZPP_ASSERT(false, "Cannot configure GPIO %s as input (%d)", _gpio.port->name, ret);
     return;
   }
 
   ret = gpio_pin_interrupt_configure_dt(&_gpio, GPIO_INT_EDGE_FALLING);
   if (ret != 0) {
-    LOG_ERR("Error %d: failed to configure interrupt on %s pin %d\n",
-            ret,
-            _gpio.port->name,
-            _gpio.pin);
-    __ASSERT(false, "Cannot configure interrupt on GPIO %s (%d)", _gpio.port->name, ret);
+    ZPP_LOG_ERR("Error %d: failed to configure interrupt on %s pin %d\n",
+                ret,
+                _gpio.port->name,
+                _gpio.pin);
+    ZPP_ASSERT(
+        false, "Cannot configure interrupt on GPIO %s (%d)", _gpio.port->name, ret);
     return;
   }
-  LOG_DBG("Pin %s initialized", _gpio.port->name);
-#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
-  _pinName = pinName;
+  ZPP_LOG_DBG("Pin %s initialized", _gpio.port->name);
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
+  _pin_name = pin_name;
 }
 
 InterruptIn::~InterruptIn() {
   std::scoped_lock<Mutex> guard(_cbMutex);
 
-  size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
-  LOG_DBG("Trying to unregistering callback for %p (button %d)", this, buttonIndex);
-  if (cbFunctionMap.find(this) != cbFunctionMap.end()) {
-#if !defined(CONFIG_INTERRUPT_IN_EMUL)
-    if (cbFunctionMap.size() == 1) {
+#if NUM_BUTTONS > 0
+  size_t button_index = static_cast<size_t>(_pin_name) - 1;
+  // PinName is an enum class that starts at 1, so buttonIndex is in
+  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
+  ZPP_LOG_DBG("Trying to unregistering callback for %p (button %d)", this, button_index);
+  if (cb_function_map.contains(this)) {
+#if !CONFIG_INTERRUPT_IN_EMUL
+    if (cb_function_map.size() == 1) {
       auto ret = gpio_remove_callback(_gpio.port, &_cbData._gpio_cb);
       if (ret != 0) {
-        __ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
+        ZPP_ASSERT(
+            false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
       }
-      LOG_DBG("Gpio callback removed");
+      ZPP_LOG_DBG("Gpio callback removed");
     }
-#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
-    LOG_DBG("Removing callback for button %d", buttonIndex);
-    cbFunctionMap.erase(this);
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
+    ZPP_LOG_DBG("Removing callback for button %d", button_index);
+    cb_function_map.erase(this);
   }
+#endif  // NUM_BUTTONS > 0
 }
 
 uint8_t InterruptIn::read() {
@@ -139,9 +156,9 @@ void InterruptIn::write(uint8_t value) {
 }
 #endif  // CONFIG_INTERRUPT_IN_EMUL
 
-void InterruptIn::fall(std::function<void()> func) {
+void InterruptIn::fall(const std::function<void()>& func) {
   if (func == nullptr) {
-    LOG_ERR("Cannot call fall with nullptr");
+    ZPP_LOG_ERR("Cannot call fall with nullptr");
     return;
   }
 
@@ -150,23 +167,25 @@ void InterruptIn::fall(std::function<void()> func) {
   // InterruptIn<pinName>::callback() on button fall
   // On subsequent calls, we simply push the callback to the vector
   std::scoped_lock<Mutex> guard(_cbMutex);
-
-  size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
-  LOG_DBG("Setting up callback for button %d", buttonIndex);
-#if CONFIG_INTERRUPT_IN_EMUL != 1
-  if (cbFunctionMap.empty()) {
+  size_t button_index = static_cast<size_t>(_pin_name) - 1;
+  // PinName is an enum class that starts at 1, so buttonIndex is in the
+  // range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  auto& cb_function_map = _fall_cb_map[button_index];
+  ZPP_LOG_DBG("Setting up callback for button %d", button_index);
+#if !CONFIG_INTERRUPT_IN_EMUL
+  if (cb_function_map.empty()) {
     _cbData._instance = this;
     gpio_init_callback(&_cbData._gpio_cb, &InterruptIn::callback, BIT(_gpio.pin));
     gpio_add_callback(_gpio.port, &_cbData._gpio_cb);
-    LOG_DBG("Callback set for %s pin %d", _gpio.port->name, _gpio.pin);
+    ZPP_LOG_DBG("Callback set for %s pin %d", _gpio.port->name, _gpio.pin);
   }
-#endif
-  LOG_DBG("Registering callback in map for %p", this);
-  cbFunctionMap[this] = func;
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
+  ZPP_LOG_DBG("Registering callback in map for %p", this);
+  cb_function_map[this] = func;
 }
 
-#if !defined(CONFIG_INTERRUPT_IN_EMUL)
+#if !CONFIG_INTERRUPT_IN_EMUL
 void InterruptIn::callback(const struct device* port,
                            struct gpio_callback* cb,
                            gpio_port_pins_t pins) {
@@ -174,16 +193,12 @@ void InterruptIn::callback(const struct device* port,
   // We need to cast cb for getting the instance on which the callback is running
   // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
   // cppcheck-suppress cstyleCast
-  // NOLINTNEXTLINE(readability/casting)
-  CallbackData* pCallbackData = (CallbackData*)cb;  // MISRA-suppress: 7.2.1  legacy API
-                                                    // reviewed by Serge 2026-03-11
-  InterruptIn* pInstance             = pCallbackData->_instance;
-  size_t buttonIndex                 = static_cast<size_t>(pInstance->_pinName) - 1;
-  CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
-  for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin();
-       iter != cbFunctionMap.end();
-       ++iter) {
-    iter->second();
+  // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+  auto* p_callback_data   = (CallbackData*)cb;
+  InterruptIn* p_instance = p_callback_data->_instance;
+  size_t button_index     = static_cast<size_t>(p_instance->_pin_name) - 1;
+  for (auto& elem : _fall_cb_map[button_index]) {
+    elem.second();
   }
 }
 #endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)

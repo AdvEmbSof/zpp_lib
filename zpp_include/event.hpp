@@ -94,12 +94,9 @@ class Event : private NonCopyable<Event> {
 #endif
 
  private:
-#if CONFIG_USERSPACE
-  friend class Thread;
-  static uint8_t _eventInstanceCount;
-#else   // CONFIG_USERSPACE
+#if !CONFIG_USERSPACE
   struct k_event _event;
-#endif  // CONFIG_USERSPACE
+#endif  // !CONFIG_USERSPACE
   struct k_event* _p_event = nullptr;
 };
 

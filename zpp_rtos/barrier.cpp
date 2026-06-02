@@ -24,8 +24,7 @@
 
 #include "zpp_include/barrier.hpp"
 
-// Zephyr sdk
-#include <zephyr/logging/log.h>
+// zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
 #endif  // CONFIG_USERSPACE
@@ -34,7 +33,11 @@
 #include "SEGGER_SYSVIEW.h"
 #endif  // CONFIG_SEGGER_SYSTEMVIEW
 
-LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 #if CONFIG_USERSPACE
 extern struct k_mem_partition zpp_lib_partition;
@@ -53,7 +56,7 @@ ZPP_LIB_DATA std::chrono::microseconds Barrier::_startTime = 0us;
 Barrier::Barrier(uint32_t nbrOfThreads)
     : _waitSemaphore{0, nbrOfThreads}, _count(nbrOfThreads), _total(nbrOfThreads) {}
 
-Barrier::~Barrier() { LOG_DBG("Destructing barrier"); }
+Barrier::~Barrier() { ZPP_LOG_DBG("Destructing barrier"); }
 
 #if CONFIG_TEST
 std::chrono::microseconds Barrier::wait(Barrier::ZeroTimeCB zeroTimeCB) {
@@ -62,7 +65,7 @@ std::chrono::microseconds Barrier::wait() {
 #endif
   auto res = _mutex.lock();
   if (!res) {
-    __ASSERT(false, "Cannot lock mutex: %d", static_cast<int>(res.error()));
+    ZPP_ASSERT(false, "Cannot lock mutex: %d", static_cast<int>(res.error()));
   }
   _count--;
   if (_count == 0) {
@@ -81,18 +84,18 @@ std::chrono::microseconds Barrier::wait() {
     for (uint32_t i = 0; i < _total; i++) {
       res = _waitSemaphore.release();
       if (!res) {
-        __ASSERT(false, "Cannot release semaphore: %d", static_cast<int>(res.error()));
+        ZPP_ASSERT(false, "Cannot release semaphore: %d", static_cast<int>(res.error()));
       }
     }
   }
   res = _mutex.unlock();
   if (!res) {
-    __ASSERT(false, "Cannot unlock mutex: %d", static_cast<int>(res.error()));
+    ZPP_ASSERT(false, "Cannot unlock mutex: %d", static_cast<int>(res.error()));
   }
 
   res = _waitSemaphore.acquire();
   if (!res) {
-    __ASSERT(false, "Cannot acquire semaphore: %d", static_cast<int>(res.error()));
+    ZPP_ASSERT(false, "Cannot acquire semaphore: %d", static_cast<int>(res.error()));
   }
 
   // _startTime is the same value for all threads
@@ -102,7 +105,7 @@ std::chrono::microseconds Barrier::wait() {
 #if CONFIG_USERSPACE
 void Barrier::grant_access(k_tid_t tid) {
   // Grant access to the internal semaphore and mutex attributes
-  LOG_DBG("Granting access to barrier for thread %p", static_cast<void*>(tid));
+  ZPP_LOG_DBG("Granting access to barrier for thread %p", static_cast<void*>(tid));
   _waitSemaphore.grant_access(tid);
   _mutex.grant_access(tid);
 }

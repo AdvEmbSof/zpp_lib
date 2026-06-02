@@ -24,8 +24,7 @@
 
 #include "zpp_include/digital_out.hpp"
 
-// Zephyr sdk
-#include <zephyr/logging/log.h>
+// Zephyr
 
 // our syscalls
 #if CONFIG_USERSPACE
@@ -34,13 +33,21 @@
 #include "syscalls/gpio_syscalls_driver.h"
 #endif
 
-LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
 DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) {}
 
-DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
+// _gpio is initialized with an error in default switch case,
+// Complexity is not an issue since we only call a zephyr macro in the switch cases
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,
+// readability-function-cognitive-complexity)
+DigitalOut::DigitalOut(PinName pinName, int value) {
   switch (pinName) {
     case PinName::LED0:
       _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
@@ -55,24 +62,24 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
   }
 
   if (!gpio_is_ready_dt(&_gpio)) {
-    LOG_ERR("GPIO %s not existing on platform", _gpio.port->name);
-    __ASSERT(false, "GPIO %s not existing on platform", _gpio.port->name);
+    ZPP_LOG_ERR("GPIO %s not existing on platform", _gpio.port->name);
+    ZPP_ASSERT(false, "GPIO %s not existing on platform", _gpio.port->name);
     return;
   }
 
   // make sure that we can both read and write to the pin
   int ret = gpio_pin_configure_dt(&_gpio, GPIO_INPUT | GPIO_OUTPUT_ACTIVE);
   if (ret < 0) {
-    LOG_ERR("Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
-    __ASSERT(false, "Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
+    ZPP_LOG_ERR("Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
+    ZPP_ASSERT(false, "Cannot configure GPIO %s as output (%d)", _gpio.port->name, ret);
     return;
   }
-  LOG_DBG("Pin %s initialized", _gpio.port->name);
+  ZPP_LOG_DBG("Pin %s initialized", _gpio.port->name);
 
 #if CONFIG_USERSPACE
   _gpio_device = device_get_binding(GPIO_SYSCALL_DRIVER_NAME);
   if (_gpio_device == nullptr) {
-    LOG_ERR("bad gpio device");
+    ZPP_LOG_ERR("bad gpio device");
     k_oops();
   }
   k_thread_access_grant(k_current_get(), _gpio_device);
@@ -80,15 +87,15 @@ DigitalOut::DigitalOut(PinName pinName, uint32_t value) {
 
   ZephyrResult res = write(value);
   if (!res) {
-    LOG_ERR("Cannot write value %d to output (%s): %d",
-            value,
-            _gpio.port->name,
-            static_cast<int>(res.error()));
-    __ASSERT(false,
-             "Cannot write value %d to output (%s): %d",
-             value,
-             _gpio.port->name,
-             static_cast<int>(res.error()));
+    ZPP_LOG_ERR("Cannot write value %d to output (%s): %d",
+                value,
+                _gpio.port->name,
+                static_cast<int>(res.error()));
+    ZPP_ASSERT(false,
+               "Cannot write value %d to output (%s): %d",
+               value,
+               _gpio.port->name,
+               static_cast<int>(res.error()));
     return;
   }
 }
@@ -102,7 +109,7 @@ ZephyrResult DigitalOut::write(int value) {
 #endif  // CONFIG_USERSPACE
   if (ret != 0) {
     res.assign_error(zephyr_to_zpp_error_code(ret));
-    LOG_ERR("Cannot set value %d to pin %s", value, _gpio.port->name);
+    ZPP_LOG_ERR("Cannot set value %d to pin %s", value, _gpio.port->name);
   }
   return res;
 }

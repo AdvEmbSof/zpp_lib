@@ -26,271 +26,295 @@
 
 #include "zpp_include/display.hpp"
 
-// Zephyr sdk
-#include <zephyr/logging/log.h>
+// Zephyr
 
-LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-K_HEAP_DEFINE(BUF_HEAP, 1024);
+// This is a Zephyr macro that we have no control over
+// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses)
+K_HEAP_DEFINE(buf_heap, 1024);
 
 // we define our own min
 // NOLINTNEXTLINE(build/include_what_you_use)
 uint16_t min(uint32_t a, uint16_t b) { return (b < a) ? b : static_cast<uint16_t>(a); }
 
-
 // Returns the char width or 0
-inline uint8_t getCharWidth(const Display::Font* pFont,
-                            uint32_t unicode) {
-    __ASSERT(pFont != nullptr, "Font not set");
-    for (uint32_t i = 0; i < pFont->char_count; i++) {
-        if (pFont->chars[i].unicode == unicode) {
-          return pFont->chars[i].width;
-        }
+inline uint8_t get_char_width(const Display::Font* pFont, uint32_t unicode) {
+  ZPP_ASSERT(pFont != nullptr, "Font not set");
+  for (uint32_t i = 0; i < pFont->char_count; i++) {
+    if (pFont->chars[i].unicode == unicode) {
+      return pFont->chars[i].width;
     }
-    return 0;
+  }
+  return 0;
 }
 
 // Lookup a character's bitmap by Unicode code point
 // Returns nullptr if the character is not in the font
-inline const uint8_t* FontGetGlyph(const Display::Font* pFont,
-                                   uint32_t unicode,
-                                   uint8_t& charWidth) {
-    __ASSERT(pFont != nullptr, "Font not set");
-    for (uint32_t i = 0; i < pFont->char_count; i++) {
-        if (pFont->chars[i].unicode == unicode) {
-            charWidth = pFont->chars[i].width;
-            return pFont->table + pFont->chars[i].offset;
-        }
+inline const uint8_t* font_get_glyph(const Display::Font* p_font,
+                                     uint32_t unicode,
+                                     uint8_t& char_width) {
+  ZPP_ASSERT(p_font != nullptr, "Font not set");
+  for (uint32_t i = 0; i < p_font->char_count; i++) {
+    if (p_font->chars[i].unicode == unicode) {
+      char_width = p_font->chars[i].width;
+      return p_font->table + p_font->chars[i].offset;
     }
-    return nullptr;
+  }
+  return nullptr;
 }
- 
+
+// Complexity is not an issue since we only initialize the driver and initialize some
+// variables NOLINTNEXTLINE(readability-function-cognitive-complexity)
 ZephyrResult Display::initialize() {
   ZephyrResult res;
-  _displayDevice = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
-  if (!device_is_ready(_displayDevice)) {
-    LOG_ERR("Device %s not found", _displayDevice->name);
+  _display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+  if (!device_is_ready(_display_device)) {
+    ZPP_LOG_ERR("Device %s not found", _display_device->name);
     res.assign_error(zpp_lib::ZephyrErrorCode::k_nodev);
     return res;
   }
 
-  LOG_INF("Display sample for %s", _displayDevice->name);
-  display_get_capabilities(_displayDevice, &_displayCapabilities);
+  ZPP_LOG_INF("Display sample for %s", _display_device->name);
+  display_get_capabilities(_display_device, &_display_capabilities);
 
   // Wrapper adapts to whatever driver reports (rotated or not)
-  if (_displayCapabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_90 ||
-      _displayCapabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_270 ) {
-    _lcdXsize = _displayCapabilities.y_resolution;
-    _lcdYsize = _displayCapabilities.x_resolution;
-  } else { 
-    _lcdXsize = _displayCapabilities.x_resolution;
-    _lcdYsize = _displayCapabilities.y_resolution;
+  if (_display_capabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_90 ||
+      _display_capabilities.current_orientation == DISPLAY_ORIENTATION_ROTATED_270) {
+    _lcd_xsize = _display_capabilities.y_resolution;
+    _lcd_ysize = _display_capabilities.x_resolution;
+  } else {
+    _lcd_xsize = _display_capabilities.x_resolution;
+    _lcd_ysize = _display_capabilities.y_resolution;
   }
 
   // Use max dimension to accommodate both portrait and landscape rotations
-  _lineBufferSize = (_lcdXsize > _lcdYsize) ? _lcdXsize : _lcdYsize;
+  _line_buffer_size = (_lcd_xsize > _lcd_ysize) ? _lcd_xsize : _lcd_ysize;
 
-  switch (_displayCapabilities.current_pixel_format) {
+  switch (_display_capabilities.current_pixel_format) {
     case PIXEL_FORMAT_ARGB_8888: {
-      _fillColorFunction = Display::fillColorArgb8888;
-      _fillLineFunction  = Display::fillLineArgb8888;
-      _lineBufferSize *= 4;
+      _fill_color_function = Display::fill_color_argb8888;
+      _fill_line_function  = Display::fill_line_argb8888;
+      _line_buffer_size *= 4;
     } break;
 
     case PIXEL_FORMAT_RGB_888: {
-      _fillColorFunction = Display::fillColorRgb888;
-      _fillLineFunction  = Display::fillLineRgb888;
-      _lineBufferSize *= 3;
+      _fill_color_function = Display::fill_color_rgb888;
+      _fill_line_function  = Display::fill_line_rgb888;
+      _line_buffer_size *= 3;
     } break;
 
     default:
-      LOG_ERR("Unsupported pixel format. Aborting sample.");
+      ZPP_LOG_ERR("Unsupported pixel format. Aborting sample.");
       res.assign_error(zpp_lib::ZephyrErrorCode::k_nosys);
       return res;
   }
 
   k_timeout_t timeout = {0};
-  printk("line buffer size %d\n", _lineBufferSize);
-  _lineBuffer = static_cast<uint8_t*>(k_heap_alloc(&BUF_HEAP, _lineBufferSize, timeout));
-  if (_lineBuffer == nullptr) {
-    LOG_ERR("Could not allocate memory of size %d. Aborting sample.", _lineBufferSize);
+  printk("line buffer size %d\n", _line_buffer_size);
+  _line_buffer =
+      static_cast<uint8_t*>(k_heap_alloc(&buf_heap, _line_buffer_size, timeout));
+  if (_line_buffer == nullptr) {
+    ZPP_LOG_ERR("Could not allocate memory of size %d. Aborting sample.",
+                _line_buffer_size);
     res.assign_error(zpp_lib::ZephyrErrorCode::k_nomem);
     return res;
   }
 
-  LOG_INF("Display capabilities: x_res %d y_res %d pixel_format %d",
-          _displayCapabilities.x_resolution,
-          _displayCapabilities.y_resolution,
-          _displayCapabilities.current_pixel_format);
-  LOG_INF("Display size: x %d, y %d", _lcdXsize, _lcdYsize);
-  LOG_INF("Buffer size: %d", _lineBufferSize);
+  ZPP_LOG_INF("Display capabilities: x_res %d y_res %d pixel_format %d",
+              _display_capabilities.x_resolution,
+              _display_capabilities.y_resolution,
+              _display_capabilities.current_pixel_format);
+  ZPP_LOG_INF("Display size: x %d, y %d", _lcd_xsize, _lcd_ysize);
+  ZPP_LOG_INF("Buffer size: %d", _line_buffer_size);
 
   return res;
 }
 
-uint32_t Display::getWidth() const { return _lcdXsize; }
+uint32_t Display::get_width() const { return _lcd_xsize; }
 
-uint32_t Display::getHeight() const { return _lcdYsize; }
+uint32_t Display::get_height() const { return _lcd_ysize; }
 
-void Display::fillDisplay(Color color) {
-  fillRectangle(color, 0, 0, _lcdXsize, _lcdYsize);
-  display_blanking_off(_displayDevice);
+void Display::fill_display(Color color) {
+  fill_rectangle(color, 0, 0, _lcd_xsize, _lcd_ysize);
+  display_blanking_off(_display_device);
 }
 
-void Display::setBackgroundColor(Color color) { 
-  _backgroundColor = color; 
-  _backgroundColorValue = getColorValue(_backgroundColor);
+void Display::set_background_color(Color color) {
+  _background_color       = color;
+  _background_color_value = get_color_value(_background_color);
 }
 
-void Display::fillRectangle(
-    Color color, uint32_t xPos, uint32_t yPos, uint32_t width, uint32_t height) {
-  uint32_t colorValue = getColorValue(color);
-  // LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d, height %d)",
-  //        colorValue,
-  //        xPos,
-  //        yPos,
+// width, height is the standard order for image
+// dimensions, and we always call this function with width first, then height
+void Display::fill_rectangle(
+    Color color,
+    uint32_t x_pos,
+    uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)
+    uint32_t width,  // NOLINT(bugprone-easily-swappable-parameters)
+    uint32_t height) {
+  uint32_t color_value = get_color_value(color);
+  // ZPP_LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d,
+  // height %d)",
+  //        color_value,
+  //        x_pos,
+  //        y_pos,
   //        width,
   //        height);
-  _fillColorFunction(colorValue, _lineBuffer, _lineBufferSize);
+  _fill_color_function(color_value, _line_buffer, _line_buffer_size);
 
-  struct display_buffer_descriptor bufDesc = {0};
-  xPos           = zpp_lib::min(_lcdXsize - 1, xPos);
-  bufDesc.width  = zpp_lib::min(_lcdXsize - xPos, width);
-  bufDesc.pitch  = bufDesc.width;
-  bufDesc.height = H_STEP;
-  bufDesc.frame_incomplete = true;
+  struct display_buffer_descriptor buf_desc = {
+      .buf_size = 0, .width = 0, .height = 0, .pitch = 0, .frame_incomplete = false};
+  x_pos                     = zpp_lib::min(_lcd_xsize - 1, x_pos);
+  buf_desc.width            = zpp_lib::min(_lcd_xsize - x_pos, width);
+  buf_desc.pitch            = buf_desc.width;
+  buf_desc.height           = kHStep;
+  buf_desc.frame_incomplete = true;
   // buf_size is in bytes: width * height * bytes_per_pixel
-  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
-  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
-  uint16_t firstLine       = zpp_lib::min(yPos, _lcdYsize);
-  uint16_t lastLine = zpp_lib::min(yPos + height, _lcdYsize);
-  for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
-    bufDesc.height = lineHeight;
-    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
-    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
-    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+  uint32_t bytes_per_pixel =
+      (_display_capabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  buf_desc.buf_size   = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
+  uint16_t first_line = zpp_lib::min(y_pos, _lcd_ysize);
+  uint16_t last_line  = zpp_lib::min(y_pos + height, _lcd_ysize);
+  for (uint32_t line = first_line; line < last_line; line += kHStep) {
+    uint16_t line_height      = zpp_lib::min(kHStep, last_line - line);
+    buf_desc.height           = line_height;
+    buf_desc.buf_size         = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
+    buf_desc.frame_incomplete = (line + line_height < last_line);
+    auto ret = display_write(_display_device, x_pos, line, &buf_desc, _line_buffer);
     if (ret != 0) {
-      LOG_ERR("Cannot write to display: %d", ret);
+      ZPP_LOG_ERR("Cannot write to display: %d", ret);
     }
   }
 }
 
-void Display::drawVerticalLine(
-    Color color, uint32_t xPos, uint32_t yPos, uint32_t lineWidth, uint32_t thickness) {
-  // LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d, height
-  // %d)",
+void Display::draw_vertical_line(Color color,
+                                 uint32_t x_pos,
+                                 uint32_t y_pos,
+                                 uint32_t line_length,
+                                 uint32_t thickness) {
+  // ZPP_LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d,
+  // height %d)",
   //        static_cast<uint32_t>(color),
-  //        xPos,
-  //        yPos,
+  //        x_pos,
+  //        y_pos,
   //        thickness,
-  //        lineWidth);
-  fillRectangle(color, xPos, yPos, thickness, lineWidth);
+  //        line_width);
+  // NOLINTNEXTLINE(readability-suspicious-call-argument) - vertical line,
+  // thickness/line_length is the width/height of the rectangle
+  fill_rectangle(color, x_pos, y_pos, thickness, line_length);
 }
 
-void Display::drawHorizontalLine(
-    Color color, uint32_t xPos, uint32_t yPos, uint32_t lineWidth, uint32_t thickness) {
-  // LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d, height
-  // %d)",
+void Display::draw_horizontal_line(Color color,
+                                   uint32_t x_pos,
+                                   uint32_t y_pos,
+                                   uint32_t line_length,
+                                   uint32_t thickness) {
+  // ZPP_LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d,
+  // height %d)",
   //        static_cast<uint32_t>(color),
-  //        xPos,
-  //        yPos,
-  //        lineWidth,
+  //        x_pos,
+  //        y_pos,
+  //        line_width,
   //        thickness);
-  fillRectangle(color, xPos, yPos, lineWidth, thickness);
+  fill_rectangle(color, x_pos, y_pos, line_length, thickness);
 }
 
-void Display::drawLogo(uint16_t xPos,
-                       uint16_t yPos,
-                       const uint32_t* pSrc,
-                       uint16_t logoWidth,
-                       uint16_t logoHeight) {
-  struct display_buffer_descriptor bufDesc = {0};
-  xPos             = zpp_lib::min(_lcdXsize - 1, xPos);
-  bufDesc.width  = zpp_lib::min(_lcdXsize - xPos, logoWidth);
-  bufDesc.pitch  = bufDesc.width;
-  bufDesc.height = H_STEP;
-  bufDesc.frame_incomplete = true;
-  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
-  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+void Display::draw_icon(
+    uint16_t x_pos,
+    uint16_t y_pos,
+    const uint32_t* p_src,
+    uint16_t logo_width,  // NOLINT(bugprone-easily-swappable-parameters) - width, height
+                          // is the standard order for image dimensions, and we always
+                          // call this function with width first, then height
+    uint16_t logo_height) {
+  struct display_buffer_descriptor buf_desc = {
+      .buf_size = 0, .width = 0, .height = 0, .pitch = 0, .frame_incomplete = false};
+  x_pos                     = zpp_lib::min(_lcd_xsize - 1, x_pos);
+  buf_desc.width            = zpp_lib::min(_lcd_xsize - x_pos, logo_width);
+  buf_desc.pitch            = buf_desc.width;
+  buf_desc.height           = kHStep;
+  buf_desc.frame_incomplete = true;
+  uint32_t bytes_per_pixel =
+      (_display_capabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  buf_desc.buf_size = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
   // draw the picture line by line
-  uint16_t firstLine = zpp_lib::min(yPos, _lcdYsize);
-  uint16_t lastLine  = zpp_lib::min(yPos + logoHeight, _lcdYsize);
-  for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    // fill only the number of pixels we will write (bufDesc.width)
-    _fillLineFunction(pSrc, bufDesc.width, _lineBuffer);
-    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
-    bufDesc.height = lineHeight;
-    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
-    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
-    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+  uint16_t first_line = zpp_lib::min(y_pos, _lcd_ysize);
+  uint16_t last_line  = zpp_lib::min(y_pos + logo_height, _lcd_ysize);
+  for (uint32_t line = first_line; line < last_line; line += kHStep) {
+    // fill only the number of pixels we will write (buf_desc.width)
+    _fill_line_function(p_src, buf_desc.width, _line_buffer);
+    uint16_t line_height      = zpp_lib::min(kHStep, last_line - line);
+    buf_desc.height           = line_height;
+    buf_desc.buf_size         = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
+    buf_desc.frame_incomplete = (line + line_height < last_line);
+    auto ret = display_write(_display_device, x_pos, line, &buf_desc, _line_buffer);
     if (ret != 0) {
-      LOG_ERR("Cannot write to display: %d", ret);
+      ZPP_LOG_ERR("Cannot write to display: %d", ret);
     }
-    pSrc += logoWidth;
+    p_src += logo_width;
   }
 }
 
-void Display::setFont(const Font* pFont) { _pFont = pFont; }
+void Display::set_font(const Font* p_font) { _p_font = p_font; }
 
-const Display::Font* Display::getFont() const { return _pFont; }
+const Display::Font* Display::get_font() const { return _p_font; }
 
-uint16_t Display::getStringWidth(const char* text) const {
-  __ASSERT(_pFont != nullptr, "Font not set");
-  uint16_t stringWidth = 0;
-  while (*text != 0) {
-    stringWidth += getCharWidth(_pFont, *text);
-    text++;
+uint16_t Display::get_string_width(const std::string& text) const {
+  ZPP_ASSERT(_p_font != nullptr, "Font not set");
+  uint16_t string_width = 0;
+  for (const char& c : text) {
+    string_width += get_char_width(_p_font, c);
   }
-  return stringWidth;
+  return string_width;
 }
 
-void Display::drawStringAtLine(Color color,
-                               uint32_t line,
-                               const char* text,                  
-                               AlignMode mode) {
-  uint16_t nbrOfPixels = getStringWidth(text);
-  uint32_t xPos = 0;
-  switch (mode) { 
-    case AlignMode::CENTER_MODE: {
-      xPos = getWidth() / 2 - nbrOfPixels / 2;
-    }
-    break;
+void Display::draw_string_at_line(Color color,
+                                  uint32_t line,
+                                  const std::string& text,
+                                  AlignMode mode) {
+  uint16_t nbr_of_pixels = get_string_width(text);
+  uint32_t x_pos         = 0;
+  switch (mode) {
+    case AlignMode::Center: {
+      x_pos = (get_width() / 2) - (nbr_of_pixels / 2);
+    } break;
 
-    case AlignMode::LEFT_MODE: {
-      xPos = 0;
-    }
-    break;
+    case AlignMode::Left: {
+      x_pos = 0;
+    } break;
 
-    case AlignMode::RIGHT_MODE: {
-      xPos = getWidth() - nbrOfPixels;
-    }
-    break;
+    case AlignMode::Right: {
+      x_pos = get_width() - nbr_of_pixels;
+    } break;
 
-    default: 
-    break;
-  }                             
-  drawStringAt(color, xPos, computeYPosFromLineNumber(line), text);
+    default:
+      break;
+  }
+  draw_string_at(color, x_pos, compute_ypos_from_line_number(line), text);
 }
 
-void Display::drawStringAt(Color color, uint32_t xPos, uint32_t yPos, const char* text) {
-  __ASSERT(_pFont != nullptr, "Font not set");
-
-  // Get the text size
-  uint32_t nbrOfChars = 0;
-  char* ptr           = const_cast<char*>(text);
-  while (*ptr++) {
-    nbrOfChars++;
-  }
+void Display::draw_string_at(
+    Color color,
+    uint32_t x_pos,
+    uint32_t y_pos,
+    const std::string& text) {  // NOLINT(build/include_what_you_use) - false positive
+                                // (string is included in the header)
+  ZPP_ASSERT(_p_font != nullptr, "Font not set");
 
   // compute the starting column
-  int32_t refcolumn = xPos;
-  
+  uint32_t refcolumn = x_pos;
+
   // get the number of pixels required for displaying the text
   // uint16_t nbrOfPixels = getStringWidth(text);
-  // LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, xPos, yPos, nbrOfPixels, refcolumn);
+  // ZPP_LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, x_pos,
+  // y_pos, nbrOfPixels, refcolumn);
 
   // Check that the Start column is located in the screenascii
   if ((refcolumn < 1) || (refcolumn >= 0x8000)) {
@@ -298,148 +322,169 @@ void Display::drawStringAt(Color color, uint32_t xPos, uint32_t yPos, const char
   }
 
   // Send the string character by character on display
-  uint32_t totalWidth = refcolumn;
-  char c = *text;
-  while (c != 0) {
-    uint16_t charWidth = getCharWidth(_pFont, c);
-    totalWidth += charWidth;
-    if (totalWidth > _lcdXsize) {
+  uint32_t total_width = refcolumn;
+  for (const char& c : text) {
+    uint16_t char_width = get_char_width(_p_font, c);
+    total_width += char_width;
+    if (total_width > _lcd_xsize) {
       break;
     }
-    
-    // Display one character on display
-    displayChar(color, refcolumn, yPos, *text);
-    // Increment the column position by the width
-    refcolumn += charWidth;
 
-    // Point on the next character
-    text++;
-    c = *text;
+    // Display one character on display
+    display_char(color, refcolumn, y_pos, c);
+    // Increment the column position by the width
+    refcolumn += char_width;
   }
 }
 
-uint32_t Display::computeYPosFromLineNumber(uint32_t line) {
-  return line * getFont()->height;
+uint32_t Display::compute_ypos_from_line_number(uint32_t line) const {
+  return line * get_font()->height;
 }
 
-void Display::displayChar(Color color, uint32_t xPos, uint32_t yPos, uint32_t unicode) {
-  __ASSERT(_pFont != nullptr, "Font not set");
-  uint8_t charWidth = 0;
-  const uint8_t* pData = FontGetGlyph(_pFont, unicode, charWidth);
-  
-  // LOG_DBG("Displaying char %c at %d - %d", unicode, xPos, yPos);
+// This is a private method and we always call it correctly
+void Display::display_char(
+    Color color,
+    uint32_t x_pos,
+    uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)
+    uint32_t unicode) {
+  ZPP_ASSERT(_p_font != nullptr, "Font not set");
+  uint8_t char_width    = 0;
+  const uint8_t* p_data = font_get_glyph(_p_font, unicode, char_width);
+  if (p_data == nullptr) {
+    ZPP_LOG_ERR("Character %c not found in font", unicode);
+    return;
+  }
+  static constexpr uint32_t kMaxCharWidth = 48;
+  ZPP_ASSERT(char_width < kMaxCharWidth, "Invalid char width: %d", char_width);
+  // ZPP_LOG_DBG("Displaying char %c at %d - %d", unicode, x_pos, y_pos);
 
   // compute the bit offset in each line
   // nbrOfBytesPerLine represents the number of bytes
   // stored for each line of the character font
-  uint32_t offset            = 8 * ((charWidth + 7) / 8) - charWidth;
-  uint32_t nbrOfBytesPerLine = (charWidth + 7) / 8;
+  uint32_t offset                = (8 * ((char_width + 7) / 8)) - char_width;
+  uint32_t nbr_of_bytes_per_line = (char_width + 7) / 8;
 
   // draw each line of the char stored in table
-  for (uint32_t i = 0; i < _pFont->height; i++) {
+  for (uint32_t i = 0; i < _p_font->height; i++) {
     // get the start address of the line
-    uint8_t* pchar = (const_cast<uint8_t*>(pData) + nbrOfBytesPerLine * i);
+    const uint8_t* p_char = p_data + (nbr_of_bytes_per_line * i);
 
     // line represents the ith line of the character (as a uint64_t)
     uint64_t line = 0;
-    for (uint32_t j = 0; j < nbrOfBytesPerLine; j++) {
+    for (uint32_t j = 0; j < nbr_of_bytes_per_line; j++) {
       line <<= 8;
-      line |= pchar[j];
+      line |= p_char[j];
     }
 
-    if (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888 ||
-        _displayCapabilities.current_pixel_format == PIXEL_FORMAT_RGB_888) {
-      uint32_t argb8888[48] = {0};
-      for (uint32_t j = 0; j < charWidth; j++) {
+    if (_display_capabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888 ||
+        _display_capabilities.current_pixel_format == PIXEL_FORMAT_RGB_888) {
+      // We need a fixed-size array for the line buffer, and char_width is asserted
+      // to be < kMaxCharWidth
+      // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays, modernize-avoid-c-arrays)
+      uint32_t argb8888[kMaxCharWidth] = {0};
+      for (uint32_t j = 0; j < char_width; j++) {
         // check whether the j^th bit in line is on or off
-        uint64_t bitInPixel = static_cast<uint64_t>(1)
-                              << static_cast<uint64_t>(charWidth - j + offset - 1);
-        if (line & bitInPixel) {
-          argb8888[j] = getColorValue(color);
+        uint64_t bit_in_pixel = static_cast<uint64_t>(1)
+                                << static_cast<uint64_t>(char_width - j + offset - 1);
+        if (static_cast<bool>(line & bit_in_pixel)) {
+          // char_width is asserted to be < 48, so j is always < 4
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index) -
+          argb8888[j] = get_color_value(color);
         } else {
-          argb8888[j] = _backgroundColorValue;
+          // char_width is asserted to be < 48, so j is always < 4
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+          argb8888[j] = _background_color_value;
         }
       }
-      fillRgbRect(color, xPos, yPos++, argb8888, charWidth, 1);  // NOLINT
+      fill_rgb_rect(color, x_pos, y_pos++, argb8888, char_width, 1);  // NOLINT
     } else {
-      LOG_ERR("Not implemented");
-      __ASSERT(false, "Not implemented");
+      ZPP_LOG_ERR("Not implemented");
+      ZPP_ASSERT(false, "Not implemented");
     }
   }
 }
 
-void Display::fillColorArgb8888(uint32_t colorValue, uint8_t* pBuffer, size_t bufferSize) {
-  // LOG_INF("Filling buffer of size %d with value %d", buf_size, colorValue);
-  for (size_t idx = 0; idx < bufferSize; idx += 4) {
+void Display::fill_color_argb8888(uint32_t color_value,
+                                  uint8_t* p_buffer,
+                                  size_t buffer_size) {
+  // ZPP_LOG_INF("Filling buffer of size %d with value %d", buf_size, colorValue);
+  for (size_t idx = 0; idx < buffer_size; idx += 4) {
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
-    // cppcheck-suppress cstyleCast
-    // NOLINTNEXTLINE(readability/casting)
-    *((uint32_t*)(pBuffer + idx)) = colorValue;
+    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+    *((uint32_t*)(p_buffer + idx)) = color_value;
   }
 }
-void Display::fillColorRgb888(uint32_t colorValue, uint8_t* pBuffer, size_t bufferSize) {
-  for (size_t idx = 0; idx < bufferSize; idx += 3) {
+void Display::fill_color_rgb888(uint32_t color_value,
+                                uint8_t* p_buffer,
+                                size_t buffer_size) {
+  for (size_t idx = 0; idx < buffer_size; idx += 3) {
     // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
-    *(pBuffer + idx + 0) = (uint8_t)((colorValue >> 0) & 0xFF);
-    *(pBuffer + idx + 1) = (uint8_t)((colorValue >> 8) & 0xFF);
-    *(pBuffer + idx + 2) = (uint8_t)((colorValue >> 16) & 0xFF);
+    *(p_buffer + idx + 0) = static_cast<uint8_t>((color_value >> 0) & 0xFF);
+    *(p_buffer + idx + 1) = static_cast<uint8_t>((color_value >> 8) & 0xFF);
+    *(p_buffer + idx + 2) = static_cast<uint8_t>((color_value >> 16) & 0xFF);
   }
 }
 
-void Display::fillLineArgb8888(const uint32_t* pSrc,
-                               size_t srcSize,
-                               uint8_t* pBuffer) {
+void Display::fill_line_argb8888(const uint32_t* p_src,
+                                 size_t src_size,
+                                 uint8_t* p_buffer) {
   // srcSize is number of pixels. Write each pixel as 4 consecutive bytes.
-  for (size_t px = 0; px < srcSize; px++) {
+  for (size_t px = 0; px < src_size; px++) {
     // write 32-bit pixel value into buffer at byte offset px*4
-    // cppcheck-suppress cstyleCast
-    *((uint32_t*)(pBuffer + px * 4)) = *pSrc;  // NOLINT(readability/casting)
-    pSrc++;
+    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+    *((uint32_t*)(p_buffer + (px * 4))) = *p_src;
+    p_src++;
   }
 }
 
-void Display::fillLineRgb888(const uint32_t* pSrc,
-                             size_t srcSize,
-                             uint8_t* pBuffer) {
-  for (size_t idx = 0; idx < srcSize; idx++) {
-    uint32_t color           = *pSrc;
+void Display::fill_line_rgb888(const uint32_t* p_src,
+                               size_t src_size,
+                               uint8_t* p_buffer) {
+  for (size_t idx = 0; idx < src_size; idx++) {
+    uint32_t color = *p_src;
     // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
-    *(pBuffer + 3 * idx + 0) = (uint8_t)((color >> 0) & 0xFF);
-    *(pBuffer + 3 * idx + 1) = (uint8_t)((color >> 8) & 0xFF);
-    *(pBuffer + 3 * idx + 2) = (uint8_t)((color >> 16) & 0xFF);
-    pSrc++;
+    size_t offset            = idx * 3;
+    *(p_buffer + offset + 0) = static_cast<uint8_t>((color >> 0) & 0xFF);
+    *(p_buffer + offset + 1) = static_cast<uint8_t>((color >> 8) & 0xFF);
+    *(p_buffer + offset + 2) = static_cast<uint8_t>((color >> 16) & 0xFF);
+    p_src++;
   }
 }
 
-void Display::fillRgbRect(Color color,
-                          uint32_t xPos,
-                          uint32_t yPos,
-                          uint32_t* pData,
-                          uint32_t width,
-                          uint32_t height) {
-  struct display_buffer_descriptor bufDesc = {0};
-  xPos             = zpp_lib::min(_lcdXsize - 1, xPos);
-  bufDesc.width    = zpp_lib::min(_lcdXsize - xPos, width);
-  bufDesc.pitch    = bufDesc.width;
-  bufDesc.height   = H_STEP;
-  bufDesc.frame_incomplete = true;
-  const uint32_t bytesPerPixel = (_displayCapabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
-  bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
+void Display::fill_rgb_rect(
+    Color color,
+    uint32_t x_pos,
+    uint32_t y_pos,
+    uint32_t* p_data,
+    uint32_t width,  // NOLINT(bugprone-easily-swappable-parameters) - this is a private
+                     // method and we always call it with width before height, so the
+                     // order of parameters is not error-prone in practice
+    uint32_t height) {
+  struct display_buffer_descriptor buf_desc = {
+      .buf_size = 0, .width = 0, .height = 0, .pitch = 0, .frame_incomplete = false};
+  x_pos                     = zpp_lib::min(_lcd_xsize - 1, x_pos);
+  buf_desc.width            = zpp_lib::min(_lcd_xsize - x_pos, width);
+  buf_desc.pitch            = buf_desc.width;
+  buf_desc.height           = kHStep;
+  buf_desc.frame_incomplete = true;
+  uint32_t bytes_per_pixel =
+      (_display_capabilities.current_pixel_format == PIXEL_FORMAT_ARGB_8888) ? 4U : 3U;
+  buf_desc.buf_size = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
   // draw the rect line by line
-  uint16_t firstLine = zpp_lib::min(yPos, _lcdYsize);
-  uint16_t lastLine  = zpp_lib::min(yPos + height, _lcdYsize);
-  for (uint32_t line = firstLine; line < lastLine; line += H_STEP) {
-    // fill only the number of pixels we will write (bufDesc.width)
-    _fillLineFunction(pData, bufDesc.width, _lineBuffer);
-    uint16_t lineHeight = zpp_lib::min(H_STEP, lastLine - line);
-    bufDesc.height = lineHeight;
-    bufDesc.buf_size = bufDesc.pitch * bufDesc.height * bytesPerPixel;
-    bufDesc.frame_incomplete = (line + lineHeight < lastLine);
-    auto ret = display_write(_displayDevice, xPos, line, &bufDesc, _lineBuffer);
+  uint16_t first_line = zpp_lib::min(y_pos, _lcd_ysize);
+  uint16_t last_line  = zpp_lib::min(y_pos + height, _lcd_ysize);
+  for (uint32_t line = first_line; line < last_line; line += kHStep) {
+    // fill only the number of pixels we will write (buf_desc.width)
+    _fill_line_function(p_data, buf_desc.width, _line_buffer);
+    uint16_t line_height      = zpp_lib::min(kHStep, last_line - line);
+    buf_desc.height           = line_height;
+    buf_desc.buf_size         = buf_desc.pitch * buf_desc.height * bytes_per_pixel;
+    buf_desc.frame_incomplete = (line + line_height < last_line);
+    auto ret = display_write(_display_device, x_pos, line, &buf_desc, _line_buffer);
     if (ret != 0) {
-      LOG_ERR("Cannot write to display: %d", ret);
+      ZPP_LOG_ERR("Cannot write to display: %d", ret);
     }
-    pData += width;
+    p_data += width;
   }
 }
 

@@ -53,14 +53,9 @@ class Thread : private NonCopyable<Thread> {
     @note You cannot call this function from ISR context.
   */
 #if CONFIG_USERSPACE
-  explicit Thread(
-      PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
-      const char* name                   = nullptr,
-      bool userMode                      = false);
+  explicit Thread(PreemptableThreadPriority priority, const char* name, bool userMode);
 #else   // CONFIG_USERSPACE
-  explicit Thread(
-      PreemptableThreadPriority priority = PreemptableThreadPriority::PriorityNormal,
-      const char* name                   = nullptr);
+  explicit Thread(PreemptableThreadPriority priority, const char* name);
 #endif  // CONFIG_USERSPACE
 
   /** Performs sanity checks
@@ -91,13 +86,6 @@ class Thread : private NonCopyable<Thread> {
     @note You cannot call this function from ISR context.
   */
   [[nodiscard]] ZephyrResult join() noexcept;
-
-#if CONFIG_USERSPACE
-  /** Returns the thread tid (required for granting access to kernel objects)
-    @return  thread tid
-  */
-  k_tid_t get_tid() const noexcept;
-#endif  // CONFIG_USERSPACE
 
  private:
   // Required to share definitions without

@@ -59,7 +59,7 @@ class DigitalOut : private NonCopyable<DigitalOut> {
    *  @param pin DigitalOut pin to connect to
    *  @param value the initial pin value
    */
-  explicit DigitalOut(PinName pinName, uint32_t value);
+  explicit DigitalOut(PinName pinName, int value);
 
   /** Set the output, specified as 0 or 1 (int)
    *

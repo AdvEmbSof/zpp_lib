@@ -29,14 +29,15 @@
 // zephyr
 #include <zephyr/kernel.h>
 
-namespace zpp_lib {
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
 
-namespace ThisThread {
+namespace zpp_lib::ThisThread {
 
 PreemptableThreadPriority get_priority() {
   k_tid_t tid = k_current_get();
 #if ASSERT
-  __ASSERT(tid != nullptr, "Current thread has no tid");
+  ZPP_ASSERT(tid != nullptr, "Current thread has no tid");
 #endif
   int prio = k_thread_priority_get(tid);
   return prio_to_preemptable_thread_priority(prio);
@@ -45,7 +46,7 @@ PreemptableThreadPriority get_priority() {
 void set_priority(PreemptableThreadPriority priority) {
   k_tid_t tid = k_current_get();
 #if ASSERT
-  __ASSERT(tid != nullptr, "Current thread has no tid");
+  ZPP_ASSERT(tid != nullptr, "Current thread has no tid");
 #endif
   k_thread_priority_set(tid, preemptable_thread_priority_to_zephyr_prio(priority));
 }
@@ -56,39 +57,43 @@ void busy_wait(const std::chrono::microseconds& waitTime) {
 }
 
 std::chrono::milliseconds sleep_for(const std::chrono::milliseconds& sleep_duration) {
-  auto res = k_msleep(sleep_duration.count());
+  auto res = k_msleep(static_cast<int32_t>(sleep_duration.count()));
   return std::chrono::milliseconds(res);
 }
 
 std::chrono::milliseconds sleep_for(const std::chrono::microseconds& sleep_duration) {
   std::chrono::milliseconds ms_sleep_duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
-  auto res = k_msleep(ms_sleep_duration.count());
+  auto res = k_msleep(static_cast<int32_t>(ms_sleep_duration.count()));
   return std::chrono::milliseconds(res);
 }
 
 std::chrono::milliseconds sleep_for(const std::chrono::seconds& sleep_duration) {
   std::chrono::milliseconds ms_sleep_duration =
       std::chrono::duration_cast<std::chrono::milliseconds>(sleep_duration);
-  auto res = k_msleep(ms_sleep_duration.count());
+  auto res = k_msleep(static_cast<int32_t>(ms_sleep_duration.count()));
   return std::chrono::milliseconds(res);
 }
 
-std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absoluteTime) {
-  auto res = k_sleep(K_TIMEOUT_ABS_US(absoluteTime.count()));
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
+std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absolute_time) {
+  // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
+  auto res = k_sleep(K_TIMEOUT_ABS_US(absolute_time.count()));
   return std::chrono::milliseconds(res);
 }
 
-std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absoluteTime) {
-  auto res = k_sleep(K_TIMEOUT_ABS_MS(absoluteTime.count()));
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
+std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absolute_time) {
+  // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
+  auto res = k_sleep(K_TIMEOUT_ABS_MS(absolute_time.count()));
   return std::chrono::milliseconds(res);
 }
 
-std::chrono::milliseconds sleep_until(const std::chrono::seconds& absoluteTime) {
-  auto res = k_sleep(K_TIMEOUT_ABS_SEC(absoluteTime.count()));
+// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
+std::chrono::milliseconds sleep_until(const std::chrono::seconds& absolute_time) {
+  // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
+  auto res = k_sleep(K_TIMEOUT_ABS_SEC(absolute_time.count()));
   return std::chrono::milliseconds(res);
 }
 
-}  // namespace ThisThread
-
-}  // namespace zpp_lib
+}  // namespace zpp_lib::ThisThread

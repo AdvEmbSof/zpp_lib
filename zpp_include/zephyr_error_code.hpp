@@ -116,7 +116,7 @@ enum class ZephyrErrorCode {
   k_wouldblock     = EWOULDBLOCK,      ///< Operation would block
 };
 
-constexpr ZephyrErrorCode zephyr_to_zpp_error_code(int v) noexcept {
+constexpr ZephyrErrorCode zephyr_to_zpp_error_code(uint32_t v) noexcept {
   return static_cast<ZephyrErrorCode>(v);
 }
 

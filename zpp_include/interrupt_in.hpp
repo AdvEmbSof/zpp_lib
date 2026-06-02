@@ -88,7 +88,7 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    *
    *  @param pin InterruptIn pin to connect to
    */
-  explicit InterruptIn(PinName pinName);
+  explicit InterruptIn(PinName pin_name);
 
   /** Remove callbacks added to gpio device
    *
@@ -112,7 +112,7 @@ class InterruptIn : private NonCopyable<InterruptIn> {
    *
    *  @param func A pointer to a void function, or 0 to set as none
    */
-  void fall(std::function<void()> func);
+  void fall(const std::function<void()>& func);
 
 #if CONFIG_INTERRUPT_IN_EMUL
   /** Used for testing purposes
@@ -133,13 +133,13 @@ class InterruptIn : private NonCopyable<InterruptIn> {
     struct gpio_callback _gpio_cb;
     InterruptIn* _instance;
   };
-  struct CallbackData _cbData;
+  struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
 #endif  // CONFIG_INTERRUPT_IN_EMUL
-  PinName _pinName;
-  using CallbackFunction                 = std::function<void()>;
-  using CallbackFunctionMap              = std::map<void*, CallbackFunction>;
-  static constexpr size_t NBR_OF_BUTTONS = static_cast<size_t>(PinName::LAST_BUTTON);
-  static inline CallbackFunctionMap _fall_cb_map[NBR_OF_BUTTONS];
+  PinName _pin_name;
+  using CallbackFunction                = std::function<void()>;
+  using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
+  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
+  static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
   static inline zpp_lib::Mutex _cbMutex;
 };
 

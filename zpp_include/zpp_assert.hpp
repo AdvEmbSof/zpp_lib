@@ -13,36 +13,22 @@
 // limitations under the License.
 
 /****************************************************************************
- * @file message_queue.cpp
+ * @file zpp_assert.hpp
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief CPP class implementation wrapping zephyr OS message queue
+ * @brief Redefinitions of zephyr assertion macros for use in zpp_lib
+ *        This prevents macro related warning when using clang-tidy and applying 
+ *        some cppcoreguidelines checks
  *
  * @date 2025-08-31
  * @version 1.0.0
  ***************************************************************************/
 
-#include "zpp_include/message_queue.hpp"
+#pragma once
 
-// zephyr
-#if CONFIG_USERSPACE
-#include <zephyr/app_memory/app_memdomain.h>
-#endif  // CONFIG_USERSPACE
+// NOLINTBEGIN(cppcoreguidelines-avoid-do-while)
+#include <zephyr/sys/__assert.h>
 
-#if CONFIG_USERSPACE
-extern struct k_mem_partition zpp_lib_partition;
-#define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
-#define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
-#else  // CONFIG_USERSPACE
-#define ZPP_LIB_DATA
-#define ZPP_LIB_BSS
-#endif  // CONFIG_USERSPACE
-
-namespace zpp_lib {
-
-#if CONFIG_USERSPACE
-ZPP_LIB_DATA uint8_t gMsgqInstanceCount                          = 0;
-struct k_msgq ZPP_MESSAGE_QUEUE_ARRAY[CONFIG_ZPP_MSGQ_POOL_SIZE] = {};
-#endif  // CONFIG_USERSPACE
-
-}  // namespace zpp_lib
+#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)   // NOLINT
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)   // NOLINT
+// NOLINTEND(cppcoreguidelines-avoid-do-while)

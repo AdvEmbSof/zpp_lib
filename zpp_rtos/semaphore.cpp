@@ -24,13 +24,16 @@
 
 #include "zpp_include/semaphore.hpp"
 
-// Zephyr sdk
-#include <zephyr/logging/log.h>
+// zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
 #endif  // CONFIG_USERSPACE
 
-LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
+// zpp_lib
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+
+ZPP_LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 
 #if CONFIG_USERSPACE
 extern struct k_mem_partition zpp_lib_partition;
@@ -52,6 +55,8 @@ ZPP_LIB_BSS bool
 static struct k_sem ZPP_SEMAPHORE_ARRAY[CONFIG_ZPP_SEMAPHORE_POOL_SIZE] = {};
 #endif  // CONFIG_USERSPACE
 
+// False positive, _sem is initialized with k_sem_init
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
 #if CONFIG_USERSPACE
   // kernel objects are allocated statically
@@ -77,22 +82,22 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
       ret);
   _p_sem = &ZPP_SEMAPHORE_ARRAY[index];
   _semaphoreInstanceCount++;
-  LOG_DBG("Semaphore %p allocated (instance index %d, total %d)",
-          static_cast<void*>(_p_sem),
-          index,
-          _semaphoreInstanceCount);
+  ZPP_LOG_DBG("Semaphore %p allocated (instance index %d, total %d)",
+              static_cast<void*>(_p_sem),
+              index,
+              _semaphoreInstanceCount);
 #else   // CONFIG_USERSPACE
-  __ASSERT_EVAL(k_sem_init(&_sem, initial_count, max_count),
-                auto ret = k_sem_init(&_sem, initial_count, max_count),
-                ret == 0,
-                "Cannot create semaphore: %d",
-                ret);
+  ZPP_ASSERT_EVAL(k_sem_init(&_sem, initial_count, max_count),
+                  auto ret = k_sem_init(&_sem, initial_count, max_count),
+                  ret == 0,
+                  "Cannot create semaphore: %d",
+                  ret);
   _p_sem = &_sem;
-  LOG_DBG("Semaphore %p created with count %d (vs %d) and max count %d",
-          static_cast<void*>(_p_sem),
-          k_sem_count_get(_p_sem),
-          initial_count,
-          max_count);
+  ZPP_LOG_DBG("Semaphore %p created with count %d (vs %d) and max count %d",
+              static_cast<void*>(_p_sem),
+              k_sem_count_get(_p_sem),
+              initial_count,
+              max_count);
 #endif  // CONFIG_USERSPACE
 }
 
@@ -104,10 +109,10 @@ Semaphore::~Semaphore() {
       // flag it as free
       ZPP_SEMAPHORE_ARRAY_BUSY[index] = false;
       _semaphoreInstanceCount--;
-      LOG_DBG("Semaphore %p freed (instance index %d, total %d)",
-              static_cast<void*>(_p_sem),
-              index,
-              _semaphoreInstanceCount);
+      ZPP_LOG_DBG("Semaphore %p freed (instance index %d, total %d)",
+                  static_cast<void*>(_p_sem),
+                  index,
+                  _semaphoreInstanceCount);
       found = true;
       break;
     }
@@ -117,11 +122,11 @@ Semaphore::~Semaphore() {
 #endif  // CONFIG_USERSPACE
 
 ZephyrResult Semaphore::acquire() {
-  LOG_DBG("Acquiring semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));
+  ZPP_LOG_DBG("Acquiring semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));
   ZephyrResult res;
   int ret = k_sem_take(_p_sem, K_FOREVER);
   if (ret != 0) {
-    LOG_ERR("Cannot acquire semaphore: %d", ret);
+    ZPP_LOG_ERR("Cannot acquire semaphore: %d", ret);
     res.assign_error(zephyr_to_zpp_error_code(ret));
   }
   return res;
@@ -135,7 +140,7 @@ ZephyrBoolResult Semaphore::try_acquire() {
     res.assign_value(false);
   } else if (ret != 0) {
     // other failure -> return false with error
-    LOG_ERR("Cannot acquire semaphore: %d", ret);
+    ZPP_LOG_ERR("Cannot acquire semaphore: %d", ret);
     res.assign_value(false);
     res.assign_error(zephyr_to_zpp_error_code(ret));
   }
@@ -144,16 +149,16 @@ ZephyrBoolResult Semaphore::try_acquire() {
 
 ZephyrResult Semaphore::release() {
   ZephyrResult res;
-  LOG_DBG("Releasing semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));
+  ZPP_LOG_DBG("Releasing semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));
   k_sem_give(_p_sem);
   return res;
 }
 
 #if CONFIG_USERSPACE
 void Semaphore::grant_access(k_tid_t tid) {
-  LOG_DBG("Granting access to semaphore %p for thread %p",
-          static_cast<void*>(_p_sem),
-          static_cast<void*>(tid));
+  ZPP_LOG_DBG("Granting access to semaphore %p for thread %p",
+              static_cast<void*>(_p_sem),
+              static_cast<void*>(tid));
   k_object_access_grant(_p_sem, tid);
 }
 #endif  // CONFIG_USERSPACE
