@@ -36,4 +36,8 @@ constexpr k_timeout_t milliseconds_to_ticks(const std::chrono::milliseconds& d) 
   return {K_MSEC(d.count())};
 }
 
+constexpr k_timeout_t microseconds_to_ticks(const std::chrono::microseconds& d) noexcept {
+  return {K_USEC(d.count())};
+}
+
 } // namespace zpp_lib

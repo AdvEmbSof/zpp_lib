@@ -43,7 +43,7 @@ namespace zpp_lib {
 class WorkQueue : private NonCopyable<WorkQueue> {
 public:
   // constructor for running the work queue from an external thread calling run()
-  explicit WorkQueue(const char* name) : _name(name) {
+  explicit WorkQueue(const char* name) : _name(name), _thread(zpp_lib::PreemptableThreadPriority::PriorityNormal, name) {
     k_work_queue_init(&_workQueue);
   }
 

@@ -60,8 +60,8 @@ public:
 #endif // // CONFIG_USERSPACE
   }
 
-  [[nodiscard]] ZephyrBoolResult try_put_for(const std::chrono::milliseconds& timeout, const T& data) {
-    auto k_timeout = milliseconds_to_ticks(timeout);
+  [[nodiscard]] ZephyrBoolResult try_put_for(const std::chrono::microseconds& timeout, const T& data) {
+    auto k_timeout = microseconds_to_ticks(timeout);
     auto ret       = k_msgq_put(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
     if ((K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -ENOMSG) || (!K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -EAGAIN)) {
@@ -76,8 +76,8 @@ public:
     return res;
   }
 
-  [[nodiscard]] ZephyrBoolResult try_get_for(const std::chrono::milliseconds& timeout, T& data) {
-    k_timeout_t k_timeout = milliseconds_to_ticks(timeout);
+  [[nodiscard]] ZephyrBoolResult try_get_for(const std::chrono::microseconds& timeout, T& data) {
+    k_timeout_t k_timeout = microseconds_to_ticks(timeout);
     auto ret              = k_msgq_get(_p_msgq, &data, k_timeout);
     ZephyrBoolResult res;
     if ((K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -ENOMSG) || (!K_TIMEOUT_EQ(k_timeout, K_NO_WAIT) && ret == -EAGAIN)) {
