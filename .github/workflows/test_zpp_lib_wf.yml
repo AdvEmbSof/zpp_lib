@@ -8,7 +8,7 @@ on:
       sdk_version:
         description: "Zephyr SDK version"
         required: false
-        default: "0.17.0"
+        default: "1.0.1"
 
 permissions:
   checks: write
@@ -33,7 +33,7 @@ jobs:
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v1
         with:
-          sdk_version: '0.17.0'
+          sdk_version: '1.0.1'
           path_west_workspace: ${{ github.workspace }}/../
 
       - name: Run twister for zpp_lib on qemu_x86      
