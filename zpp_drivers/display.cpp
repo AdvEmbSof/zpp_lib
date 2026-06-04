@@ -75,6 +75,8 @@ inline const uint8_t* font_get_glyph(const Display::Font* p_font, uint32_t unico
 ZephyrResult Display::initialize() {
   ZephyrResult res;
   _display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
+  // device_is_ready() is a Zephyr macro
+  // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
   if (!device_is_ready(_display_device)) {
     ZPP_LOG_ERR("Device %s not found", _display_device->name);
     res.assign_error(zpp_lib::ZephyrErrorCode::k_nodev);

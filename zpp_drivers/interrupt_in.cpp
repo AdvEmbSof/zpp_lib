@@ -139,7 +139,7 @@ void InterruptIn::write(uint8_t value) {
   if (edgeFalling) {
     // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(pinName),
     // k_cycle_get_32());
-    size_t buttonIndex                 = static_cast<size_t>(_pinName) - 1;
+    size_t buttonIndex                 = static_cast<size_t>(_pin_name) - 1;
     CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
     for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin(); iter != cbFunctionMap.end(); ++iter) {
       iter->second();

@@ -60,7 +60,7 @@ void operator delete(void* ptr) noexcept {
 namespace zpp_lib {
 
 #if CONFIG_THREAD_STACK_INFO && CONFIG_THREAD_ANALYZER
-static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
+static void log_thread_stack_info(const struct k_thread* thread, void* idx) {
   size_t stack_size    = thread->stack_info.size;
   size_t start_address = thread->stack_info.start;
 
@@ -83,13 +83,13 @@ static void logThreadStackInfo(const struct k_thread* thread, void* idx) {
               stack_size);
 }
 
-void Utils::logThreadsStackInfo() {
+void Utils::log_threads_stack_info() {
   ZPP_LOG_INF("=== Threads Summary ===");
   ZPP_LOG_INF(" # |  Thread ID | Name           | Start address |Stack (used/total)");
   ZPP_LOG_INF("---+------------+----------------+---------------+------------------");
 
   int idx = 0;
-  k_thread_foreach(logThreadStackInfo, &idx);
+  k_thread_foreach(log_thread_stack_info, &idx);
   ZPP_LOG_INF("---+------------+----------------+---------------+------------------\n");
 }
 #endif
@@ -142,7 +142,7 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
   return threadStatistics;
 }
 
-static void logThreadStatistics(const struct k_thread* thread, void* idx) {
+static void log_thread_statistics(const struct k_thread* thread, void* idx) {
   ThreadStatistics threadStatistics = getThreadStatistics(thread);
 
   uint32_t* threadIdx = static_cast<uint32_t*>(idx);
@@ -157,14 +157,14 @@ static void logThreadStatistics(const struct k_thread* thread, void* idx) {
 }
 #endif // CONFIG_THREAD_ANALYZER
 
-void Utils::logThreadsSummary() {
+void Utils::log_threads_summary() {
 #if CONFIG_THREAD_ANALYZER
   ZPP_LOG_INF("=== Threads Summary ===");
   ZPP_LOG_INF(" # |      Thread ID | Name         | State     | Prio | Stack (used/total)");
   ZPP_LOG_INF("---+----------------+--------------+-----------+------+-------------------");
 
   int idx = 0;
-  k_thread_foreach(logThreadStatistics, &idx);
+  k_thread_foreach(log_thread_statistics, &idx);
 
   ZPP_LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
 #else  // CONFIG_THREAD_ANALYZER
@@ -173,7 +173,7 @@ void Utils::logThreadsSummary() {
 }
 
 #if CONFIG_SYS_HEAP_RUNTIME_STATS
-void Utils::logHeapSummary() {
+void Utils::log_heap_summary() {
   struct sys_memory_stats stats;
   sys_heap_runtime_stats_get(&_system_heap, &stats);
   ZPP_LOG_INF("=== Heap Summary ===");
@@ -184,7 +184,7 @@ void Utils::logHeapSummary() {
 }
 #endif // CONFIG_SYS_HEAP_RUNTIME_STATS
 
-void Utils::logCPULoad() {
+void Utils::log_cpu_load() {
 #if CONFIG_CPU_LOAD
   int load         = cpu_load_get(true);
   uint32_t percent = load / 10;

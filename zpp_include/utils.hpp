@@ -31,13 +31,13 @@ public:
   Utils() = default;
 
 #if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
-  static void logThreadsStackInfo();
+  static void log_threads_stack_info();
 #endif
-  static void logThreadsSummary();
+  static void log_threads_summary();
 #if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
-  static void logHeapSummary();
+  static void log_heap_summary();
 #endif
-  static void logCPULoad();
+  static void log_cpu_load();
 };
 
 } // namespace zpp_lib
