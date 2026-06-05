@@ -128,7 +128,11 @@ InterruptIn::~InterruptIn() {
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 bool InterruptIn::read() {
 #if CONFIG_INTERRUPT_IN_EMUL
-  return _value;
+  size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+  // PinName is an enum class that starts at 1, so buttonIndex is in
+  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  return _value[button_index];
 #else  // CONFIG_INTERRUPT_IN_EMUL
   return static_cast<bool>(gpio_pin_get_dt(&_gpio));
 #endif // CONFIG_INTERRUPT_IN_EMUL
@@ -136,17 +140,22 @@ bool InterruptIn::read() {
 
 #if CONFIG_INTERRUPT_IN_EMUL
 void InterruptIn::write(bool value) {
-  bool edge_falling = _value == !kPolarityPressed && value == kPolarityPressed;
-  _value           = value;
+  size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+  // PinName is an enum class that starts at 1, so buttonIndex is in
+  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  bool edge_falling = _value[button_index] == !kPolarityPressed && value == kPolarityPressed;
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+  _value[button_index]           = value;  
   if (edge_falling) {
-    // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(pinName),
-    // k_cycle_get_32());
+    // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(_pin_name), k_cycle_get_32());
     size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
     // PinName is an enum class that starts at 1, so buttonIndex is in
     // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
     for (auto &cb: cb_function_map) {
+      // printk("TEST mode: Calling callback for button %d\n", button_index);
       cb.second();
     }
   }

@@ -122,8 +122,9 @@ public:
 #endif // CONFIG_INTERRUPT_IN_EMUL
 
 protected:
+  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline bool _value{!kPolarityPressed}; // button not pressed by default
+  static inline bool _value[kNbrOfButtons] = {!kPolarityPressed}; // button not pressed by default
 #else
   static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
@@ -136,7 +137,6 @@ protected:
   PinName _pin_name;
   using CallbackFunction                = std::function<void()>;
   using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
-  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
   static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
   static inline zpp_lib::Mutex _cb_mutex;
 };
