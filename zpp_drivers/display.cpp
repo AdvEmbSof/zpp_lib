@@ -37,7 +37,13 @@ ZPP_LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 namespace zpp_lib {
 
 // This is a Zephyr macro that we have no control over
+#if CONFIG_QEMU_TARGET
+static constexpr uint16_t kHeapSize = 4096;
+#else  // CONFIG_QEMU_TARGET
+// when using the physical display, the line buffer is 960 bytes,
+// so we can reduce the heap size to save memory
 static constexpr uint16_t kHeapSize = 2048;
+#endif // CONFIG_QEMU_TARGET
 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses)
 K_HEAP_DEFINE(buf_heap, kHeapSize);
 
@@ -311,7 +317,7 @@ void Display::draw_string_at(Color color, uint32_t x_pos, uint32_t y_pos, const 
 
   // Send the string character by character on display
   uint32_t total_width = refcolumn;
-  for (const char& c : text) {
+  for (unsigned char c : text) {
     uint16_t char_width = get_char_width(_p_font, c);
     total_width += char_width;
     if (total_width > _lcd_xsize) {
@@ -338,7 +344,7 @@ void Display::display_char(Color color,
   uint8_t char_width    = 0;
   const uint8_t* p_data = font_get_glyph(_p_font, unicode, char_width);
   if (p_data == nullptr) {
-    ZPP_LOG_ERR("Character %c not found in font", unicode);
+    ZPP_LOG_ERR("Character %d not found in font", unicode);
     return;
   }
   static constexpr uint32_t kMaxCharWidth = 48;

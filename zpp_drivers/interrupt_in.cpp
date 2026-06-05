@@ -41,8 +41,7 @@ namespace zpp_lib {
 // _gpio is initialized with an error in default switch case,
 // complexity is not an issue since we only call a zephyr macro in the switch cases
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
-InterruptIn::InterruptIn(PinName pin_name) :
-  _pin_name(pin_name) {
+InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name) {
 #if !CONFIG_INTERRUPT_IN_EMUL
   switch (pin_name) {
 #if HAS_SW0
@@ -128,7 +127,7 @@ InterruptIn::~InterruptIn() {
 // NOLINTNEXTLINE(readability-convert-member-functions-to-static)
 bool InterruptIn::read() {
 #if CONFIG_INTERRUPT_IN_EMUL
-  size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+  size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in
   // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -140,21 +139,21 @@ bool InterruptIn::read() {
 
 #if CONFIG_INTERRUPT_IN_EMUL
 void InterruptIn::write(bool value) {
-  size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+  size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in
   // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
   bool edge_falling = _value[button_index] == !kPolarityPressed && value == kPolarityPressed;
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  _value[button_index]           = value;  
+  _value[button_index] = value;
   if (edge_falling) {
     // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(_pin_name), k_cycle_get_32());
-    size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+    size_t button_index = static_cast<size_t>(_pin_name) - 1;
     // PinName is an enum class that starts at 1, so buttonIndex is in
     // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
     CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
-    for (auto &cb: cb_function_map) {
+    for (auto& cb : cb_function_map) {
       // printk("TEST mode: Calling callback for button %d\n", button_index);
       cb.second();
     }

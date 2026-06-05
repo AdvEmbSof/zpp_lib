@@ -135,8 +135,8 @@ protected:
   struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
 #endif // CONFIG_INTERRUPT_IN_EMUL
   PinName _pin_name;
-  using CallbackFunction                = std::function<void()>;
-  using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
+  using CallbackFunction    = std::function<void()>;
+  using CallbackFunctionMap = std::map<void*, CallbackFunction>;
   static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
   static inline zpp_lib::Mutex _cb_mutex;
 };
