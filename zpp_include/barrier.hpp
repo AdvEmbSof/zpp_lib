@@ -43,7 +43,7 @@ namespace zpp_lib {
 class Barrier : NonCopyable<Barrier> {
 public:
   // constructor and destructor
-  explicit Barrier(uint32_t nbrOfThreads);
+  explicit Barrier(uint32_t nbr_of_threads);
   ~Barrier();
 
   /** Wait for all thread to reach the barrier, last thread gets the time and
@@ -53,7 +53,7 @@ public:
    */
 #if CONFIG_TEST
   using ZeroTimeCB = std::function<void(const std::chrono::microseconds&)>;
-  std::chrono::microseconds wait(ZeroTimeCB zeroTimeCB);
+  std::chrono::microseconds wait(const ZeroTimeCB& zero_time_cb);
 #else
   std::chrono::microseconds wait();
 #endif
@@ -63,14 +63,14 @@ public:
 #endif // CONFIG_USERSPACE
 
 private:
-  zpp_lib::Semaphore _waitSemaphore;
+  zpp_lib::Semaphore _wait_semaphore;
   zpp_lib::Mutex _mutex;
   // number of threads still waiting
   uint32_t _count;
   // total thread count
   uint32_t _total;
   // shared start time (same for all threads)
-  static std::chrono::microseconds _startTime;
+  static std::chrono::microseconds _start_time;
 };
 
 } // namespace zpp_lib

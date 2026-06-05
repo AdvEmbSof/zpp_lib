@@ -60,7 +60,7 @@ namespace zpp_lib {
  * @brief Constant defining pressed polarity
  *
  */
-static constexpr uint8_t kPolarityPressed = 1;
+static constexpr bool kPolarityPressed = true;
 
 class InterruptIn : private NonCopyable<InterruptIn> {
 public:
@@ -101,11 +101,11 @@ public:
    *    An integer representing the state of the input pin,
    *    0 for logical 0, 1 for logical 1
    */
-  uint8_t read();
+  bool read();
 
   /** An operator shorthand for read()
    */
-  operator uint8_t();
+  operator bool();
 
   /** Attach a function to call when a falling edge occurs on the input
    *  Interrupts are enabled for the pin
@@ -118,12 +118,12 @@ public:
   /** Used for testing purposes
    *  Sets the value of the input pin
    */
-  void write(uint8_t value);
+  void write(bool value);
 #endif // CONFIG_INTERRUPT_IN_EMUL
 
 protected:
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline uint8_t _value{!kPolarityPressed}; // button not pressed by default
+  static inline bool _value{!kPolarityPressed}; // button not pressed by default
 #else
   static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
@@ -138,7 +138,7 @@ protected:
   using CallbackFunctionMap             = std::map<void*, CallbackFunction>;
   static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
   static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
-  static inline zpp_lib::Mutex _cbMutex;
+  static inline zpp_lib::Mutex _cb_mutex;
 };
 
 /** @}*/

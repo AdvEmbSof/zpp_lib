@@ -59,14 +59,14 @@ public:
    *  @param pin DigitalOut pin to connect to
    *  @param value the initial pin value
    */
-  explicit DigitalOut(PinName pinName, int value);
+  explicit DigitalOut(PinName pinName, bool value);
 
   /** Set the output, specified as 0 or 1 (int)
    *
    *  @param value An integer specifying the pin output value,
    *      0 for logical 0, 1 (or any other non-zero value) for logical 1
    */
-  ZephyrResult write(int value);
+  ZephyrResult write(bool value);
 
   /** Return the output setting, represented as 0 or 1 (int)
    *
@@ -74,7 +74,7 @@ public:
    *    an integer representing the output setting of the pin,
    *    0 for logical 0, 1 for logical 1
    */
-  int read();
+  bool read();
 
   /** A shorthand for write()
    * \sa DigitalOut::write()
@@ -84,7 +84,7 @@ public:
    *      led = button;   // Equivalent to led.write(button.read())
    * @endcode
    */
-  DigitalOut& operator=(int value) {
+  DigitalOut& operator=(bool value) {
     // Underlying write is thread safe
     write(value);
     return *this;
@@ -98,7 +98,7 @@ public:
    *      led = button;   // Equivalent to led.write(button.read())
    * @endcode
    */
-  operator int() {
+  operator bool() {
     // Underlying call is thread safe
     return read();
   }

@@ -37,8 +37,9 @@ ZPP_LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 namespace zpp_lib {
 
 // This is a Zephyr macro that we have no control over
+static constexpr uint16_t kHeapSize = 2048;
 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses)
-K_HEAP_DEFINE(buf_heap, 1024);
+K_HEAP_DEFINE(buf_heap, kHeapSize);
 
 // we define our own min
 // NOLINTNEXTLINE(build/include_what_you_use)
@@ -119,7 +120,7 @@ ZephyrResult Display::initialize() {
   }
 
   k_timeout_t timeout = {0};
-  printk("line buffer size %d\n", _line_buffer_size);
+  ZPP_LOG_DBG("line buffer size %d\n", _line_buffer_size);
   _line_buffer = static_cast<uint8_t*>(k_heap_alloc(&buf_heap, _line_buffer_size, timeout));
   if (_line_buffer == nullptr) {
     ZPP_LOG_ERR("Could not allocate memory of size %d. Aborting sample.", _line_buffer_size);

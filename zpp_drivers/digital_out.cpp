@@ -41,12 +41,12 @@ ZPP_LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, 0) {}
+DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, false) {}
 
 // _gpio is initialized with an error in default switch case,
 // Complexity is not an issue since we only call a zephyr macro in the switch cases
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
-DigitalOut::DigitalOut(PinName pinName, int value) {
+DigitalOut::DigitalOut(PinName pinName, bool value) {
   switch (pinName) {
   case PinName::LED0:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
@@ -92,12 +92,12 @@ DigitalOut::DigitalOut(PinName pinName, int value) {
   }
 }
 
-ZephyrResult DigitalOut::write(int value) {
+ZephyrResult DigitalOut::write(bool value) {
   ZephyrResult res;
 #if CONFIG_USERSPACE
-  auto ret = gpio_syscall_set(_gpio_device, &_gpio, value);
+  auto ret = gpio_syscall_set(_gpio_device, &_gpio, static_cast<int>(value));
 #else  // CONFIG_USERSPACE
-  auto ret = gpio_pin_set_dt(&_gpio, value);
+  auto ret = gpio_pin_set_dt(&_gpio, static_cast<int>(value));
 #endif // CONFIG_USERSPACE
   if (ret != 0) {
     res.assign_error(zephyr_to_zpp_error_code(ret));
@@ -106,11 +106,11 @@ ZephyrResult DigitalOut::write(int value) {
   return res;
 }
 
-int DigitalOut::read() {
+bool DigitalOut::read() {
 #if CONFIG_USERSPACE
-  return gpio_syscall_get(_gpio_device, &_gpio);
+  return static_cast<bool>(gpio_syscall_get(_gpio_device, &_gpio));
 #else  // CONFIG_USERSPACE
-  return gpio_pin_get_dt(&_gpio);
+  return static_cast<bool>(gpio_pin_get_dt(&_gpio));
 #endif // CONFIG_USERSPACE
 }
 

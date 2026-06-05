@@ -41,7 +41,8 @@ namespace zpp_lib {
 // _gpio is initialized with an error in default switch case,
 // complexity is not an issue since we only call a zephyr macro in the switch cases
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
-InterruptIn::InterruptIn(PinName pin_name) {
+InterruptIn::InterruptIn(PinName pin_name) :
+  _pin_name(pin_name) {
 #if !CONFIG_INTERRUPT_IN_EMUL
   switch (pin_name) {
 #if HAS_SW0
@@ -95,11 +96,10 @@ InterruptIn::InterruptIn(PinName pin_name) {
   }
   ZPP_LOG_DBG("Pin %s initialized", _gpio.port->name);
 #endif // !CONFIG_INTERRUPT_IN_EMUL
-  _pin_name = pin_name;
 }
 
 InterruptIn::~InterruptIn() {
-  std::scoped_lock<Mutex> guard(_cbMutex);
+  std::scoped_lock<Mutex> guard(_cb_mutex);
 
 #if NUM_BUTTONS > 0
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
@@ -124,25 +124,30 @@ InterruptIn::~InterruptIn() {
 #endif // NUM_BUTTONS > 0
 }
 
-uint8_t InterruptIn::read() {
+// False posititive
+// NOLINTNEXTLINE(readability-convert-member-functions-to-static)
+bool InterruptIn::read() {
 #if CONFIG_INTERRUPT_IN_EMUL
   return _value;
 #else  // CONFIG_INTERRUPT_IN_EMUL
-  return gpio_pin_get_dt(&_gpio);
+  return static_cast<bool>(gpio_pin_get_dt(&_gpio));
 #endif // CONFIG_INTERRUPT_IN_EMUL
 }
 
 #if CONFIG_INTERRUPT_IN_EMUL
-void InterruptIn::write(uint8_t value) {
-  bool edgeFalling = _value == !kPolarityPressed && value == kPolarityPressed;
+void InterruptIn::write(bool value) {
+  bool edge_falling = _value == !kPolarityPressed && value == kPolarityPressed;
   _value           = value;
-  if (edgeFalling) {
+  if (edge_falling) {
     // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(pinName),
     // k_cycle_get_32());
-    size_t buttonIndex                 = static_cast<size_t>(_pin_name) - 1;
-    CallbackFunctionMap& cbFunctionMap = _fall_cb_map[buttonIndex];
-    for (CallbackFunctionMap::iterator iter = cbFunctionMap.begin(); iter != cbFunctionMap.end(); ++iter) {
-      iter->second();
+    size_t button_index                 = static_cast<size_t>(_pin_name) - 1;
+    // PinName is an enum class that starts at 1, so buttonIndex is in
+    // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
+    CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
+    for (auto &cb: cb_function_map) {
+      cb.second();
     }
   }
 }
@@ -158,7 +163,7 @@ void InterruptIn::fall(const std::function<void()>& func) {
   // On first call, we configure the Zephyr driver to call the
   // InterruptIn<pinName>::callback() on button fall
   // On subsequent calls, we simply push the callback to the vector
-  std::scoped_lock<Mutex> guard(_cbMutex);
+  std::scoped_lock<Mutex> guard(_cb_mutex);
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in the
   // range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
