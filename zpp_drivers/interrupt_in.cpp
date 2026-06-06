@@ -195,8 +195,7 @@ void InterruptIn::callback(const struct device* port, struct gpio_callback* cb, 
   // printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
   // We need to cast cb for getting the instance on which the callback is running
   // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
-  // cppcheck-suppress cstyleCast
-  // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+  // NOLINTNEXTLINE(readability/casting,modernize-avoid-c-style-cast,cppcoreguidelines-pro-type-cstyle-cast)
   auto* p_callback_data   = (CallbackData*)cb;
   InterruptIn* p_instance = p_callback_data->_instance;
   size_t button_index     = static_cast<size_t>(p_instance->_pin_name) - 1;
