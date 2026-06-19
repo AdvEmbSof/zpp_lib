@@ -117,6 +117,8 @@ enum class ZephyrErrorCode {
 };
 
 constexpr ZephyrErrorCode zephyr_to_zpp_error_code(uint32_t v) noexcept {
+  // This function will be called only with existing Zephyr error codes
+  // NOLINTNEXTLINE(clang-analyzer-optin.core.EnumCastOutOfRange)
   return static_cast<ZephyrErrorCode>(v);
 }
 

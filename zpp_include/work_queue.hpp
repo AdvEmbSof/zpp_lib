@@ -130,7 +130,7 @@ public:
     // @retval 1 if work was not submitted and has been queued to @p queue
     // @retval 2 if work was running and has been queued to the queue that was running
     // it
-    auto ret = k_work_submit_to_queue(&_workQueue, &work._workInfo._work);
+    auto ret = k_work_submit_to_queue(&_workQueue, work.native_handle());
     if (ret != 0 && ret != 1 && ret != 2) {
       __ASSERT(false, "Failed to submit work: %d", ret);
       res.assign_error(zephyr_to_zpp_error_code(ret));

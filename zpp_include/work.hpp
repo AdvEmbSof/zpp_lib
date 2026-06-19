@@ -29,6 +29,7 @@
 
 // stl
 #include <functional>
+#include <type_traits>
 #include <tuple>
 #include <utility>
 
@@ -38,27 +39,28 @@
 
 namespace zpp_lib {
 
-// forward declaration for friendship
-class WorkQueue;
-
 template <typename Obj, typename... Args> class Work {
 public:
   using Method = void (Obj::*)(Args...);
   explicit Work(Obj* obj, Method f, Args... args) noexcept {
-    _workInfo._obj        = obj;
-    _workInfo._workMethod = f;
-    _workInfo._args       = std::make_tuple(std::forward<Args>(args)...);
-    k_work_init(&_workInfo._work, &Work::_thunk);
+    _obj        = obj;
+    _workMethod = f;
+    _args       = std::make_tuple(std::forward<Args>(args)...);
+    k_work_init(&_work, &Work::_thunk);
   }
 
   // allow to modify the params
   void setParams(Args... args) {
     // params should not be modified when the work is pending
     // we silently reject the new args, as if the UI (button) would be greyed out
-    if (k_work_is_pending(&_workInfo._work)) {
+    if (k_work_is_pending(&_work)) {
       return;
     }
-    _workInfo._args = std::make_tuple(std::forward<Args>(args)...);
+    _args = std::make_tuple(std::forward<Args>(args)...);
+  }
+
+  [[nodiscard]] struct k_work* native_handle() noexcept {
+    return &_work;
   }
 
   // a Work instance is not copyable, neither movable
@@ -72,22 +74,21 @@ private:
     // this ugly casting is the simplest way of getting the information
     // we need in the _thunk method
     // CASTING IS POSSIBLE ONLY WHEN k_work IS THE FIRST ATTRIBUTE
-    // IN THE CLASS (here first attribute of WorkInfo that is the unique attribute)
+    // IN THE CLASS
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
-    // cppcheck-suppress dangerousTypeCast
-    Work* pWork        = (Work*)(item); // NOLINT(readability/casting)
-    WorkInfo& workInfo = pWork->_workInfo;
-    std::apply([&](auto&&... params) { (workInfo._obj->*workInfo._workMethod)(params...); }, workInfo._args);
+    Work* pWork = (Work*)(item); // NOLINT(readability/casting)
+    std::apply(
+        [&](auto&&... params) {
+          std::invoke(pWork->_workMethod, pWork->_obj, std::forward<decltype(params)>(params)...);
+        },
+        pWork->_args);
   }
-  friend WorkQueue;
-  struct WorkInfo {
-    // _work must be the first attribute of the unique class attribute
-    struct k_work _work;
-    Obj* _obj;
-    Method _workMethod;
-    std::tuple<Args...> _args;
-  };
-  WorkInfo _workInfo;
+
+  // _work must stay first so the Zephyr callback can recover the enclosing Work.
+  struct k_work _work;
+  Obj* _obj;
+  Method _workMethod;
+  std::tuple<Args...> _args;
 };
 
 } // namespace zpp_lib

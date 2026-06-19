@@ -44,7 +44,7 @@ static constexpr uint16_t kHeapSize = 4096;
 // so we can reduce the heap size to save memory
 static constexpr uint16_t kHeapSize = 2048;
 #endif // CONFIG_QEMU_TARGET
-// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses)
+// NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses,cppcoreguidelines-avoid-non-const-global-variables)
 K_HEAP_DEFINE(buf_heap, kHeapSize);
 
 // we define our own min
@@ -310,10 +310,13 @@ void Display::draw_string_at(Color color, uint32_t x_pos, uint32_t y_pos, const 
   // ZPP_LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, x_pos,
   // y_pos, nbrOfPixels, refcolumn);
 
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // Hardcoding values is acceptable here
   // Check that the Start column is located in the screenascii
   if ((refcolumn < 1) || (refcolumn >= 0x8000)) {
     refcolumn = 1;
   }
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
 
   // Send the string character by character on display
   uint32_t total_width = refcolumn;
@@ -350,6 +353,9 @@ void Display::display_char(Color color,
   static constexpr uint32_t kMaxCharWidth = 48;
   ZPP_ASSERT(char_width < kMaxCharWidth, "Invalid char width: %d", char_width);
   // ZPP_LOG_DBG("Displaying char %c at %d - %d", unicode, x_pos, y_pos);
+
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // Hardcoding values is acceptable here
 
   // compute the bit offset in each line
   // nbrOfBytesPerLine represents the number of bytes
@@ -394,45 +400,59 @@ void Display::display_char(Color color,
       ZPP_ASSERT(false, "Not implemented");
     }
   }
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
 }
 
 void Display::fill_color_argb8888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size) {
   // ZPP_LOG_INF("Filling buffer of size %d with value %d", buf_size, colorValue);
   for (size_t idx = 0; idx < buffer_size; idx += 4) {
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
-    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
     *((uint32_t*)(p_buffer + idx)) = color_value;
   }
 }
 void Display::fill_color_rgb888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size) {
-  for (size_t idx = 0; idx < buffer_size; idx += 3) {
+  static constexpr size_t kBytesPerPixel = 3;
+  static constexpr uint8_t kMask = 0xFF;
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // Hardcoding values is acceptable here
+  for (size_t idx = 0; idx < buffer_size; idx += kBytesPerPixel) {
     // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
-    *(p_buffer + idx + 0) = static_cast<uint8_t>((color_value >> 0) & 0xFF);
-    *(p_buffer + idx + 1) = static_cast<uint8_t>((color_value >> 8) & 0xFF);
-    *(p_buffer + idx + 2) = static_cast<uint8_t>((color_value >> 16) & 0xFF);
+    *(p_buffer + idx + 0) = static_cast<uint8_t>((color_value >> 0) & kMask);
+    *(p_buffer + idx + 1) = static_cast<uint8_t>((color_value >> 8) & kMask);
+    *(p_buffer + idx + 2) = static_cast<uint8_t>((color_value >> 16) & kMask);
   }
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
 }
 
 void Display::fill_line_argb8888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer) {
   // srcSize is number of pixels. Write each pixel as 4 consecutive bytes.
   for (size_t px = 0; px < src_size; px++) {
     // write 32-bit pixel value into buffer at byte offset px*4
-    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
+    // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
     *((uint32_t*)(p_buffer + (px * 4))) = *p_src;
     p_src++;
   }
 }
 
 void Display::fill_line_rgb888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer) {
+  static constexpr uint8_t kMask = 0xFF;
+  static constexpr size_t kBytesPerPixel = 3;
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // Hardcoding values is acceptable here
+  // NOLINTBEGIN(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
+  // Casting is necessary to write 24-bit pixels in BGR byte order
   for (size_t idx = 0; idx < src_size; idx++) {
     uint32_t color = *p_src;
     // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
-    size_t offset            = idx * 3;
-    *(p_buffer + offset + 0) = static_cast<uint8_t>((color >> 0) & 0xFF);
-    *(p_buffer + offset + 1) = static_cast<uint8_t>((color >> 8) & 0xFF);
-    *(p_buffer + offset + 2) = static_cast<uint8_t>((color >> 16) & 0xFF);
+    size_t offset            = idx * kBytesPerPixel;
+    *(p_buffer + offset + 0) = static_cast<uint8_t>((color >> 0) & kMask);
+    *(p_buffer + offset + 1) = static_cast<uint8_t>((color >> 8) & kMask);
+    *(p_buffer + offset + 2) = static_cast<uint8_t>((color >> 16) & kMask);
     p_src++;
   }
+  // NOLINTEND(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
 }
 
 void Display::fill_rgb_rect(Color color,
