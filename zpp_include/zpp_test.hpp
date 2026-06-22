@@ -13,10 +13,10 @@
 // limitations under the License.
 
 /****************************************************************************
- * @file zpp_assert.hpp
+ * @file zpp_log.hpp
  * @author Serge Ayer <serge.ayer@hefr.ch>
  *
- * @brief Redefinitions of zephyr assertion macros for use in zpp_lib
+ * @brief Redefinitions of zephyr test macros for use in zpp_lib
  *        This prevents macro related warning when using clang-tidy and applying
  *        some cppcoreguidelines checks
  *
@@ -26,18 +26,9 @@
 
 #pragma once
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-do-while)
-#include <zephyr/sys/__assert.h>
-#if CONFIG_TEST
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 #include <zephyr/ztest.h>
-#endif // CONFIG_TEST
 
-#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)           // NOLINT
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__) // NOLINT
-#if CONFIG_TEST
-#define zpp_zassert_true(...) zassert_true(__VA_ARGS__)     // NOLINT
-#define zpp_zassert_equal(...) zassert_equal(__VA_ARGS__)     // NOLINT
-#define zpp_zassert_within(...) zassert_within(__VA_ARGS__) // NOLINT
-#endif                                                      // CONFIG_TEST
-// NOLINTNEXTLINE(readability/nolint)
-// NOLINTEND(cppcoreguidelines-avoid-do-while)
+#define ZPP_ZTEST(...) ZTEST(__VA_ARGS__) // NOLINT
+#define ZPP_ZTEST_SUITE(...) ZTEST_SUITE(__VA_ARGS__) // NOLINT
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
