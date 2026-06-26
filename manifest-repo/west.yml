@@ -1,16 +1,20 @@
 manifest:
-  remotes:
-    - name: zephyr
-      url-base: https://github.com/zephyrproject-rtos
+  # lowest version of the manifest file schema that can parse this file’s data
+  version: 0.13
 
   projects:
     - name: zephyr
-      remote: zephyr
       revision: v4.4.0
-      import: true
-
+      url: https://github.com/zephyrproject-rtos/zephyr
+      import:
+        path-prefix: deps
+        file: west.yml # not strictly needed since it is the value by default
+        name-allowlist:
+          - cmsis_6
+          - hal_nordic
+          - hal_stm32
+          - hal_st
     - name: zpp_lib
       url: https://github.com/AdvEmbSof/zpp_lib.git
       revision: main
       path: deps/zpp_lib
-      
