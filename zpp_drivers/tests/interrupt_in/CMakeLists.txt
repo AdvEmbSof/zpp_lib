@@ -6,4 +6,3 @@ project(zpp_rtos_test_thread)
 
 FILE(GLOB app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})
-target_include_directories(app PRIVATE ../../)

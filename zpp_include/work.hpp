@@ -29,8 +29,8 @@
 
 // stl
 #include <functional>
-#include <type_traits>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 // zpp_lib
@@ -76,12 +76,9 @@ private:
     // CASTING IS POSSIBLE ONLY WHEN k_work IS THE FIRST ATTRIBUTE
     // IN THE CLASS
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
-    Work* pWork = (Work*)(item); // NOLINT(readability/casting)
-    std::apply(
-        [&](auto&&... params) {
-          std::invoke(pWork->_workMethod, pWork->_obj, std::forward<decltype(params)>(params)...);
-        },
-        pWork->_args);
+    Work* pWork = (Work*)(item);  // NOLINT(readability/casting)
+    std::apply([&](auto&&... params) { std::invoke(pWork->_workMethod, pWork->_obj, std::forward<decltype(params)>(params)...); },
+               pWork->_args);
   }
 
   // _work must stay first so the Zephyr callback can recover the enclosing Work.
@@ -91,4 +88,4 @@ private:
   std::tuple<Args...> _args;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

@@ -40,4 +40,4 @@ constexpr k_timeout_t microseconds_to_ticks(const std::chrono::microseconds& d) 
   return {K_USEC(d.count())};
 }
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

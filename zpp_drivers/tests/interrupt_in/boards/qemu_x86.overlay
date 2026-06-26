@@ -1,6 +1,6 @@
 #include <zephyr/dt-bindings/gpio/gpio.h>
 
-/ {
+/ {  
 	gpio0: gpio_emul_0 {
 		status = "okay";
 		compatible = "zephyr,gpio-emul";
@@ -13,19 +13,33 @@
 		#gpio-cells = <2>;
 	};
 
+    i2c_emul: i2c_emul@1000 {
+        compatible = "zephyr,i2c-emul-controller";
+        reg = <0x1000 1>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        clock-frequency = <100000>;
+
+        bme280_emul: bme280@77 {
+            compatible = "bosch,bme280", "bosch,bme280-emul";
+            reg = <0x77>;
+            label = "BME280";
+        };
+    };
+
 	resources {
 		compatible = "test-gpio-basic-api";
 		out-gpios = <&gpio0 0 0>; /* Pin 0 */
 		in-gpios = <&gpio0 1 0>; /* Pin 1 */
 	};
 
-  leds {
+    leds {
 		compatible = "gpio-leds";
 		led0: led_0 {
 			gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
 			label = "Green LED";
 		};
-    led1: led_1 {
+        led1: led_1 {
 			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
 			label = "Yellow LED";
 		};
@@ -55,8 +69,8 @@
 		};
 	};
 
-  aliases {
-    led0 = &led0;
+    aliases {
+        led0 = &led0;
 		led1 = &led1;
 		sw0 = &button0;
 		sw1 = &button1;
@@ -66,6 +80,7 @@
 
 	chosen {
 		zephyr,display = &dummy_dc;
+        zephyr,i2c = &i2c_emul;
 	};
 
 	dummy_dc: dummy_dc {

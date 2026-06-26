@@ -154,6 +154,6 @@ private:
   std::function<void(const uint32_t*, size_t, uint8_t*)> _fill_line_function = nullptr;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib
 
-#endif // CONFIG_DISPLAY
+#endif  // CONFIG_DISPLAY

@@ -137,7 +137,7 @@ static const ThreadStatistics getThreadStatistics(const struct k_thread* thread)
   rc                          = k_thread_stack_space_get(threadStatistics.thread_id, &unused_stack_size);
   __ASSERT(rc == 0, "k_thread_stack_space_get failed: %d", rc);
   threadStatistics.used_stack_size = threadStatistics.stack_size - unused_stack_size;
-#endif // CONFIG_THREAD_STACK_INFO
+#endif  // CONFIG_THREAD_STACK_INFO
 
   return threadStatistics;
 }
@@ -155,7 +155,7 @@ static void log_thread_statistics(const struct k_thread* thread, void* idx) {
               threadStatistics.used_stack_size,
               threadStatistics.stack_size);
 }
-#endif // CONFIG_THREAD_ANALYZER
+#endif  // CONFIG_THREAD_ANALYZER
 
 void Utils::log_threads_summary() {
 #if CONFIG_THREAD_ANALYZER
@@ -167,9 +167,9 @@ void Utils::log_threads_summary() {
   k_thread_foreach(log_thread_statistics, &idx);
 
   ZPP_LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
-#else  // CONFIG_THREAD_ANALYZER
+#else   // CONFIG_THREAD_ANALYZER
   ZPP_LOG_WRN("Thread statistics not available (enable CONFIG_THREAD_ANALYZER)");
-#endif // CONFIG_THREAD_ANALYZER
+#endif  // CONFIG_THREAD_ANALYZER
 }
 
 #if CONFIG_SYS_HEAP_RUNTIME_STATS
@@ -182,7 +182,7 @@ void Utils::log_heap_summary() {
   ZPP_LOG_INF("\tMax Alloc: %u bytes\n", stats.max_allocated_bytes);
   // ZPP_LOG_INF("\tBlocks:    %u", stats.blocks);
 }
-#endif // CONFIG_SYS_HEAP_RUNTIME_STATS
+#endif  // CONFIG_SYS_HEAP_RUNTIME_STATS
 
 void Utils::log_cpu_load() {
 #if CONFIG_CPU_LOAD
@@ -191,9 +191,9 @@ void Utils::log_cpu_load() {
   int32_t fraction = load % 10;
   ZPP_LOG_INF("=== CPU Load Summary ===");
   ZPP_LOG_INF("\tCPU Load: %d.%03d%%\n", percent, fraction);
-#else  // CONFIG_CPU_LOAD
+#else   // CONFIG_CPU_LOAD
   ZPP_LOG_WRN("CPU Load not available (enable CONFIG_CPU_LOAD)");
-#endif // CONFIG_CPU_LOAD
+#endif  // CONFIG_CPU_LOAD
 }
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

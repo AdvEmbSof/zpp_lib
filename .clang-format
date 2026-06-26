@@ -1,3 +1,4 @@
+---
 BasedOnStyle: LLVM
 IndentWidth: 2
 Language: Cpp
@@ -11,3 +12,4 @@ IndentAccessModifiers: false
 AllowShortFunctionsOnASingleLine: Empty
 BreakBeforeBraces: Attach
 ReferenceAlignment: Left
+SpacesBeforeTrailingComments: 2

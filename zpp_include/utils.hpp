@@ -40,4 +40,4 @@ public:
   static void log_cpu_load();
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

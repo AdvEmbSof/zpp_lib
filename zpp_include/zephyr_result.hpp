@@ -57,8 +57,8 @@ public:
   /// @param rhs the error value to assign
   ///
   explicit ZephyrResult(ZephyrErrorCode error) noexcept
-      : _is_ok(false), _error_value(error) {} // MISRA-suppress: 7.2.1  false positive,
-                                              // reviewed by Serge 2026-03-16
+      : _is_ok(false), _error_value(error) {}  // MISRA-suppress: 7.2.1  false positive,
+                                               // reviewed by Serge 2026-03-16
 
   ///
   /// @brief assign error state
@@ -66,8 +66,8 @@ public:
   /// @param rhs the error value to assign
   ///
   void assign_error(ZephyrErrorCode error) noexcept {
-    _is_ok = false; // MISRA-suppress: 7.2.1
-                    // false positive, reviewed by Serge 2026-03-16
+    _is_ok = false;  // MISRA-suppress: 7.2.1
+                     // false positive, reviewed by Serge 2026-03-16
     _error_value = error;
   }
 
@@ -203,4 +203,4 @@ private:
   ZephyrErrorCode _error_value;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

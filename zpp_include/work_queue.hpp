@@ -51,9 +51,9 @@ public:
 #if CONFIG_USERSPACE
   explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority, bool userMode)
       : _name(name), _thread(threadPriority, name, userMode) {
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   explicit WorkQueue(const char* name, zpp_lib::PreemptableThreadPriority threadPriority) : _name(name), _thread(threadPriority, name) {
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
     k_work_queue_init(&_workQueue);
 
     // start the _isrWorkQueueThread thread
@@ -146,6 +146,6 @@ private:
   Event _event;
   static constexpr uint32_t kStartedEvent = 0x01;
   std::atomic<bool> _isStarted            = false;
-}; // NOLINT(readability/braces)
+};  // NOLINT(readability/braces)
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

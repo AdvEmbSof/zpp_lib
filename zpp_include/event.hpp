@@ -53,7 +53,7 @@ public:
   *   memory section (such as another thread's stack).
   */
   explicit Event(k_event* pEvent) noexcept;
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
@@ -82,7 +82,7 @@ public:
    * Grants access to the k_event kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
   /** Event destructor
@@ -95,10 +95,10 @@ public:
 private:
 #if !CONFIG_USERSPACE
   struct k_event _event;
-#endif // !CONFIG_USERSPACE
+#endif  // !CONFIG_USERSPACE
   struct k_event* _p_event = nullptr;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib
 
-#endif // CONFIG_EVENTS
+#endif  // CONFIG_EVENTS

@@ -73,10 +73,10 @@ public:
     BUTTON3 = 3,
 #if HAS_SW3
     BUTTON4 = 4,
-#endif // HAS_SW3
-#endif // HAS_SW2
-#endif // HAS_SW1
-#endif // HAS_SW0
+#endif  // HAS_SW3
+#endif  // HAS_SW2
+#endif  // HAS_SW1
+#endif  // HAS_SW0
     LAST_BUTTON = NUM_BUTTONS
   };
 
@@ -119,12 +119,12 @@ public:
    *  Sets the value of the input pin
    */
   void write(bool value);
-#endif // CONFIG_INTERRUPT_IN_EMUL
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 
 protected:
   static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline bool _value[kNbrOfButtons] = {!kPolarityPressed}; // button not pressed by default
+  static inline bool _value[kNbrOfButtons] = {!kPolarityPressed};  // button not pressed by default
 #else
   static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;
@@ -133,7 +133,7 @@ protected:
     InterruptIn* _instance;
   };
   struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
-#endif // CONFIG_INTERRUPT_IN_EMUL
+#endif  // CONFIG_INTERRUPT_IN_EMUL
   PinName _pin_name;
   using CallbackFunction    = std::function<void()>;
   using CallbackFunctionMap = std::map<void*, CallbackFunction>;
@@ -143,4 +143,4 @@ protected:
 
 /** @}*/
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

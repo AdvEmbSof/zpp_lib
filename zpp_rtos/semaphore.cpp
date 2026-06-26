@@ -27,7 +27,7 @@
 // zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 // zpp_lib
 #include "zpp_include/zpp_assert.hpp"
@@ -39,10 +39,10 @@ ZPP_LOG_MODULE_DECLARE(zpp_rtos, CONFIG_ZPP_RTOS_LOG_LEVEL);
 extern struct k_mem_partition zpp_lib_partition;
 #define ZPP_LIB_DATA K_APP_DMEM(zpp_lib_partition)
 #define ZPP_LIB_BSS K_APP_BMEM(zpp_lib_partition)
-#else // CONFIG_USERSPACE
+#else  // CONFIG_USERSPACE
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 namespace zpp_lib {
 
@@ -52,7 +52,7 @@ ZPP_LIB_BSS uint8_t Semaphore::_semaphoreInstanceCount = 0;
 ZPP_LIB_BSS bool ZPP_SEMAPHORE_ARRAY_BUSY[CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE];
 // the k_sem array must be initialized in global memory (not application domain)
 static struct k_sem ZPP_SEMAPHORE_ARRAY[CONFIG_ZPP_SEMAPHORE_POOL_SIZE] = {};
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 // False positive, _sem is initialized with k_sem_init
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
@@ -81,7 +81,7 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
   _p_sem = &ZPP_SEMAPHORE_ARRAY[index];
   _semaphoreInstanceCount++;
   ZPP_LOG_DBG("Semaphore %p allocated (instance index %d, total %d)", static_cast<void*>(_p_sem), index, _semaphoreInstanceCount);
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   ZPP_ASSERT_EVAL(k_sem_init(&_sem, initial_count, max_count),
                   auto ret = k_sem_init(&_sem, initial_count, max_count),
                   ret == 0,
@@ -93,7 +93,7 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
               k_sem_count_get(_p_sem),
               initial_count,
               max_count);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 }
 
 #if CONFIG_USERSPACE
@@ -111,7 +111,7 @@ Semaphore::~Semaphore() {
   }
   __ASSERT(found, "Semaphore %p not found", static_cast<void*>(_p_sem));
 }
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 ZephyrResult Semaphore::acquire() {
   ZPP_LOG_DBG("Acquiring semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));
@@ -151,6 +151,6 @@ void Semaphore::grant_access(k_tid_t tid) {
   ZPP_LOG_DBG("Granting access to semaphore %p for thread %p", static_cast<void*>(_p_sem), static_cast<void*>(tid));
   k_object_access_grant(_p_sem, tid);
 }
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

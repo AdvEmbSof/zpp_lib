@@ -60,7 +60,7 @@ public:
 
 #if CONFIG_USERSPACE
   void grant_access(k_tid_t tid);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 private:
   zpp_lib::Semaphore _wait_semaphore;
@@ -73,4 +73,4 @@ private:
   static std::chrono::microseconds _start_time;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

@@ -45,30 +45,30 @@ InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name) {
 #if !CONFIG_INTERRUPT_IN_EMUL
   switch (pin_name) {
 #if HAS_SW0
-  case PinName::BUTTON1: // NOLINT(bugprone-branch-clone) - this is a false positive,
-                         // the code is not duplicated since the only thing that
-                         // changes is the alias used in GPIO_DT_SPEC_GET
+  case PinName::BUTTON1:  // NOLINT(bugprone-branch-clone) - this is a false positive,
+                          // the code is not duplicated since the only thing that
+                          // changes is the alias used in GPIO_DT_SPEC_GET
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw0), gpios);
     break;
-#endif // HAS_SW0
+#endif  // HAS_SW0
 
 #if HAS_SW1
   case PinName::BUTTON2:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw1), gpios);
     break;
-#endif // HAS_SW1
+#endif  // HAS_SW1
 
 #if HAS_SW2
   case PinName::BUTTON3:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw2), gpios);
     break;
-#endif // HAS_SW2
+#endif  // HAS_SW2
 
 #if HAS_SW3
   case PinName::BUTTON4:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(sw3), gpios);
     break;
-#endif // HAS_SW3
+#endif  // HAS_SW3
   default:
     ZPP_ASSERT(false, "Invalid pinName %d", static_cast<int>(pin_name));
     ZPP_LOG_ERR("Invalid pinName %d", static_cast<int>(pin_name));
@@ -94,9 +94,11 @@ InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name) {
     return;
   }
   ZPP_LOG_DBG("Pin %s initialized", _gpio.port->name);
-#endif // !CONFIG_INTERRUPT_IN_EMUL
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
 }
 
+// Complexity is increased by Zephyr Macros
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 InterruptIn::~InterruptIn() {
   std::scoped_lock<Mutex> guard(_cb_mutex);
 
@@ -116,11 +118,11 @@ InterruptIn::~InterruptIn() {
       }
       ZPP_LOG_DBG("Gpio callback removed");
     }
-#endif // !CONFIG_INTERRUPT_IN_EMUL
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
     ZPP_LOG_DBG("Removing callback for button %d", button_index);
     cb_function_map.erase(this);
   }
-#endif // NUM_BUTTONS > 0
+#endif  // NUM_BUTTONS > 0
 }
 
 // False posititive
@@ -132,9 +134,9 @@ bool InterruptIn::read() {
   // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
   return _value[button_index];
-#else  // CONFIG_INTERRUPT_IN_EMUL
+#else   // CONFIG_INTERRUPT_IN_EMUL
   return static_cast<bool>(gpio_pin_get_dt(&_gpio));
-#endif // CONFIG_INTERRUPT_IN_EMUL
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 }
 
 #if CONFIG_INTERRUPT_IN_EMUL
@@ -159,8 +161,10 @@ void InterruptIn::write(bool value) {
     }
   }
 }
-#endif // CONFIG_INTERRUPT_IN_EMUL
+#endif  // CONFIG_INTERRUPT_IN_EMUL
 
+// Complexity is increased by Zephyr Macros
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void InterruptIn::fall(const std::function<void()>& func) {
   if (func == nullptr) {
     ZPP_LOG_ERR("Cannot call fall with nullptr");
@@ -185,7 +189,7 @@ void InterruptIn::fall(const std::function<void()>& func) {
     gpio_add_callback(_gpio.port, &_cbData._gpio_cb);
     ZPP_LOG_DBG("Callback set for %s pin %d", _gpio.port->name, _gpio.pin);
   }
-#endif // !CONFIG_INTERRUPT_IN_EMUL
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
   ZPP_LOG_DBG("Registering callback in map for %p", this);
   cb_function_map[this] = func;
 }
@@ -203,6 +207,6 @@ void InterruptIn::callback(const struct device* port, struct gpio_callback* cb, 
     elem.second();
   }
 }
-#endif // ! defined(CONFIG_INTERRUPT_IN_EMUL)
+#endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

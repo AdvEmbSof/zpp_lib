@@ -30,14 +30,14 @@
 #include <zephyr/sys/__assert.h>
 #if CONFIG_TEST
 #include <zephyr/ztest.h>
-#endif // CONFIG_TEST
+#endif  // CONFIG_TEST
 
-#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)           // NOLINT
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__) // NOLINT
+#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)            // NOLINT
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
 #if CONFIG_TEST
-#define zpp_zassert_true(...) zassert_true(__VA_ARGS__)     // NOLINT
-#define zpp_zassert_equal(...) zassert_equal(__VA_ARGS__)     // NOLINT
-#define zpp_zassert_within(...) zassert_within(__VA_ARGS__) // NOLINT
-#endif                                                      // CONFIG_TEST
+#define zpp_zassert_true(...) zassert_true(__VA_ARGS__)      // NOLINT
+#define zpp_zassert_equal(...) zassert_equal(__VA_ARGS__)    // NOLINT
+#define zpp_zassert_within(...) zassert_within(__VA_ARGS__)  // NOLINT
+#endif                                                       // CONFIG_TEST
 // NOLINTNEXTLINE(readability/nolint)
 // NOLINTEND(cppcoreguidelines-avoid-do-while)

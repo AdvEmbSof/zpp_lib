@@ -22,36 +22,41 @@
  * @version 1.0.0
  ***************************************************************************/
 
-#include <zephyr/ztest.h>
-
 // zpp_rtos
 #include "zpp_include/mutex.hpp"
 #include "zpp_include/thread.hpp"
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_test.hpp"
 
 // test cases
-ZTEST_USER(zpp_mutex, test_mutex_lock_unlock) {
+ZPP_ZTEST_USER(zpp_mutex, test_mutex_lock_unlock) {
   zpp_lib::Mutex mutex;
 
   // TESTPOINT: try to lock and unlock mutex several times
-  auto boolRet = mutex.try_lock();
-  zassert_true(!boolRet.has_error());
-  zassert_true(boolRet);
-  zassert_true(mutex.unlock());
-  boolRet = mutex.try_lock();
-  zassert_true(!boolRet.has_error());
-  zassert_true(boolRet);
-  zassert_true(mutex.unlock());
+  auto bool_ret = mutex.try_lock();
+  zpp_zassert_true(!bool_ret.has_error());
+  zpp_zassert_true(bool_ret);
+  zpp_zassert_true(mutex.unlock());
+  bool_ret = mutex.try_lock();
+  zpp_zassert_true(!bool_ret.has_error());
+  zpp_zassert_true(bool_ret);
+  zpp_zassert_true(mutex.unlock());
 
   // TESTPOINT: try to lock and unlock mutex in another thread
-  zpp_lib::Thread thread;
+  static constexpr auto kThreadName = "test_mutex_thread";
+#if CONFIG_USER_SPACE
+  zpp_lib::Thread thread(zpp_lib::PreemptableThreadPriority::Normal, kThreadName, true);
+#else   // CONFIG_USER_SPACE
+  zpp_lib::Thread thread(zpp_lib::PreemptableThreadPriority::PriorityNormal, kThreadName);
+#endif  // CONFIG_USER_SPACE
   auto ret = thread.start([&mutex]() {
-    auto boolRet = mutex.try_lock();
-    zassert_true(!boolRet.has_error());
-    zassert_true(boolRet);
-    zassert_true(mutex.unlock());
+    auto bool_ret = mutex.try_lock();
+    zpp_zassert_true(!bool_ret.has_error());
+    zpp_zassert_true(bool_ret);
+    zpp_zassert_true(mutex.unlock());
   });
-  zassert_true(ret);
-  zassert_true(thread.join());
+  zpp_zassert_true(ret);
+  zpp_zassert_true(thread.join());
 }
 
-ZTEST_SUITE(zpp_mutex, nullptr, nullptr, nullptr, nullptr, nullptr);
+ZPP_ZTEST_SUITE(zpp_mutex, nullptr, nullptr, nullptr, nullptr, nullptr);

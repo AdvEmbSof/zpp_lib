@@ -53,4 +53,4 @@ public:
   NonCopyable& operator=(NonCopyable&&)      = delete;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

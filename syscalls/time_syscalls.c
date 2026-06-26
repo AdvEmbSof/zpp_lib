@@ -38,4 +38,4 @@ static inline uint32_t z_vrfy_userspace_cycle_get_32(void) {
   return z_impl_userspace_cycle_get_32();
 }
 
-#include <zephyr/syscalls/userspace_cycle_get_32_mrsh.c> // NOLINT(build/include)
+#include <zephyr/syscalls/userspace_cycle_get_32_mrsh.c>  // NOLINT(build/include)

@@ -27,11 +27,11 @@
 // zephyr
 #if CONFIG_USERSPACE
 #include <zephyr/app_memory/app_memdomain.h>
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 #if CONFIG_SEGGER_SYSTEMVIEW
 #include "SEGGER_SYSVIEW.h"
-#endif // CONFIG_SEGGER_SYSTEMVIEW
+#endif  // CONFIG_SEGGER_SYSTEMVIEW
 
 // zpp_lib
 #include "zpp_include/zpp_assert.hpp"
@@ -46,7 +46,7 @@ extern struct k_mem_partition zpp_lib_partition;
 #else
 #define ZPP_LIB_DATA
 #define ZPP_LIB_BSS
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 namespace zpp_lib {
 
@@ -80,7 +80,7 @@ std::chrono::microseconds Barrier::wait() {
 #if CONFIG_SEGGER_SYSTEMVIEW
 #define SYSVIEW_MARK_TIME_ZERO 255U
     SEGGER_SYSVIEW_Mark(SYSVIEW_MARK_TIME_ZERO);
-#endif // CONFIG_SEGGER_SYSTEMVIEW
+#endif  // CONFIG_SEGGER_SYSTEMVIEW
 
     for (uint32_t i = 0; i < _total; i++) {
       res = _wait_semaphore.release();
@@ -110,6 +110,6 @@ void Barrier::grant_access(k_tid_t tid) {
   _wait_semaphore.grant_access(tid);
   _mutex.grant_access(tid);
 }
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

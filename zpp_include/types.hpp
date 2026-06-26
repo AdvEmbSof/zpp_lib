@@ -33,7 +33,7 @@ namespace zpp_lib {
 
 // Preemptable thread priority values
 enum class PreemptableThreadPriority {
-  PriorityIdle        = CONFIG_NUM_PREEMPT_PRIORITIES - 1, ///< Reserved for Idle thread
+  PriorityIdle        = CONFIG_NUM_PREEMPT_PRIORITIES - 1,  ///< Reserved for Idle thread
   PriorityMinimal     = CONFIG_NUM_PREEMPT_PRIORITIES - 2,
   PriorityVeryLow     = CONFIG_NUM_PREEMPT_PRIORITIES - 3,
   PriorityLow         = CONFIG_NUM_PREEMPT_PRIORITIES - 4,
@@ -42,8 +42,8 @@ enum class PreemptableThreadPriority {
   PriorityAboveNormal = CONFIG_NUM_PREEMPT_PRIORITIES - 7,
   PriorityHigh        = CONFIG_NUM_PREEMPT_PRIORITIES - 8,
   PriorityRealtime    = CONFIG_NUM_PREEMPT_PRIORITIES - 9,
-  PriorityISR         = -CONFIG_NUM_PREEMPT_PRIORITIES ///< Highest priority (Reserved for ISR
-                                                       ///< deferred thread)
+  PriorityISR         = -CONFIG_NUM_PREEMPT_PRIORITIES  ///< Highest priority (Reserved for ISR
+                                                        ///< deferred thread)
 };
 
 constexpr PreemptableThreadPriority prio_to_preemptable_thread_priority(int prio) noexcept {
@@ -54,4 +54,4 @@ constexpr int preemptable_thread_priority_to_zephyr_prio(PreemptableThreadPriori
   return static_cast<int>(prio);
 }
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

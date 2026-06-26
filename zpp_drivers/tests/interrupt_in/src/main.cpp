@@ -23,8 +23,6 @@
  ***************************************************************************/
 
 // zephyr
-#include <zephyr/logging/log.h>
-#include <zephyr/ztest.h>
 
 // std
 #include <functional>
@@ -32,20 +30,23 @@
 // zpp_rtos
 #include "zpp_include/interrupt_in.hpp"
 #include "zpp_include/this_thread.hpp"
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_log.hpp"
+#include "zpp_include/zpp_test.hpp"
 
-LOG_MODULE_REGISTER(test_interrupt_in, CONFIG_APP_LOG_LEVEL);
+ZPP_LOG_MODULE_REGISTER(test_interrupt_in, CONFIG_APP_LOG_LEVEL);
 
 void callback() {
-  LOG_DBG("Button1 pressed");
+  ZPP_LOG_DBG("Button1 pressed");
 }
 void callback1() {
-  LOG_DBG("Button1_1 pressed");
+  ZPP_LOG_DBG("Button1_1 pressed");
 }
 void callback2() {
-  LOG_DBG("Button1_2 pressed");
+  ZPP_LOG_DBG("Button1_2 pressed");
 }
 
-ZTEST_USER(zpp_interrupt_in, test_destructor) {
+ZPP_ZTEST_USER(zpp_interrupt_in, test_destructor) {
   using std::literals::chrono_literals::operator""s;
 
   {
@@ -65,7 +66,7 @@ ZTEST_USER(zpp_interrupt_in, test_destructor) {
   zpp_lib::ThisThread::sleep_for(10s);
 }
 
-ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
+ZPP_ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
   using std::literals::chrono_literals::operator""s;
   {
     zpp_lib::InterruptIn button1_1(zpp_lib::InterruptIn::PinName::BUTTON1);
@@ -94,4 +95,4 @@ ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
   zpp_lib::ThisThread::sleep_for(10s);
 }
 
-ZTEST_SUITE(zpp_interrupt_in, nullptr, nullptr, nullptr, nullptr, nullptr);
+ZPP_ZTEST_SUITE(zpp_interrupt_in, nullptr, nullptr, nullptr, nullptr, nullptr);

@@ -41,4 +41,4 @@ public:
   static std::chrono::microseconds get_uptime();
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

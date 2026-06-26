@@ -109,15 +109,15 @@ public:
    *
    */
   void grant_access(k_tid_t tid);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 protected:
   struct gpio_dt_spec _gpio;
 #if CONFIG_USERSPACE
   const struct device* _gpio_device;
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 };
 
 /** @}*/
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

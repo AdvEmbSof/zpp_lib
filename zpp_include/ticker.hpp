@@ -52,7 +52,7 @@ public:
     // this cast is ugly but the only way to pass a reference to this instance to the
     // timer
     // cppcheck-suppress cstyleCast
-    _timer.user_data = (void*)this; // NOLINT(readability/casting)
+    _timer.user_data = (void*)this;  // NOLINT(readability/casting)
 
     // store the task
     _task = f;
@@ -75,7 +75,7 @@ private:
       // this cast is ugly but the only way to pass a reference to this instance to the
       // timer
       // cppcheck-suppress cstyleCast
-      Ticker* pTicker = (Ticker*)timer_id->user_data; // NOLINT(readability/casting)
+      Ticker* pTicker = (Ticker*)timer_id->user_data;  // NOLINT(readability/casting)
       // will run in ISR context (should be dispatched to a work queue)
       pTicker->_task();
     }
@@ -87,4 +87,4 @@ private:
   F _task;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

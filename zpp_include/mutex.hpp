@@ -65,7 +65,7 @@ public:
    *   memory section (such as another thread's stack)
    */
   explicit Mutex(k_mutex* pMutex) noexcept;
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
   /**
     Wait until a Mutex becomes available.
@@ -106,7 +106,7 @@ public:
    * Grants access to the k_mutex kernel object for a specific thread
    */
   void grant_access(k_tid_t tid);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
   /** Mutex destructor
@@ -120,10 +120,10 @@ private:
 #if CONFIG_USERSPACE
   friend class Thread;
   static uint8_t _mutexInstanceCount;
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   struct k_mutex _mutex;
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
   struct k_mutex* _p_mutex = nullptr;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

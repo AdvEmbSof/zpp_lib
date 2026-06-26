@@ -71,4 +71,4 @@ std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absolute_
 std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absolute_time);
 std::chrono::milliseconds sleep_until(const std::chrono::seconds& absolute_time);
 
-} // namespace zpp_lib::ThisThread
+}  // namespace zpp_lib::ThisThread

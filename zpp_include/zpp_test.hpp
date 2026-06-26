@@ -29,6 +29,7 @@
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 #include <zephyr/ztest.h>
 
-#define ZPP_ZTEST(...) ZTEST(__VA_ARGS__) // NOLINT
-#define ZPP_ZTEST_SUITE(...) ZTEST_SUITE(__VA_ARGS__) // NOLINT
+#define ZPP_ZTEST(...) ZTEST(__VA_ARGS__)              // NOLINT
+#define ZPP_ZTEST_USER(...) ZTEST_USER(__VA_ARGS__)    // NOLINT
+#define ZPP_ZTEST_SUITE(...) ZTEST_SUITE(__VA_ARGS__)  // NOLINT
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)

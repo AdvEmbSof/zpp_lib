@@ -54,9 +54,9 @@ public:
   */
 #if CONFIG_USERSPACE
   explicit Thread(PreemptableThreadPriority priority, const char* name, bool userMode);
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   explicit Thread(PreemptableThreadPriority priority, const char* name);
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
   /** Performs sanity checks
    */
@@ -97,9 +97,9 @@ private:
   Event _event;
 #if CONFIG_USERSPACE
   bool _userMode = false;
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   Thread::task_function_t _task;
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
   PreemptableThreadPriority _priority;
   static constexpr uint32_t kStartedEvent = 0x01;
@@ -110,4 +110,4 @@ private:
   static uint8_t _threadInstanceCount;
 };
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

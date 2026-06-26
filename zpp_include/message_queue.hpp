@@ -39,7 +39,7 @@ namespace zpp_lib {
 #if CONFIG_USERSPACE
 extern uint8_t gMsgqInstanceCount;
 extern struct k_msgq ZPP_MESSAGE_QUEUE_ARRAY[CONFIG_ZPP_MSGQ_POOL_SIZE];
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 template <typename T, uint32_t QueueSize> class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize>> {
 public:
@@ -53,11 +53,11 @@ public:
     k_msgq_init(&ZPP_MESSAGE_QUEUE_ARRAY[gMsgqInstanceCount], msgqBuffer, sizeof(T), QueueSize);
     _p_msgq = &ZPP_MESSAGE_QUEUE_ARRAY[gMsgqInstanceCount];
     gMsgqInstanceCount++;
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   MessageQueue() {
     k_msgq_init(&_msgq, _msgq_buffer, sizeof(T), QueueSize);
     _p_msgq = &_msgq;
-#endif // // CONFIG_USERSPACE
+#endif  // // CONFIG_USERSPACE
   }
 
   [[nodiscard]] ZephyrBoolResult try_put_for(const std::chrono::microseconds& timeout, const T& data) {
@@ -100,15 +100,15 @@ public:
   void grant_access(k_tid_t tid) {
     k_object_access_grant(_p_msgq, tid);
   }
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
 
 private:
 #if CONFIG_USERSPACE
-#else  // CONFIG_USERSPACE
+#else   // CONFIG_USERSPACE
   struct k_msgq _msgq;
   char _msgq_buffer[sizeof(T) * QueueSize];
-#endif // CONFIG_USERSPACE
+#endif  // CONFIG_USERSPACE
   struct k_msgq* _p_msgq = nullptr;
-}; // NOLINT(readability/braces)
+};  // NOLINT(readability/braces)
 
-} // namespace zpp_lib
+}  // namespace zpp_lib

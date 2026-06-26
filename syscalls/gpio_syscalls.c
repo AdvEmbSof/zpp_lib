@@ -43,7 +43,7 @@ int z_vrfy_gpio_syscall_set(const struct device* dev, struct gpio_dt_spec* gpio,
   return z_impl_gpio_syscall_set(dev, gpio, value);
 }
 
-#include <zephyr/syscalls/gpio_syscall_set_mrsh.c> // NOLINT(build/include)
+#include <zephyr/syscalls/gpio_syscall_set_mrsh.c>  // NOLINT(build/include)
 
 /* Kernel implementation */
 int z_impl_gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio) {
@@ -59,4 +59,4 @@ int z_vrfy_gpio_syscall_get(const struct device* dev, struct gpio_dt_spec* gpio)
   return z_impl_gpio_syscall_get(dev, gpio);
 }
 
-#include <zephyr/syscalls/gpio_syscall_get_mrsh.c> // NOLINT(build/include)
+#include <zephyr/syscalls/gpio_syscall_get_mrsh.c>  // NOLINT(build/include)

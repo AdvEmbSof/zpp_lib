@@ -39,11 +39,11 @@ namespace zpp_lib {
 // This is a Zephyr macro that we have no control over
 #if CONFIG_QEMU_TARGET
 static constexpr uint16_t kHeapSize = 4096;
-#else  // CONFIG_QEMU_TARGET
+#else   // CONFIG_QEMU_TARGET
 // when using the physical display, the line buffer is 960 bytes,
 // so we can reduce the heap size to save memory
 static constexpr uint16_t kHeapSize = 2048;
-#endif // CONFIG_QEMU_TARGET
+#endif  // CONFIG_QEMU_TARGET
 // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,readability-math-missing-parentheses,cppcoreguidelines-avoid-non-const-global-variables)
 K_HEAP_DEFINE(buf_heap, kHeapSize);
 
@@ -166,8 +166,8 @@ void Display::set_background_color(Color color) {
 // dimensions, and we always call this function with width first, then height
 void Display::fill_rectangle(Color color,
                              uint32_t x_pos,
-                             uint32_t y_pos, // NOLINT(bugprone-easily-swappable-parameters)
-                             uint32_t width, // NOLINT(bugprone-easily-swappable-parameters)
+                             uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)
+                             uint32_t width,  // NOLINT(bugprone-easily-swappable-parameters)
                              uint32_t height) {
   uint32_t color_value = get_color_value(color);
   // ZPP_LOG_DBG("Fill rectangle with color 0x%08x starting at (%d, %d) - (width %d,
@@ -229,9 +229,9 @@ void Display::draw_horizontal_line(Color color, uint32_t x_pos, uint32_t y_pos, 
 void Display::draw_icon(uint16_t x_pos,
                         uint16_t y_pos,
                         const uint32_t* p_src,
-                        uint16_t logo_width, // NOLINT(bugprone-easily-swappable-parameters) - width, height
-                                             // is the standard order for image dimensions, and we always
-                                             // call this function with width first, then height
+                        uint16_t logo_width,  // NOLINT(bugprone-easily-swappable-parameters) - width, height
+                                              // is the standard order for image dimensions, and we always
+                                              // call this function with width first, then height
                         uint16_t logo_height) {
   struct display_buffer_descriptor buf_desc = {.buf_size = 0, .width = 0, .height = 0, .pitch = 0, .frame_incomplete = false};
   x_pos                                     = zpp_lib::min(_lcd_xsize - 1, x_pos);
@@ -310,13 +310,13 @@ void Display::draw_string_at(Color color, uint32_t x_pos, uint32_t y_pos, const 
   // ZPP_LOG_DBG("Drawing %s at pos %d - %d (#pixels = %d, refcolumn %d)", text, x_pos,
   // y_pos, nbrOfPixels, refcolumn);
 
-  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   // Hardcoding values is acceptable here
   // Check that the Start column is located in the screenascii
   if ((refcolumn < 1) || (refcolumn >= 0x8000)) {
     refcolumn = 1;
   }
-  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 
   // Send the string character by character on display
   uint32_t total_width = refcolumn;
@@ -341,7 +341,7 @@ uint32_t Display::compute_ypos_from_line_number(uint32_t line) const {
 // This is a private method and we always call it correctly
 void Display::display_char(Color color,
                            uint32_t x_pos,
-                           uint32_t y_pos, // NOLINT(bugprone-easily-swappable-parameters)
+                           uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)
                            uint32_t unicode) {
   ZPP_ASSERT(_p_font != nullptr, "Font not set");
   uint8_t char_width    = 0;
@@ -354,7 +354,7 @@ void Display::display_char(Color color,
   ZPP_ASSERT(char_width < kMaxCharWidth, "Invalid char width: %d", char_width);
   // ZPP_LOG_DBG("Displaying char %c at %d - %d", unicode, x_pos, y_pos);
 
-  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   // Hardcoding values is acceptable here
 
   // compute the bit offset in each line
@@ -394,13 +394,13 @@ void Display::display_char(Color color,
           argb8888[j] = _background_color_value;
         }
       }
-      fill_rgb_rect(color, x_pos, y_pos++, argb8888, char_width, 1); // NOLINT
+      fill_rgb_rect(color, x_pos, y_pos++, argb8888, char_width, 1);  // NOLINT
     } else {
       ZPP_LOG_ERR("Not implemented");
       ZPP_ASSERT(false, "Not implemented");
     }
   }
-  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 }
 
 void Display::fill_color_argb8888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size) {
@@ -413,8 +413,8 @@ void Display::fill_color_argb8888(uint32_t color_value, uint8_t* p_buffer, size_
 }
 void Display::fill_color_rgb888(uint32_t color_value, uint8_t* p_buffer, size_t buffer_size) {
   static constexpr size_t kBytesPerPixel = 3;
-  static constexpr uint8_t kMask = 0xFF;
-  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  static constexpr uint8_t kMask         = 0xFF;
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   // Hardcoding values is acceptable here
   for (size_t idx = 0; idx < buffer_size; idx += kBytesPerPixel) {
     // Some displays expect BGR byte order for 24-bit pixels; write as B,G,R
@@ -422,7 +422,7 @@ void Display::fill_color_rgb888(uint32_t color_value, uint8_t* p_buffer, size_t 
     *(p_buffer + idx + 1) = static_cast<uint8_t>((color_value >> 8) & kMask);
     *(p_buffer + idx + 2) = static_cast<uint8_t>((color_value >> 16) & kMask);
   }
-  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 }
 
 void Display::fill_line_argb8888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer) {
@@ -436,9 +436,9 @@ void Display::fill_line_argb8888(const uint32_t* p_src, size_t src_size, uint8_t
 }
 
 void Display::fill_line_rgb888(const uint32_t* p_src, size_t src_size, uint8_t* p_buffer) {
-  static constexpr uint8_t kMask = 0xFF;
+  static constexpr uint8_t kMask         = 0xFF;
   static constexpr size_t kBytesPerPixel = 3;
-  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
   // Hardcoding values is acceptable here
   // NOLINTBEGIN(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
   // Casting is necessary to write 24-bit pixels in BGR byte order
@@ -452,16 +452,16 @@ void Display::fill_line_rgb888(const uint32_t* p_src, size_t src_size, uint8_t* 
     p_src++;
   }
   // NOLINTEND(readability/casting, modernize-avoid-c-style-cast, cppcoreguidelines-pro-type-cstyle-cast)
-  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers) 
+  // NOLINTEND(cppcoreguidelines-avoid-magic-numbers, readability-magic-numbers)
 }
 
 void Display::fill_rgb_rect(Color color,
                             uint32_t x_pos,
                             uint32_t y_pos,
                             uint32_t* p_data,
-                            uint32_t width, // NOLINT(bugprone-easily-swappable-parameters) - this is a private
-                                            // method and we always call it with width before height, so the
-                                            // order of parameters is not error-prone in practice
+                            uint32_t width,  // NOLINT(bugprone-easily-swappable-parameters) - this is a private
+                                             // method and we always call it with width before height, so the
+                                             // order of parameters is not error-prone in practice
                             uint32_t height) {
   struct display_buffer_descriptor buf_desc = {.buf_size = 0, .width = 0, .height = 0, .pitch = 0, .frame_incomplete = false};
   x_pos                                     = zpp_lib::min(_lcd_xsize - 1, x_pos);
@@ -489,6 +489,6 @@ void Display::fill_rgb_rect(Color color,
   }
 }
 
-} // namespace zpp_lib
+}  // namespace zpp_lib
 
-#endif // CONFIG_DISPLAY
+#endif  // CONFIG_DISPLAY

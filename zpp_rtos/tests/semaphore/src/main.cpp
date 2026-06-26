@@ -22,42 +22,47 @@
  * @version 1.0.0
  ***************************************************************************/
 
-#include <zephyr/ztest.h>
-
 // stl
 #include <memory>
 
 // zpp_rtos
 #include "zpp_include/semaphore.hpp"
 #include "zpp_include/thread.hpp"
+#include "zpp_include/zpp_assert.hpp"
+#include "zpp_include/zpp_test.hpp"
 
 // test cases
-ZTEST_USER(zpp_semaphore, test_semaphore_release_acquire) {
-  static constexpr uint32_t initial_count = 0U;
-  static constexpr uint32_t max_count     = 1U;
-  zpp_lib::Semaphore sem(initial_count, max_count);
+ZPP_ZTEST_USER(zpp_semaphore, test_semaphore_release_acquire) {
+  static constexpr uint32_t kInitialCount = 0U;
+  static constexpr uint32_t kMaxCount     = 1U;
+  zpp_lib::Semaphore sem(kInitialCount, kMaxCount);
 
   // TESTPOINT: try to release and acquire semaphore several times
-  zassert_true(sem.release());
-  zassert_true(sem.acquire());
-  zassert_true(sem.release());
-  zassert_true(sem.acquire());
+  zpp_zassert_true(sem.release());
+  zpp_zassert_true(sem.acquire());
+  zpp_zassert_true(sem.release());
+  zpp_zassert_true(sem.acquire());
 
   // TESTPOINT: try to acquire one more time (ret should evaluate to false without
   // error)
-  auto boolRet = sem.try_acquire();
-  zassert_true(!boolRet.has_error());
-  zassert_true(!boolRet);
+  auto bool_ret = sem.try_acquire();
+  zpp_zassert_true(!bool_ret.has_error());
+  zpp_zassert_true(!bool_ret);
 
   // TESTPOINT: try to acquire semaphore that is released in another thread
-  zpp_lib::Thread thread;
+  static constexpr auto kThreadName = "test_semaphore_thread";
+#if CONFIG_USER_SPACE
+  zpp_lib::Thread thread(zpp_lib::PreemptableThreadPriority::Normal, kThreadName, true);
+#else   // CONFIG_USER_SPACE
+  zpp_lib::Thread thread(zpp_lib::PreemptableThreadPriority::PriorityNormal, kThreadName);
+#endif  // CONFIG_USER_SPACE
   auto ret = thread.start([&sem]() {
     auto ret = sem.release();
-    zassert_true(ret);
+    zpp_zassert_true(ret);
   });
-  zassert_true(ret);
-  zassert_true(thread.join());
-  zassert_true(sem.acquire());
+  zpp_zassert_true(ret);
+  zpp_zassert_true(thread.join());
+  zpp_zassert_true(sem.acquire());
 }
 
-ZTEST_SUITE(zpp_semaphore, nullptr, nullptr, nullptr, nullptr, nullptr);
+ZPP_ZTEST_SUITE(zpp_semaphore, nullptr, nullptr, nullptr, nullptr, nullptr);
