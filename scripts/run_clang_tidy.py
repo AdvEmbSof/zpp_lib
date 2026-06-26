@@ -5,15 +5,19 @@ import subprocess
 import sys
 import re
 import argparse
+from pathlib import Path
+
+SCRIPT_DIR = Path(__file__).resolve().parent
 
 def run(cmd):
     print("+", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
 def build_database(app: str, specs: str):
+    build_script = SCRIPT_DIR / "build.py"
     cmd = [
         sys.executable,
-        "scripts/build.py",
+        str(build_script),
         "--app",
         app,
         "--specs",
@@ -27,10 +31,10 @@ def build_database(app: str, specs: str):
 
 def filter_database():
     Path("build_clang").mkdir(exist_ok=True)
-
+    filter_script = SCRIPT_DIR / "filter_compile_commands.py"
     run([
         sys.executable,
-        "scripts/filter_compile_commands.py",
+        str(filter_script),
         "build/compile_commands.json",
         "build_clang/compile_commands.json",
     ])
