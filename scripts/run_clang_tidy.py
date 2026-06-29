@@ -24,8 +24,7 @@ def build_database(app: str, specs: str):
         specs,
         "--board",
         "native_sim",
-        "--clean",
-        "yes"
+        "--pristine"
     ]
     run(cmd)
 
