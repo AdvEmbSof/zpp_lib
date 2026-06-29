@@ -22,9 +22,10 @@ def build_database(app: str, specs: str):
         app,
         "--specs",
         specs,
+        "--board",
+        "native_sim",
         "--clean",
-        "yes",
-        "--native_sim",
+        "yes"
     ]
     run(cmd)
 

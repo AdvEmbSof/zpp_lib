@@ -9,16 +9,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--app", required=True)
 parser.add_argument("--specs", required=True)
 parser.add_argument("--clean", required=True)
-parser.add_argument("--qemu", required=False, action="store_true")
-parser.add_argument("--native_sim", required=False, action="store_true")
-
+parser.add_argument("--board", required=True)
 args = parser.parse_args()
   
 app = args.app
 specs = args.specs
 clean = args.clean=="yes"
-qemu = args.qemu
-native_sim = args.native_sim
+board = args.board
+qemu = args.board=="qemu_x86"
+native_sim = args.board=="native_sim"
 
 if qemu or native_sim:
     print(f"Building {app} for qemu_x86 or native_sim with spec '{specs}' and clean='{clean}'")
@@ -33,11 +32,13 @@ if qemu or native_sim:
     else:
         cmd.append("native_sim")
 else:
-    print(f"Building {app} with spec '{specs}' and clean='{clean}'")
+    print(f"Building {app} for board '{board}' with spec '{specs}' and clean='{clean}'")
     cmd = [
         "west",
         "build",
         app,
+        "-b",
+        board,
         "--shield",
         "adafruit_2_8_tft_touch_v2",
     ]
