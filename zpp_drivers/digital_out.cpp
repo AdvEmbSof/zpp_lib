@@ -46,17 +46,23 @@ DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, false) {}
 // _gpio is initialized with an error in default switch case,
 // Complexity is not an issue since we only call a zephyr macro in the switch cases
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
-DigitalOut::DigitalOut(PinName pinName, bool value) {
-  switch (pinName) {
+DigitalOut::DigitalOut(PinName pin_name, bool value) {
+  switch (pin_name) {
+#if HAS_LED0
   case PinName::LED0:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
     break;
+#endif  // HAS_LED0
 
+#if HAS_LED1
   case PinName::LED1:
     _gpio = GPIO_DT_SPEC_GET(DT_ALIAS(led1), gpios);
     break;
+#endif  // HAS_LED1
 
   default:
+    ZPP_ASSERT(false, "Invalid pinName %d", static_cast<int>(pin_name));
+    ZPP_LOG_ERR("Invalid pinName %d", static_cast<int>(pin_name));
     break;
   }
 

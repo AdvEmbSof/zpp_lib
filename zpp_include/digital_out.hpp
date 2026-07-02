@@ -32,6 +32,10 @@
 #include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
+// Check each alias at compile time
+#define HAS_LED0 DT_NODE_EXISTS(DT_ALIAS(led0))
+#define HAS_LED1 DT_NODE_EXISTS(DT_ALIAS(led1))
+
 namespace zpp_lib {
 
 /** A digital output, used for setting the state of a pin
