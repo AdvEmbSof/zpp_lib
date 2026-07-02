@@ -3,11 +3,19 @@ import re
 import subprocess
 from tkinter import ON
 import argparse
+import os
+import subprocess
+
+WORKSPACE_DIR = subprocess.check_output(
+    ["west", "topdir"],
+    text=True,
+).strip()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--app", required=True)
 parser.add_argument("--spec", required=True)
 parser.add_argument("--board", required=True)
+parser.add_argument("--config_dir", required=False, default=WORKSPACE_DIR + "/configs")
 parser.add_argument("--shield", required=False)
 parser.add_argument("--pristine", action="store_true")
 
@@ -17,6 +25,7 @@ app = args.app
 spec = args.spec   
 pristine = args.pristine
 board = args.board
+config_dir = args.config_dir
 shield = args.shield
 qemu = args.board=="qemu_x86"
 native_sim = args.board=="native_sim"
@@ -27,7 +36,7 @@ if qemu or native_sim:
         "west",
         "build",
         app,
-        "-b",         
+        "-b",        
     ]
     if qemu:
         cmd.append("qemu_x86")
@@ -48,16 +57,31 @@ else:
 if pristine:
     cmd.append("--pristine")
 
+conf_files = [config_dir + "/prj.conf"]
 for s in filter(None, re.split(r"[+,]", spec)):
-    cmd.extend(["--extra-conf", f"prj_{s}.conf"])
     if qemu or native_sim:
+        # for gpio or sensor on qemu or native_sim, we need to use the emulated config only            
         if s == "gpio":
-            cmd.extend(["--extra-conf", "prj_gpio_emul.conf"])        
+            conf_file = config_dir + "/prj_gpio_emul.conf"
+            conf_files.append(conf_file)
         elif s == "sensor":
-            cmd.extend(["--extra-conf", "prj_sensor_emul.conf"])
-        
+            conf_file = config_dir + "/prj_sensor_emul.conf"
+            conf_files.append(conf_file)
+        else:
+            conf_file = config_dir + f"/prj_{s}.conf"
+            conf_files.append(conf_file)
+    else:
+       conf_file = config_dir + f"/prj_{s}.conf"
+       conf_files.append(conf_file)
+
+print(f"Using conf files: {conf_files}")
+conf_files_param = f'-DCONF_FILE="{";".join(conf_files)}"'
+cmd.extend([
+    "--",
+    f"-DCONF_FILE={';'.join(conf_files)}"
+])
+
 if native_sim:
-    cmd.append("--")
     cmd.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
 
 print(" ".join(cmd))

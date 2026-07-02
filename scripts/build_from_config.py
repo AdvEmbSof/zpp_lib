@@ -29,13 +29,15 @@ for app in config["applications"]:
     if args.app and app["app"] != args.app:
         continue
 
+    config_dir = app.get("config_dir", None)
+    print(f"Building app '{app['app']}' with config_dir='{config_dir}'")
     for board in app["boards"]:
         board_name = board["board"]
         if args.board and board["board"] != args.board:
             continue
     
         shield = board.get("shield")
-
+        
         for spec in app["specs"]:
             if args.spec and spec != args.spec:
                 continue
@@ -50,6 +52,9 @@ for app in config["applications"]:
 
             if pristine:
                 cmd.append("--pristine")
+
+            if config_dir:
+                cmd.extend(["--config_dir", config_dir])
 
             if shield:
                 cmd.extend(["--shield", shield])
