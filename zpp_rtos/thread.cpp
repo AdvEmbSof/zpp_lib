@@ -109,7 +109,8 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   }
 
   // the thread stacks are allocated statically
-  ZPP_ASSERT(s_thread_instance_count < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created (pool size is %d)", CONFIG_ZPP_THREAD_POOL_SIZE);
+  ZPP_ASSERT(
+      s_thread_instance_count < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created (pool size is %d)", CONFIG_ZPP_THREAD_POOL_SIZE);
 
   // create the thread
   k_timeout_t delay = K_FOREVER;
@@ -145,7 +146,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
                          // cppcheck-suppress cstyleCast
                          // NOLINTNEXTLINE(readability/casting)
                          (void*)static_cast<uint32_t>(s_thread_instance_count),  // MISRA-suppress: 7.2.1  legacy API,
-                                                                                // reviewed by Serge 2026-03-11
+                                                                                 // reviewed by Serge 2026-03-11
                          _event._p_event,
                          _mutex._p_mutex,
                          zephyr_priority,

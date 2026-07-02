@@ -33,7 +33,7 @@
 namespace zpp_lib {
 
 // Complexity is created by the use of the K_MSEC macro, which is a Zephyr macro that performs
-// a conversion from milliseconds to ticks. 
+// a conversion from milliseconds to ticks.
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 constexpr k_timeout_t milliseconds_to_ticks(const std::chrono::milliseconds& d) noexcept {
   // This is a Zephyr macro
@@ -42,7 +42,7 @@ constexpr k_timeout_t milliseconds_to_ticks(const std::chrono::milliseconds& d) 
 }
 
 // Complexity is created by the use of the K_USEC macro, which is a Zephyr macro that performs
-// a conversion from milliseconds to ticks. 
+// a conversion from milliseconds to ticks.
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 constexpr k_timeout_t microseconds_to_ticks(const std::chrono::microseconds& d) noexcept {
   // This is a Zephyr macro

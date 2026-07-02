@@ -101,7 +101,7 @@ InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name), _callback_regi
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 InterruptIn::~InterruptIn() {
 #if NUM_BUTTONS > 0
-  _callback_register.unregister_all_callbacks();  
+  _callback_register.unregister_all_callbacks();
 #endif  // NUM_BUTTONS > 0
 }
 
@@ -154,7 +154,7 @@ RegistrationToken InterruptIn::add_callback(const CallbackRegister::CallbackFunc
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   ZPP_LOG_DBG("Setting up callback for button %d", button_index);
 #if !CONFIG_INTERRUPT_IN_EMUL
-  if (! _callback_register.has_callbacks()) {
+  if (!_callback_register.has_callbacks()) {
     _cb_data._instance = this;
     gpio_init_callback(&_cb_data._gpio_cb, &InterruptIn::callback, BIT(_gpio.pin));
     gpio_add_callback(_gpio.port, &_cb_data._gpio_cb);
@@ -162,11 +162,11 @@ RegistrationToken InterruptIn::add_callback(const CallbackRegister::CallbackFunc
   }
 #endif  // !CONFIG_INTERRUPT_IN_EMUL
   ZPP_LOG_DBG("Registering callback in map for %p", this);
-  
-  return _callback_register.register_callback(cb);  
-}  
 
-void InterruptIn::remove_gpio_callback() { 
+  return _callback_register.register_callback(cb);
+}
+
+void InterruptIn::remove_gpio_callback() {
   // size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // ZPP_LOG_DBG("Trying to unregistering callback for %p (button %d)", this, button_index);
 #if !CONFIG_INTERRUPT_IN_EMUL
@@ -184,10 +184,10 @@ void InterruptIn::callback(const struct device* port, struct gpio_callback* cb, 
   // We need to cast cb for getting the instance on which the callback is running
   // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
   // NOLINTNEXTLINE(readability/casting,modernize-avoid-c-style-cast,cppcoreguidelines-pro-type-cstyle-cast)
-  auto* p_callback_data   = (CallbackData*) cb;
+  auto* p_callback_data   = (CallbackData*)cb;
   InterruptIn* p_instance = p_callback_data->_instance;
   p_instance->_callback_register.execute_callbacks();
-}  
+}
 #endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
 
 }  // namespace zpp_lib

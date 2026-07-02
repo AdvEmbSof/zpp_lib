@@ -44,8 +44,8 @@
 #include <map>
 
 // zpp_lib
-#include "zpp_include/mutex.hpp"
 #include "zpp_include/callback_register.hpp"
+#include "zpp_include/mutex.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
@@ -94,16 +94,16 @@ public:
    *  Make it virtual to prevent cppcoreguidelines-virtual-class-destructor
    */
   ~InterruptIn();
-  
-  /** Explicity prevent (move) copy and assignment 
-      rather than inheriting from NonCopyable. This avoids 
+
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
       cppcoreguidelines-special-member-functions warning by clang-tidy.
   */
-  InterruptIn(const InterruptIn&) = delete;
-  InterruptIn(InterruptIn&&)      = delete;
+  InterruptIn(const InterruptIn&)            = delete;
+  InterruptIn(InterruptIn&&)                 = delete;
   InterruptIn& operator=(const InterruptIn&) = delete;
   InterruptIn& operator=(InterruptIn&&)      = delete;
-  
+
   /** Read the input, represented as 0 or 1 (int)
    *
    *  @returns
@@ -128,7 +128,7 @@ public:
    *
    *  @param func A pointer to a void function, or 0 to set as none
    */
-   void remove_gpio_callback();
+  void remove_gpio_callback();
 
 #if CONFIG_INTERRUPT_IN_EMUL
   /** Used for testing purposes

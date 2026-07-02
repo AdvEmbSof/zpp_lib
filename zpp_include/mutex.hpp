@@ -71,15 +71,15 @@ public:
    */
   ~Mutex();
 
-  /** Explicity prevent (move) copy and assignment 
-      rather than inheriting from NonCopyable. This avoids 
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
       cppcoreguidelines-special-member-functions warning by clang-tidy.
   */
-  Mutex(const Mutex&) = delete;
-  Mutex(Mutex&&)      = delete;
+  Mutex(const Mutex&)            = delete;
+  Mutex(Mutex&&)                 = delete;
   Mutex& operator=(const Mutex&) = delete;
   Mutex& operator=(Mutex&&)      = delete;
-  
+
   /**
     Wait until a Mutex becomes available.
 

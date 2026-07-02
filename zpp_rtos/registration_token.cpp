@@ -32,15 +32,13 @@
 
 namespace zpp_lib {
 
-RegistrationToken::RegistrationToken(RegistrationRecord* p_record) : _p_record(p_record) {
-}
- 
+RegistrationToken::RegistrationToken(RegistrationRecord* p_record) : _p_record(p_record) {}
+
 RegistrationToken::~RegistrationToken() {
   reset();
 }
 
-RegistrationToken::RegistrationToken(RegistrationToken&& other) noexcept : _p_record(std::exchange(other._p_record, nullptr)) {    
-}
+RegistrationToken::RegistrationToken(RegistrationToken&& other) noexcept : _p_record(std::exchange(other._p_record, nullptr)) {}
 
 RegistrationToken& RegistrationToken::operator=(RegistrationToken&& other) noexcept {
   if (this != &other) {
@@ -52,9 +50,9 @@ RegistrationToken& RegistrationToken::operator=(RegistrationToken&& other) noexc
 
 void RegistrationToken::reset() {
   if (_p_record != nullptr && _p_record->_owner != nullptr) {
-    _p_record->_owner->unregister_callback(_p_record->_id);    
+    _p_record->_owner->unregister_callback(_p_record->_id);
   }
   _p_record = nullptr;
 }
 
- }  // namespace zpp_lib
+}  // namespace zpp_lib

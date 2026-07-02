@@ -58,9 +58,7 @@ public:
     k_work_queue_init(&_work_queue);
 
     // start the _isrWorkQueueThread thread
-    auto res = _thread.start([this]() {
-      this->run();
-    });
+    auto res = _thread.start([this]() { this->run(); });
     if (!res) {
       ZPP_ASSERT(false, "Could not start WorkQueue thread: %d", (int)res.error());
     }
@@ -141,7 +139,7 @@ private:
   zpp_lib::Thread _thread;
   Event _event;
   static constexpr uint32_t kStartedEvent = 0x01;
-  std::atomic<bool> _is_started            = false;
+  std::atomic<bool> _is_started           = false;
 };  // NOLINT(readability/braces)
 
 }  // namespace zpp_lib

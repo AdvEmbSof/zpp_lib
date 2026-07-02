@@ -35,7 +35,7 @@ CallbackRegister::~CallbackRegister() {
   // Invalidate all outstanding tokens.
   for (auto& record : _registrations) {
     record.second._owner = nullptr;
-  } 
+  }
 }
 
 bool CallbackRegister::has_callbacks() const {
@@ -51,9 +51,9 @@ void CallbackRegister::execute_callbacks() const {
 RegistrationToken CallbackRegister::register_callback(const CallbackFunction& cb) {
   auto id = _unique_id++;
   _callbacks.insert({id, cb});
-  RegistrationToken::RegistrationRecord record{._owner = this, ._id = id}; 
+  RegistrationToken::RegistrationRecord record{._owner = this, ._id = id};
   _registrations.insert({id, record});
-  
+
   return RegistrationToken(&_registrations.at(id));
 }
 
@@ -61,8 +61,8 @@ void CallbackRegister::unregister_callback(size_t id) {
   _callbacks.erase(id);
   if (_callbacks.empty()) {
     _owner.remove_gpio_callback();
-  } 
-  _registrations.erase(id);  
+  }
+  _registrations.erase(id);
 }
 
 void CallbackRegister::unregister_all_callbacks() {

@@ -61,12 +61,12 @@ public:
    */
   ~Thread();
 
-  /** Explicity prevent (move) copy and assignment 
-      rather than inheriting from NonCopyable. This avoids 
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
       cppcoreguidelines-special-member-functions warning by clang-tidy.
   */
-  Thread(const Thread&) = delete;
-  Thread(Thread&&)      = delete;
+  Thread(const Thread&)            = delete;
+  Thread(Thread&&)                 = delete;
   Thread& operator=(const Thread&) = delete;
   Thread& operator=(Thread&&)      = delete;
 

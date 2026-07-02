@@ -60,15 +60,15 @@ public:
    */
   ~Event();
 
-  /** Explicity prevent (move) copy and assignment 
-      rather than inheriting from NonCopyable. This avoids 
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
       cppcoreguidelines-special-member-functions warning by clang-tidy.
   */
-  Event(const Event&) = delete;
-  Event(Event&&)      = delete;
+  Event(const Event&)            = delete;
+  Event(Event&&)                 = delete;
   Event& operator=(const Event&) = delete;
   Event& operator=(Event&&)      = delete;
-  
+
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
    *

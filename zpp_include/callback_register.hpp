@@ -55,24 +55,24 @@ public:
   // called to execute all registered callbacks
   void execute_callbacks() const;
 
-  /** Explicity prevent (move) copy and assignment 
-      rather than inheriting from NonCopyable. This avoids 
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
       cppcoreguidelines-special-member-functions warning by clang-tidy.
   */
-  CallbackRegister(const CallbackRegister&) = delete;
-  CallbackRegister(CallbackRegister&&)      = delete;
+  CallbackRegister(const CallbackRegister&)            = delete;
+  CallbackRegister(CallbackRegister&&)                 = delete;
   CallbackRegister& operator=(const CallbackRegister&) = delete;
   CallbackRegister& operator=(CallbackRegister&&)      = delete;
 
 private:
   InterruptIn& _owner;
-  size_t _unique_id = 0;
+  size_t _unique_id         = 0;
   using CallbackFunctionMap = std::map<size_t, CallbackFunction>;
   CallbackFunctionMap _callbacks;
   using RegistrationRecordMap = std::map<size_t, RegistrationToken::RegistrationRecord>;
   RegistrationRecordMap _registrations;
-  //std::vector<RegistrationRecord> _registrations;
-  // std::vector<Callback> _callbacks;
+  // std::vector<RegistrationRecord> _registrations;
+  //  std::vector<Callback> _callbacks;
 };
 
 }  // namespace zpp_lib

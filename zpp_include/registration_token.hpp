@@ -38,15 +38,15 @@ public:
   RegistrationToken() = delete;
   struct RegistrationRecord {
     CallbackRegister* _owner = nullptr;
-    std::size_t _id = 0;
+    std::size_t _id          = 0;
   };
   explicit RegistrationToken(RegistrationRecord* p_record);
   ~RegistrationToken();
 
   // Explicity prevent copy and assignment
-  RegistrationToken(const RegistrationToken&) = delete;
-  RegistrationToken& operator=(const RegistrationToken&) noexcept= delete;
-  
+  RegistrationToken(const RegistrationToken&)                     = delete;
+  RegistrationToken& operator=(const RegistrationToken&) noexcept = delete;
+
   /** Allow move constructor and assignment */
   RegistrationToken(RegistrationToken&& other) noexcept;
   RegistrationToken& operator=(RegistrationToken&&) noexcept;

@@ -50,7 +50,7 @@ public:
    * @brief Enumeration to be used for instanciating a specific output pin
    *
    */
-  enum class PinName : uint8_t{ LED0, LED1 };
+  enum class PinName : uint8_t { LED0, LED1 };
 
   /** Create a DigitalOut connected to the specified pin
    *

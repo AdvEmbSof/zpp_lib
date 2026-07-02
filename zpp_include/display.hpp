@@ -94,7 +94,9 @@ private:
   void fill_rgb_rect(Color color, uint32_t x_pos, uint32_t y_pos, uint32_t* p_data, uint32_t width, uint32_t height);
 
   // This function is implicitly inlined since it is defined in the class definition.
-  [[nodiscard]] uint32_t get_pixel_format() const { return _display_capabilities.current_pixel_format; }
+  [[nodiscard]] uint32_t get_pixel_format() const {
+    return _display_capabilities.current_pixel_format;
+  }
   [[nodiscard]] uint32_t get_color_value(Color color) const {
     switch (_display_capabilities.current_pixel_format) {
     case PIXEL_FORMAT_ARGB_8888:
@@ -140,21 +142,21 @@ private:
 
   // Colors Black, White, Blue and Green in different formats
   // Colors in ARGB8888 format
-  // Using a c-array to declare constans is acceptable and more efficient than using std::array, 
+  // Using a c-array to declare constans is acceptable and more efficient than using std::array,
   // since the size of the array is known at compile time and does not require dynamic memory allocation.
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
   static constexpr uint32_t kARGB8888Colors[] = {0xFF000000, 0xFFFFFFFF, 0xFF0000FF, 0xFF00FF00};
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
-  static constexpr uint32_t kRGB8888Colors[]  = {0x000000, 0xFFFFFF, 0x0000FF, 0x00FF00};
+  static constexpr uint32_t kRGB8888Colors[] = {0x000000, 0xFFFFFF, 0x0000FF, 0x00FF00};
 
   // data members
   const struct device* _display_device                                       = nullptr;
-  struct display_capabilities _display_capabilities                          = {.x_resolution = 0, 
-                                                                                .y_resolution = 0, 
+  struct display_capabilities _display_capabilities                          = {.x_resolution            = 0,
+                                                                                .y_resolution            = 0,
                                                                                 .supported_pixel_formats = 0,
-                                                                                .screen_info = 0, 
-                                                                                .current_pixel_format = PIXEL_FORMAT_RGB_888, 
-                                                                                .current_orientation = DISPLAY_ORIENTATION_NORMAL};
+                                                                                .screen_info             = 0,
+                                                                                .current_pixel_format    = PIXEL_FORMAT_RGB_888,
+                                                                                .current_orientation     = DISPLAY_ORIENTATION_NORMAL};
   uint32_t _lcd_xsize                                                        = 0;
   uint32_t _lcd_ysize                                                        = 0;
   size_t _line_buffer_size                                                   = 0;

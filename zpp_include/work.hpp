@@ -42,11 +42,11 @@ namespace zpp_lib {
 template <typename Obj, typename... Args> class Work final {
 public:
   using Method = void (Obj::*)(Args...);
-  explicit Work(Obj* obj, Method f, Args... args) noexcept :
-    _work(), _obj(obj), _work_method(f), _args(std::make_tuple(std::forward<Args>(args)...)) {
+  explicit Work(Obj* obj, Method f, Args... args) noexcept
+      : _work(), _obj(obj), _work_method(f), _args(std::make_tuple(std::forward<Args>(args)...)) {
     k_work_init(&_work, &Work::s_thunk);
   }
-   
+
   ~Work() = default;
 
   // allow to modify the params
@@ -77,7 +77,7 @@ private:
     // IN THE CLASS
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
     // NOLINTNEXTLINE(modernize-avoid-c-style-cast)
-    Work* p_work = (Work*) item;  // NOLINT(readability/casting)
+    Work* p_work = (Work*)item;  // NOLINT(readability/casting)
     std::apply([&](auto&&... params) { std::invoke(p_work->_work_method, p_work->_obj, std::forward<decltype(params)>(params)...); },
                p_work->_args);
   }

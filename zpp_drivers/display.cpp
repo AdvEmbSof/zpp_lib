@@ -128,7 +128,7 @@ ZephyrResult Display::initialize() {
   k_timeout_t timeout = {0};
   ZPP_LOG_DBG("line buffer size %d\n", _line_buffer_size);
   _line_buffer = static_cast<uint8_t*>(k_heap_alloc(&buf_heap, _line_buffer_size, timeout));
-  if (_line_buffer == nullptr) { 
+  if (_line_buffer == nullptr) {
     ZPP_LOG_ERR("Could not allocate memory of size %d. Aborting sample.", _line_buffer_size);
     res.assign_error(zpp_lib::ZephyrErrorCode::Nomem);
     return res;
