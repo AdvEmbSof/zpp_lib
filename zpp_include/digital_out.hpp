@@ -40,13 +40,13 @@ namespace zpp_lib {
  *
  */
 
-class DigitalOut : private NonCopyable<DigitalOut> {
+class DigitalOut final : private NonCopyable {
 public:
   /**
    * @brief Enumeration to be used for instanciating a specific output pin
    *
    */
-  enum class PinName { LED0, LED1 };
+  enum class PinName : uint8_t{ LED0, LED1 };
 
   /** Create a DigitalOut connected to the specified pin
    *
@@ -111,7 +111,7 @@ public:
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
 
-protected:
+private:
   struct gpio_dt_spec _gpio;
 #if CONFIG_USERSPACE
   const struct device* _gpio_device;

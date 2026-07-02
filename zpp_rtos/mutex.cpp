@@ -98,8 +98,8 @@ Mutex::Mutex() noexcept
 #endif  // CONFIG_USERSPACE
 }
 
-#if CONFIG_USERSPACE
 Mutex::~Mutex() {
+#if CONFIG_USERSPACE
   bool found                                 = false;
   static constexpr uint8_t totalNbrOfMutexes = CONFIG_ZPP_MUTEX_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
   for (uint8_t index = 0; index < totalNbrOfMutexes; index++) {
@@ -115,8 +115,8 @@ Mutex::~Mutex() {
     }
   }
   ZPP_ASSERT(found, "Mutex %p not found", static_cast<void*>(_p_mutex));
-}
 #endif  // CONFIG_USERSPACE
+}
 
 #if CONFIG_USERSPACE
 Mutex::Mutex(k_mutex* pMutex) noexcept {

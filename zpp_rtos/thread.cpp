@@ -65,12 +65,12 @@ static struct k_thread thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
 
 #if CONFIG_USERSPACE
 // initialize static data members
-// _threadInstanceCount must be located in app domain since
+// s_thread_instance_count must be located in app domain since
 // it is accessed by the thread
-ZPP_LIB_DATA uint8_t Thread::_threadInstanceCount                           = 0;
+ZPP_LIB_DATA uint8_t Thread::s_thread_instance_count                        = 0;
 ZPP_LIB_DATA Thread::task_function_t ZPP_TASKS[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
 #else   // CONFIG_USERSPACE
-uint8_t Thread::_threadInstanceCount = 0;
+uint8_t Thread::s_thread_instance_count = 0;
 #endif  // CONFIG_USERSPACE
 
 #if CONFIG_USERSPACE
@@ -104,18 +104,18 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   // check that the thread was not already started
   ZephyrResult res;
   if (_tid != nullptr) {
-    res.assign_error(ZephyrErrorCode::k_already);
+    res.assign_error(ZephyrErrorCode::Already);
     return res;
   }
 
   // the thread stacks are allocated statically
-  ZPP_ASSERT(_threadInstanceCount < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created (pool size is %d)", CONFIG_ZPP_THREAD_POOL_SIZE);
+  ZPP_ASSERT(s_thread_instance_count < CONFIG_ZPP_THREAD_POOL_SIZE, "Too many threads created (pool size is %d)", CONFIG_ZPP_THREAD_POOL_SIZE);
 
   // create the thread
   k_timeout_t delay = K_FOREVER;
 #if CONFIG_USERSPACE
   // initialize callback used in Thread::_thunk
-  ZPP_TASKS[_threadInstanceCount] = task;
+  ZPP_TASKS[s_thread_instance_count] = task;
 
   /* In user mode, initialize this thread with K_FOREVER timeout so we can
    * modify its permissions and then start it.
@@ -129,23 +129,23 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 #endif  // CONFIG_USERSPACE
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
   ZPP_LOG_DBG("Creating thread with stack at %p of size %d, priority %d and name %s",
-              zpp_threads_stacks[_threadInstanceCount],
-              K_THREAD_STACK_SIZEOF(zpp_threads_stacks[_threadInstanceCount]),
+              zpp_threads_stacks[s_thread_instance_count],
+              K_THREAD_STACK_SIZEOF(zpp_threads_stacks[s_thread_instance_count]),
               zephyr_priority,
               _name.c_str());
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
 #if CONFIG_USERSPACE
-  _tid = k_thread_create(&_thread_data[_threadInstanceCount],
+  _tid = k_thread_create(&_thread_data[s_thread_instance_count],
                          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                         zpp_threads_stacks[_threadInstanceCount],
+                         zpp_threads_stacks[s_thread_instance_count],
                          // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-                         K_THREAD_STACK_SIZEOF(zpp_threads_stacks[_threadInstanceCount]),
-                         Thread::_thunk,
+                         K_THREAD_STACK_SIZEOF(zpp_threads_stacks[s_thread_instance_count]),
+                         Thread::s_thunk,
                          // cppcheck-suppress cstyleCast
                          // NOLINTNEXTLINE(readability/casting)
-                         (void*)static_cast<uint32_t>(_threadInstanceCount),  // MISRA-suppress: 7.2.1  legacy API,
-                                                                              // reviewed by Serge 2026-03-11
+                         (void*)static_cast<uint32_t>(s_thread_instance_count),  // MISRA-suppress: 7.2.1  legacy API,
+                                                                                // reviewed by Serge 2026-03-11
                          _event._p_event,
                          _mutex._p_mutex,
                          zephyr_priority,
@@ -154,13 +154,13 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 #else   // CONFIG_USERSPACE
   _tid = k_thread_create(
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-      &thread_data[_threadInstanceCount],
+      &thread_data[s_thread_instance_count],
       // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-      zpp_threads_stacks[_threadInstanceCount],
+      zpp_threads_stacks[s_thread_instance_count],
       K_THREAD_STACK_SIZEOF(
           // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-          zpp_threads_stacks[_threadInstanceCount]),
-      Thread::_thunk,
+          zpp_threads_stacks[s_thread_instance_count]),
+      Thread::s_thunk,
       // cppcheck-suppress cstyleCast
       // NOLINTNEXTLINE(readability/casting, modernize-avoid-c-style-cast)
       (void*)this,  // MISRA-suppress: 7.2.1  legacy API, reviewed by Serge 2026-03-11
@@ -172,7 +172,7 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 #endif  // CONFIG_USERSPACE
   if (_tid == nullptr) {
     ZPP_ASSERT(false, "_tid is null");
-    res.assign_error(ZephyrErrorCode::k_nomem);
+    res.assign_error(ZephyrErrorCode::Nomem);
     return res;
   }
   auto ret = k_thread_name_set(_tid, _name.c_str());
@@ -189,11 +189,11 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
 #endif  // CONFIG_USERSPACE
 
   // Wake up the thread (after setting name and granting access)
-  ZPP_LOG_DBG("Thread %p (instance count %d) starting", static_cast<void*>(_tid), _threadInstanceCount);
+  ZPP_LOG_DBG("Thread %p (instance count %d) starting", static_cast<void*>(_tid), s_thread_instance_count);
   k_thread_start(_tid);
 
   // update the thread instance count
-  _threadInstanceCount++;
+  s_thread_instance_count++;
 
   return res;
 }
@@ -240,7 +240,7 @@ k_tid_t Thread::get_tid() const noexcept {
 
 // Complexity is increased by Zephyr Macros
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void Thread::_thunk(void* p1, void* p2, void* p3) {
+void Thread::s_thunk(void* p1, void* p2, void* p3) {
 #if CONFIG_USERSPACE
   // cppcheck-suppress cstyleCast
   uint32_t threadInstanceIndex = (uint32_t)p1;  // NOLINT(readability/casting)
@@ -268,7 +268,7 @@ void Thread::_thunk(void* p1, void* p2, void* p3) {
   {
     std::scoped_lock<Mutex> guard(mutex);
     // remove this thread from the existing threads
-    _threadInstanceCount--;
+    s_thread_instance_count--;
     ZPP_LOG_DBG("Job is marked finished, unlocking mutex");
   }
   ZPP_LOG_DBG("Exiting _thunk");

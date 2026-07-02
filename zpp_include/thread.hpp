@@ -33,13 +33,12 @@
 // zpp_lib
 #include "zpp_include/event.hpp"
 #include "zpp_include/mutex.hpp"
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/types.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
 
-class Thread : private NonCopyable<Thread> {
+class Thread final {
 public:
   /** Allocate a new thread without starting execution
     @param   priority       initial priority of the thread function. (default:
@@ -60,7 +59,16 @@ public:
 
   /** Performs sanity checks
    */
-  virtual ~Thread();
+  ~Thread();
+
+  /** Explicity prevent (move) copy and assignment 
+      rather than inheriting from NonCopyable. This avoids 
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  Thread(const Thread&) = delete;
+  Thread(Thread&&)      = delete;
+  Thread& operator=(const Thread&) = delete;
+  Thread& operator=(Thread&&)      = delete;
 
   /** Starts a thread executing the specified function.
     @param   task           function to be executed by this thread.
@@ -90,9 +98,8 @@ public:
 private:
   // Required to share definitions without
   // delegated constructors
-  static void _thunk(void* p1, void* p2, void* p3);
+  static void s_thunk(void* p1, void* p2, void* p3);
 
-private:
   Mutex _mutex;
   Event _event;
 #if CONFIG_USERSPACE
@@ -107,7 +114,7 @@ private:
   k_tid_t _tid = nullptr;
 
   // used for accessing the corresponding statically allocated stack
-  static uint8_t _threadInstanceCount;
+  static uint8_t s_thread_instance_count;
 };
 
 }  // namespace zpp_lib

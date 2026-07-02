@@ -42,7 +42,7 @@ namespace zpp_lib {
  * thread's stack, both for the mbed OS and underlying RTOS objects (static or dynamic
  * RTOS memory pools are not being used).
  */
-class Semaphore : private NonCopyable<Semaphore> {
+class Semaphore final : private NonCopyable {
 public:
   /** Create and Initialize a Semaphore object used for managing resources.
     @param count number of available resources; maximum index value is (count-1).
@@ -51,6 +51,12 @@ public:
     @note You cannot call this function from ISR context.
   */
   Semaphore(uint32_t initial_count, uint32_t max_count) noexcept;
+
+  /** Semaphore destructor
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  ~Semaphore();
 
   /** Wait until a Semaphore resource becomes available.
     @note You cannot call this function from ISR context.
@@ -81,14 +87,6 @@ public:
    */
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
-
-#if CONFIG_USERSPACE
-  /** Semaphore destructor
-   *
-   * @note You cannot call this function from ISR context.
-   */
-  ~Semaphore();
-#endif
 
 private:
 #if CONFIG_USERSPACE

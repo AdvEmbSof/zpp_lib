@@ -25,10 +25,10 @@
 #pragma once
 
 // zephyr sdk
-#include <zephyr/sys/__assert.h>
 
-// zpp rtos
+// zpp_lib
 #include "zephyr_error_code.hpp"
+#include "zpp_assert.hpp"
 
 namespace zpp_lib {
 
@@ -42,14 +42,14 @@ public:
   ///
   /// @brief default initialization to ok (no error) state
   ///
-  ZephyrResult() noexcept : _is_ok(true), _error_value(ZephyrErrorCode::k_ok) {}
+  ZephyrResult() noexcept : _is_ok(true), _error_value(ZephyrErrorCode::Ok) {}
 
   ///
   /// @brief initialization to error state
   ///
   /// @param rhs the error value to assign
   ///
-  ZephyrResult(const ZephyrResult& res) noexcept : _is_ok(false), _error_value(res.error()) {}
+  // ZephyrResult(const ZephyrResult& res) noexcept : _is_ok(false), _error_value(res.error()) {}
 
   ///
   /// @brief initialization to error state
@@ -97,8 +97,8 @@ public:
   ///
   /// @warning when the result is in error state the the thread will terminate
   ///
-  ZephyrErrorCode error() const {
-    __ASSERT(!_is_ok, "Result is in ok state");
+  [[nodiscard]] ZephyrErrorCode error() const noexcept {
+    ZPP_ASSERT(!_is_ok, "Result is in ok state");
     return _error_value;
   }
 
@@ -118,14 +118,14 @@ public:
   ///
   /// @brief default initialization to ok (no error) state
   ///
-  ZephyrBoolResult() noexcept : _is_ok(true), _bool_result(true), _error_value(ZephyrErrorCode::k_ok) {}
+  ZephyrBoolResult() noexcept : _is_ok(true), _bool_result(true), _error_value(ZephyrErrorCode::Ok) {}
 
   ///
   /// @brief initialization to error state
   ///
   /// @param rhs the error value to assign
   ///
-  ZephyrBoolResult(const ZephyrBoolResult& res) noexcept : _is_ok(false), _bool_result(false), _error_value(res.error()) {}
+  // ZephyrBoolResult(const ZephyrBoolResult& res) noexcept : _is_ok(false), _bool_result(false), _error_value(res.error()) {}
 
   ///
   /// @brief initialization to error state
@@ -172,7 +172,7 @@ public:
   /// @return true if the result is valid
   ///
   constexpr operator bool() const noexcept {
-    __ASSERT(!has_error(), "Result is in error state");
+    ZPP_ASSERT(!has_error(), "Result is in error state");
     return _bool_result;
   }
 
@@ -181,7 +181,7 @@ public:
   ///
   /// @return true if no error was assigned
   ///
-  constexpr bool has_error() const noexcept {
+  [[nodiscard]] constexpr bool has_error() const noexcept {
     return !_is_ok;
   }
 
@@ -192,8 +192,8 @@ public:
   ///
   /// @warning when the result is in error state the the thread will terminate
   ///
-  ZephyrErrorCode error() const noexcept {
-    __ASSERT(has_error(), "Result is in ok state");
+  [[nodiscard]] ZephyrErrorCode error() const noexcept {
+    ZPP_ASSERT(has_error(), "Result is in ok state");
     return _error_value;
   }
 

@@ -51,7 +51,7 @@ ZPP_ZTEST_USER(zpp_interrupt_in, test_destructor) {
 
   {
     zpp_lib::InterruptIn button1(zpp_lib::InterruptIn::PinName::BUTTON1);
-    button1.fall(callback);
+    zpp_lib::RegistrationToken token = button1.add_callback(callback);
 
     printk("Press button 1! -> a message should print\n");
 
@@ -70,11 +70,11 @@ ZPP_ZTEST_USER(zpp_interrupt_in, test_multiple_instances) {
   using std::literals::chrono_literals::operator""s;
   {
     zpp_lib::InterruptIn button1_1(zpp_lib::InterruptIn::PinName::BUTTON1);
-    button1_1.fall(callback1);
+    zpp_lib::RegistrationToken token1_1 = button1_1.add_callback(callback1);
 
     {
       zpp_lib::InterruptIn button1_2(zpp_lib::InterruptIn::PinName::BUTTON1);
-      button1_2.fall(callback2);
+      zpp_lib::RegistrationToken token1_2 = button1_2.add_callback(callback2);
       printk("Press button 1! -> two messages should print\n");
 
       // if the user presses the button in the next 10s, the callback message should print

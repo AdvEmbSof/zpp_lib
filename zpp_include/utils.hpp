@@ -30,11 +30,11 @@ class Utils {
 public:
   Utils() = default;
 
-#if defined(CONFIG_THREAD_STACK_INFO) && defined(CONFIG_THREAD_ANALYZER)
+#if CONFIG_THREAD_STACK_INFO && CONFIG_THREAD_ANALYZER
   static void log_threads_stack_info();
 #endif
   static void log_threads_summary();
-#if defined(CONFIG_SYS_HEAP_RUNTIME_STATS)
+#if CONFIG_SYS_HEAP_RUNTIME_STATS
   static void log_heap_summary();
 #endif
   static void log_cpu_load();

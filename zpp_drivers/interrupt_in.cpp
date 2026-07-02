@@ -41,7 +41,7 @@ namespace zpp_lib {
 // _gpio is initialized with an error in default switch case,
 // complexity is not an issue since we only call a zephyr macro in the switch cases
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
-InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name) {
+InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name), _callback_register(*this) {
 #if !CONFIG_INTERRUPT_IN_EMUL
   switch (pin_name) {
 #if HAS_SW0
@@ -100,28 +100,8 @@ InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name) {
 // Complexity is increased by Zephyr Macros
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 InterruptIn::~InterruptIn() {
-  std::scoped_lock<Mutex> guard(_cb_mutex);
-
 #if NUM_BUTTONS > 0
-  size_t button_index = static_cast<size_t>(_pin_name) - 1;
-  // PinName is an enum class that starts at 1, so buttonIndex is in
-  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
-  ZPP_LOG_DBG("Trying to unregistering callback for %p (button %d)", this, button_index);
-  if (cb_function_map.contains(this)) {
-#if !CONFIG_INTERRUPT_IN_EMUL
-    if (cb_function_map.size() == 1) {
-      auto ret = gpio_remove_callback(_gpio.port, &_cbData._gpio_cb);
-      if (ret != 0) {
-        ZPP_ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
-      }
-      ZPP_LOG_DBG("Gpio callback removed");
-    }
-#endif  // !CONFIG_INTERRUPT_IN_EMUL
-    ZPP_LOG_DBG("Removing callback for button %d", button_index);
-    cb_function_map.erase(this);
-  }
+  _callback_register.unregister_all_callbacks();  
 #endif  // NUM_BUTTONS > 0
 }
 
@@ -131,7 +111,7 @@ bool InterruptIn::read() {
 #if CONFIG_INTERRUPT_IN_EMUL
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in
-  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
   return _value[button_index];
 #else   // CONFIG_INTERRUPT_IN_EMUL
@@ -143,7 +123,7 @@ bool InterruptIn::read() {
 void InterruptIn::write(bool value) {
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in
-  // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+  // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
   bool edge_falling = _value[button_index] == !kPolarityPressed && value == kPolarityPressed;
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
@@ -152,46 +132,50 @@ void InterruptIn::write(bool value) {
     // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(_pin_name), k_cycle_get_32());
     size_t button_index = static_cast<size_t>(_pin_name) - 1;
     // PinName is an enum class that starts at 1, so buttonIndex is in
-    // the range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
+    // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
     // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-    CallbackFunctionMap& cb_function_map = _fall_cb_map[button_index];
-    for (auto& cb : cb_function_map) {
-      // printk("TEST mode: Calling callback for button %d\n", button_index);
-      cb.second();
-    }
+    s_callback_register[button_index].execute_callbacks();
   }
 }
 #endif  // CONFIG_INTERRUPT_IN_EMUL
 
 // Complexity is increased by Zephyr Macros
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
-void InterruptIn::fall(const std::function<void()>& func) {
-  if (func == nullptr) {
+RegistrationToken InterruptIn::add_callback(const CallbackRegister::CallbackFunction& cb) {
+  if (cb == nullptr) {
     ZPP_LOG_ERR("Cannot call fall with nullptr");
-    return;
+    return RegistrationToken(nullptr);
   }
 
   // We allow for multiple calls to fall() for setting multiple callbacks.
   // On first call, we configure the Zephyr driver to call the
   // InterruptIn<pinName>::callback() on button fall
   // On subsequent calls, we simply push the callback to the vector
-  std::scoped_lock<Mutex> guard(_cb_mutex);
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
-  // PinName is an enum class that starts at 1, so buttonIndex is in the
-  // range [0, NUM_BUTTONS-1], which is the valid range for _fall_cb_map
-  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  auto& cb_function_map = _fall_cb_map[button_index];
   ZPP_LOG_DBG("Setting up callback for button %d", button_index);
 #if !CONFIG_INTERRUPT_IN_EMUL
-  if (cb_function_map.empty()) {
-    _cbData._instance = this;
-    gpio_init_callback(&_cbData._gpio_cb, &InterruptIn::callback, BIT(_gpio.pin));
-    gpio_add_callback(_gpio.port, &_cbData._gpio_cb);
+  if (! _callback_register.has_callbacks()) {
+    _cb_data._instance = this;
+    gpio_init_callback(&_cb_data._gpio_cb, &InterruptIn::callback, BIT(_gpio.pin));
+    gpio_add_callback(_gpio.port, &_cb_data._gpio_cb);
     ZPP_LOG_DBG("Callback set for %s pin %d", _gpio.port->name, _gpio.pin);
   }
 #endif  // !CONFIG_INTERRUPT_IN_EMUL
   ZPP_LOG_DBG("Registering callback in map for %p", this);
-  cb_function_map[this] = func;
+  
+  return _callback_register.register_callback(cb);  
+}  
+
+void InterruptIn::remove_gpio_callback() { 
+  // size_t button_index = static_cast<size_t>(_pin_name) - 1;
+  // ZPP_LOG_DBG("Trying to unregistering callback for %p (button %d)", this, button_index);
+#if !CONFIG_INTERRUPT_IN_EMUL
+  auto ret = gpio_remove_callback(_gpio.port, &_cb_data._gpio_cb);
+  if (ret != 0) {
+    ZPP_ASSERT(false, "Cannot remove callback on GPIO %s (%d)", _gpio.port->name, ret);
+  }
+  ZPP_LOG_DBG("Gpio callback removed");
+#endif  // !CONFIG_INTERRUPT_IN_EMUL
 }
 
 #if !CONFIG_INTERRUPT_IN_EMUL
@@ -200,13 +184,10 @@ void InterruptIn::callback(const struct device* port, struct gpio_callback* cb, 
   // We need to cast cb for getting the instance on which the callback is running
   // static_cast<CallbackData*> is not accepted here, reinterpret_cast is not supported
   // NOLINTNEXTLINE(readability/casting,modernize-avoid-c-style-cast,cppcoreguidelines-pro-type-cstyle-cast)
-  auto* p_callback_data   = (CallbackData*)cb;
+  auto* p_callback_data   = (CallbackData*) cb;
   InterruptIn* p_instance = p_callback_data->_instance;
-  size_t button_index     = static_cast<size_t>(p_instance->_pin_name) - 1;
-  for (auto& elem : _fall_cb_map[button_index]) {
-    elem.second();
-  }
-}
+  p_instance->_callback_register.execute_callbacks();
+}  
 #endif  // ! defined(CONFIG_INTERRUPT_IN_EMUL)
 
 }  // namespace zpp_lib

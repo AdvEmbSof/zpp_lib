@@ -33,12 +33,11 @@
 #include <chrono>
 
 // zpp_lib
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
 
-class Event : private NonCopyable<Event> {
+class Event final {
 public:
   /** Create and Initialize a Event object
    *
@@ -55,6 +54,21 @@ public:
   explicit Event(k_event* pEvent) noexcept;
 #endif  // CONFIG_USERSPACE
 
+  /** Event destructor
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  ~Event();
+
+  /** Explicity prevent (move) copy and assignment 
+      rather than inheriting from NonCopyable. This avoids 
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  Event(const Event&) = delete;
+  Event(Event&&)      = delete;
+  Event& operator=(const Event&) = delete;
+  Event& operator=(Event&&)      = delete;
+  
   /** Set an event flag in the event object. This unblocks any thread
    *  waiting on that flag.
    *
@@ -83,14 +97,6 @@ public:
    */
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
-
-#if CONFIG_USERSPACE
-  /** Event destructor
-   *
-   * @note You cannot call this function from ISR context.
-   */
-  ~Event();
-#endif
 
 private:
 #if !CONFIG_USERSPACE

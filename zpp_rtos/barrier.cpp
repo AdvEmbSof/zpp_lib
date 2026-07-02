@@ -55,10 +55,6 @@ ZPP_LIB_DATA std::chrono::microseconds Barrier::_start_time = 0us;
 
 Barrier::Barrier(uint32_t nbr_of_threads) : _wait_semaphore{0, nbr_of_threads}, _count(nbr_of_threads), _total(nbr_of_threads) {}
 
-Barrier::~Barrier() {
-  ZPP_LOG_DBG("Destructing barrier");
-}
-
 #if CONFIG_TEST
 std::chrono::microseconds Barrier::wait(const Barrier::ZeroTimeCB& zero_time_cb) {
 #else

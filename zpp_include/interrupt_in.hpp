@@ -45,7 +45,7 @@
 
 // zpp_lib
 #include "zpp_include/mutex.hpp"
-#include "zpp_include/non_copyable.hpp"
+#include "zpp_include/callback_register.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
@@ -62,9 +62,9 @@ namespace zpp_lib {
  */
 static constexpr bool kPolarityPressed = true;
 
-class InterruptIn : private NonCopyable<InterruptIn> {
+class InterruptIn final {
 public:
-  enum class PinName {
+  enum class PinName : uint8_t {
 #if HAS_SW0
     BUTTON1 = 1,
 #if HAS_SW1
@@ -77,7 +77,7 @@ public:
 #endif  // HAS_SW2
 #endif  // HAS_SW1
 #endif  // HAS_SW0
-    LAST_BUTTON = NUM_BUTTONS
+    LastButton = NUM_BUTTONS
   };
 
   /**
@@ -91,10 +91,19 @@ public:
   explicit InterruptIn(PinName pin_name);
 
   /** Remove callbacks added to gpio device
-   *
+   *  Make it virtual to prevent cppcoreguidelines-virtual-class-destructor
    */
-  virtual ~InterruptIn();
-
+  ~InterruptIn();
+  
+  /** Explicity prevent (move) copy and assignment 
+      rather than inheriting from NonCopyable. This avoids 
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  InterruptIn(const InterruptIn&) = delete;
+  InterruptIn(InterruptIn&&)      = delete;
+  InterruptIn& operator=(const InterruptIn&) = delete;
+  InterruptIn& operator=(InterruptIn&&)      = delete;
+  
   /** Read the input, represented as 0 or 1 (int)
    *
    *  @returns
@@ -107,12 +116,19 @@ public:
    */
   operator bool();
 
-  /** Attach a function to call when a falling edge occurs on the input
+  /** Register a function to call when a falling edge occurs on the input
    *  Interrupts are enabled for the pin
    *
    *  @param func A pointer to a void function, or 0 to set as none
    */
-  void fall(const std::function<void()>& func);
+  [[nodiscard]] RegistrationToken add_callback(const CallbackRegister::CallbackFunction& cb);
+
+  /** Register a function to call when a falling edge occurs on the input
+   *  Interrupts are enabled for the pin
+   *
+   *  @param func A pointer to a void function, or 0 to set as none
+   */
+   void remove_gpio_callback();
 
 #if CONFIG_INTERRUPT_IN_EMUL
   /** Used for testing purposes
@@ -121,8 +137,8 @@ public:
   void write(bool value);
 #endif  // CONFIG_INTERRUPT_IN_EMUL
 
-protected:
-  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LAST_BUTTON);
+private:
+  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LastButton);
 #if CONFIG_INTERRUPT_IN_EMUL
   static inline bool _value[kNbrOfButtons] = {!kPolarityPressed};  // button not pressed by default
 #else
@@ -132,15 +148,10 @@ protected:
     struct gpio_callback _gpio_cb;
     InterruptIn* _instance;
   };
-  struct CallbackData _cbData = {._gpio_cb = {}, ._instance = nullptr};
+  struct CallbackData _cb_data = {._gpio_cb = {}, ._instance = nullptr};
 #endif  // CONFIG_INTERRUPT_IN_EMUL
   PinName _pin_name;
-  using CallbackFunction    = std::function<void()>;
-  using CallbackFunctionMap = std::map<void*, CallbackFunction>;
-  static inline CallbackFunctionMap _fall_cb_map[kNbrOfButtons];
-  static inline zpp_lib::Mutex _cb_mutex;
+  CallbackRegister _callback_register;
 };
-
-/** @}*/
 
 }  // namespace zpp_lib

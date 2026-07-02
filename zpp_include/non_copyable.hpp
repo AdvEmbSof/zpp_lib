@@ -26,7 +26,7 @@
 
 namespace zpp_lib {
 
-template <typename T> class NonCopyable {
+class NonCopyable {
 protected:
   /**
    * Disallow construction of NonCopyable objects from outside of its hierarchy.

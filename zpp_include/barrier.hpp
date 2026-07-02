@@ -40,11 +40,11 @@
 
 namespace zpp_lib {
 
-class Barrier : NonCopyable<Barrier> {
+class Barrier : NonCopyable {
 public:
   // constructor and destructor
   explicit Barrier(uint32_t nbr_of_threads);
-  ~Barrier();
+  ~Barrier() = default;
 
   /** Wait for all thread to reach the barrier, last thread gets the time and
    *  all threads get the same synchronized time

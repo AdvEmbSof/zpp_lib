@@ -97,9 +97,8 @@ Event::Event() noexcept
   k_event_init(&_event);
 #endif  // CONFIG_USERSPACE
 }
-
-#if CONFIG_USERSPACE
 Event::~Event() {
+#if CONFIG_USERSPACE
   bool found                                = false;
   static constexpr uint8_t totalNbrOfEvents = CONFIG_ZPP_EVENT_POOL_SIZE + CONFIG_ZPP_THREAD_POOL_SIZE;
   for (uint8_t index = 0; index < totalNbrOfEvents; index++) {
@@ -116,8 +115,8 @@ Event::~Event() {
     }
   }
   ZPP_ASSERTSERT(found, "Event %p not found", static_cast<void*>(_p_event));
-}
 #endif  // CONFIG_USERSPACE
+}
 
 #if CONFIG_USERSPACE
 Event::Event(k_event* pEvent) noexcept {

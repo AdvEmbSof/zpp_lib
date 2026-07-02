@@ -31,7 +31,6 @@
 #include <chrono>
 
 // zpp_lib
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
@@ -42,7 +41,7 @@ namespace zpp_lib {
  @note You cannot use member functions of this class in ISR context. If you require Mutex
  functionality within ISR handler, consider using @a Semaphore.
 */
-class Mutex : private NonCopyable<Mutex> {
+class Mutex final {
 public:
   /** Create and Initialize a Mutex object
    *
@@ -51,7 +50,6 @@ public:
   Mutex() noexcept;
 
   /** Create and Initialize a Mutex object
-
    @param name name to be used for this mutex. It has to stay allocated for the lifetime
    of the thread.
    @note You cannot call this function from ISR context.
@@ -67,6 +65,21 @@ public:
   explicit Mutex(k_mutex* pMutex) noexcept;
 #endif  // CONFIG_USERSPACE
 
+  /** Mutex destructor
+   *
+   * @note You cannot call this function from ISR context.
+   */
+  ~Mutex();
+
+  /** Explicity prevent (move) copy and assignment 
+      rather than inheriting from NonCopyable. This avoids 
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  Mutex(const Mutex&) = delete;
+  Mutex(Mutex&&)      = delete;
+  Mutex& operator=(const Mutex&) = delete;
+  Mutex& operator=(Mutex&&)      = delete;
+  
   /**
     Wait until a Mutex becomes available.
 
@@ -107,14 +120,6 @@ public:
    */
   void grant_access(k_tid_t tid);
 #endif  // CONFIG_USERSPACE
-
-#if CONFIG_USERSPACE
-  /** Mutex destructor
-   *
-   * @note You cannot call this function from ISR context.
-   */
-  ~Mutex();
-#endif
 
 private:
 #if CONFIG_USERSPACE

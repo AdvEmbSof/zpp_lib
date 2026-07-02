@@ -33,7 +33,7 @@
 
 namespace zpp_lib {
 
-template <typename F> class Ticker : private NonCopyable<Ticker<F>> {
+template <typename F> class Ticker final : private NonCopyable {
 public:
   Ticker() = default;
 

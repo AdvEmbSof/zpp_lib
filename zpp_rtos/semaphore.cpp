@@ -96,8 +96,8 @@ Semaphore::Semaphore(uint32_t initial_count, uint32_t max_count) noexcept {
 #endif  // CONFIG_USERSPACE
 }
 
-#if CONFIG_USERSPACE
 Semaphore::~Semaphore() {
+#if CONFIG_USERSPACE
   bool found = false;
   for (uint8_t index = 0; index < CONFIG_ZPP_SEMAPHORE_POOL_SIZE; index++) {
     if (_p_sem == &ZPP_SEMAPHORE_ARRAY[index]) {
@@ -110,8 +110,8 @@ Semaphore::~Semaphore() {
     }
   }
   __ASSERT(found, "Semaphore %p not found", static_cast<void*>(_p_sem));
-}
 #endif  // CONFIG_USERSPACE
+}
 
 ZephyrResult Semaphore::acquire() {
   ZPP_LOG_DBG("Acquiring semaphore %p with count %d", _p_sem, k_sem_count_get(_p_sem));

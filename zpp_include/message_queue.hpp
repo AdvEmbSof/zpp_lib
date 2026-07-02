@@ -41,7 +41,7 @@ extern uint8_t gMsgqInstanceCount;
 extern struct k_msgq ZPP_MESSAGE_QUEUE_ARRAY[CONFIG_ZPP_MSGQ_POOL_SIZE];
 #endif  // CONFIG_USERSPACE
 
-template <typename T, uint32_t QueueSize> class MessageQueue : private NonCopyable<MessageQueue<T, QueueSize>> {
+template <typename T, uint32_t QueueSize> class MessageQueue final : private NonCopyable {
 public:
 #if CONFIG_USERSPACE
   explicit MessageQueue(char* msgqBuffer) {

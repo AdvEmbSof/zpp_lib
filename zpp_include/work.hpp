@@ -39,18 +39,18 @@
 
 namespace zpp_lib {
 
-template <typename Obj, typename... Args> class Work {
+template <typename Obj, typename... Args> class Work final {
 public:
   using Method = void (Obj::*)(Args...);
-  explicit Work(Obj* obj, Method f, Args... args) noexcept {
-    _obj        = obj;
-    _workMethod = f;
-    _args       = std::make_tuple(std::forward<Args>(args)...);
-    k_work_init(&_work, &Work::_thunk);
+  explicit Work(Obj* obj, Method f, Args... args) noexcept :
+    _work(), _obj(obj), _work_method(f), _args(std::make_tuple(std::forward<Args>(args)...)) {
+    k_work_init(&_work, &Work::s_thunk);
   }
+   
+  ~Work() = default;
 
   // allow to modify the params
-  void setParams(Args... args) {
+  void set_params(Args... args) {
     // params should not be modified when the work is pending
     // we silently reject the new args, as if the UI (button) would be greyed out
     if (k_work_is_pending(&_work)) {
@@ -70,21 +70,22 @@ public:
   Work(Work&& other)            = delete;
 
 private:
-  static void _thunk(struct k_work* item) {
+  static void s_thunk(struct k_work* item) {
     // this ugly casting is the simplest way of getting the information
     // we need in the _thunk method
     // CASTING IS POSSIBLE ONLY WHEN k_work IS THE FIRST ATTRIBUTE
     // IN THE CLASS
     // static_cast<uint32_t*> is not accepted here, reinterpret_cast is not supported
-    Work* pWork = (Work*)(item);  // NOLINT(readability/casting)
-    std::apply([&](auto&&... params) { std::invoke(pWork->_workMethod, pWork->_obj, std::forward<decltype(params)>(params)...); },
-               pWork->_args);
+    // NOLINTNEXTLINE(modernize-avoid-c-style-cast)
+    Work* p_work = (Work*) item;  // NOLINT(readability/casting)
+    std::apply([&](auto&&... params) { std::invoke(p_work->_work_method, p_work->_obj, std::forward<decltype(params)>(params)...); },
+               p_work->_args);
   }
 
   // _work must stay first so the Zephyr callback can recover the enclosing Work.
   struct k_work _work;
   Obj* _obj;
-  Method _workMethod;
+  Method _work_method;
   std::tuple<Args...> _args;
 };
 

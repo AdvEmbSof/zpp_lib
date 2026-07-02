@@ -3,9 +3,7 @@
 from pathlib import Path
 import subprocess
 import sys
-import re
 import argparse
-from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
@@ -13,15 +11,15 @@ def run(cmd):
     print("+", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
-def build_database(app: str, specs: str):
+def build_database(app: str, spec: str):
     build_script = SCRIPT_DIR / "build.py"
     cmd = [
         sys.executable,
         str(build_script),
         "--app",
         app,
-        "--specs",
-        specs,
+        "--spec",
+        spec,
         "--board",
         "native_sim",
         "--pristine"

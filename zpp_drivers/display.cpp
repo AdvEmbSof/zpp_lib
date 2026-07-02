@@ -86,7 +86,7 @@ ZephyrResult Display::initialize() {
   // NOLINTNEXTLINE(bugprone-assignment-in-if-condition)
   if (!device_is_ready(_display_device)) {
     ZPP_LOG_ERR("Device %s not found", _display_device->name);
-    res.assign_error(zpp_lib::ZephyrErrorCode::k_nodev);
+    res.assign_error(zpp_lib::ZephyrErrorCode::Nodev);
     return res;
   }
 
@@ -121,16 +121,16 @@ ZephyrResult Display::initialize() {
 
   default:
     ZPP_LOG_ERR("Unsupported pixel format. Aborting sample.");
-    res.assign_error(zpp_lib::ZephyrErrorCode::k_nosys);
+    res.assign_error(zpp_lib::ZephyrErrorCode::Nosys);
     return res;
   }
 
   k_timeout_t timeout = {0};
   ZPP_LOG_DBG("line buffer size %d\n", _line_buffer_size);
   _line_buffer = static_cast<uint8_t*>(k_heap_alloc(&buf_heap, _line_buffer_size, timeout));
-  if (_line_buffer == nullptr) {
+  if (_line_buffer == nullptr) { 
     ZPP_LOG_ERR("Could not allocate memory of size %d. Aborting sample.", _line_buffer_size);
-    res.assign_error(zpp_lib::ZephyrErrorCode::k_nomem);
+    res.assign_error(zpp_lib::ZephyrErrorCode::Nomem);
     return res;
   }
 
