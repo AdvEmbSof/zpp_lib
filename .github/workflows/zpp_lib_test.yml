@@ -1,4 +1,4 @@
-name: Test AES workspace 
+name: Build and test zpp_lib 
 
 on:
     # push:               # Run the workflow on every push to any branch
