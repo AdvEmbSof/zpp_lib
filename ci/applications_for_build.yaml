@@ -7,7 +7,7 @@ applications:
       - board: qemu_x86
     specs:
       - test+log+debug+gpio
-    config_dir: /home/serge/aes/deps/zpp_lib/configs
+    config_dir: ./deps/zpp_lib/configs
   
   - app: zpp_rtos/tests/mutex
     boards:
@@ -16,7 +16,7 @@ applications:
       - board: qemu_x86
     specs:
       - test
-    config_dir: /home/serge/aes/deps/zpp_lib/configs
+    config_dir: ../deps/zpp_lib/configs
       
   - app: zpp_rtos/tests/semaphore
     boards:
@@ -25,7 +25,7 @@ applications:
       - board: qemu_x86
     specs:
       - test
-    config_dir: /home/serge/aes/deps/zpp_lib/configs
+    config_dir: ../deps/zpp_lib/configs
       
   - app: zpp_rtos/tests/thread
     boards:
@@ -34,5 +34,5 @@ applications:
       - board: qemu_x86
     specs:
       - test+log
-    config_dir: /home/serge/aes/deps/zpp_lib/configs
+    config_dir: ../deps/zpp_lib/configs
       
