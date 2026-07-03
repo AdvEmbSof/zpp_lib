@@ -2,7 +2,6 @@
 import argparse
 import re
 import subprocess
-import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--root", required=True)

@@ -3,7 +3,6 @@ import re
 import subprocess
 from tkinter import ON
 import argparse
-import os
 import subprocess
 
 WORKSPACE_DIR = subprocess.check_output(
