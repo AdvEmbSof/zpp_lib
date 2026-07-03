@@ -3,3 +3,9 @@ tests:
     tags:
       - kernel
       - cpp
+    extra_conf_files: 
+      - ../../../configs/prj.conf
+      - ../../../configs/prj_test.conf
+    extra_args: 
+      - platform:qemu_x86/atom:CONFIG_SYS_CLOCK_TICKS_PER_SEC=5000
+    

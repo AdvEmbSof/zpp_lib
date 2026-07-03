@@ -129,12 +129,7 @@ void InterruptIn::write(bool value) {
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
   _value[button_index] = value;
   if (edge_falling) {
-    // printk("TEST mode: Button %d pressed at %" PRIu32 "\n", static_cast<int>(_pin_name), k_cycle_get_32());
-    size_t button_index = static_cast<size_t>(_pin_name) - 1;
-    // PinName is an enum class that starts at 1, so buttonIndex is in
-    // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-    s_callback_register[button_index].execute_callbacks();
+    _callback_register.execute_callbacks();
   }
 }
 #endif  // CONFIG_INTERRUPT_IN_EMUL

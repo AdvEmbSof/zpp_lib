@@ -1,5 +1,13 @@
 tests:
   - root: zpp_drivers/tests
-    tags: cpp
+    tags: ["cpp"]
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+        map_file: ./nrf5340_map_mint.yaml
+      - board: qemu_x86
   - root: zpp_rtos/tests
-    tags: cpp
+    tags: ["cpp"]
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+        map_file: ./nrf5340_map_mint.yaml
+      - board: qemu_x86

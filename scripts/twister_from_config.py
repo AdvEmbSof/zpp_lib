@@ -41,7 +41,7 @@ for test in config["tests"]:
         ]
 
         config_map_file = board.get("map_file", "")
-        if config_map_file:
+        if config_map_file != "" and map_file is None:
             cmd.extend(["--map-file", config_map_file])
         elif map_file:
             cmd.extend(["--map-file", map_file]) 
