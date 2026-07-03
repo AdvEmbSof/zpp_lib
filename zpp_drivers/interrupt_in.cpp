@@ -151,8 +151,10 @@ RegistrationToken InterruptIn::add_callback(const CallbackRegister::CallbackFunc
   // On first call, we configure the Zephyr driver to call the
   // InterruptIn<pinName>::callback() on button fall
   // On subsequent calls, we simply push the callback to the vector
+#if CONFIG_ZPP_DRIVERS_LOG_LEVEL_DBG
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   ZPP_LOG_DBG("Setting up callback for button %d", button_index);
+#endif  // CONFIG_ZPP_DRIVERS_LOG_LEVEL_DBG
 #if !CONFIG_INTERRUPT_IN_EMUL
   if (!_callback_register.has_callbacks()) {
     _cb_data._instance = this;

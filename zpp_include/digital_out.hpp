@@ -56,14 +56,14 @@ public:
    *
    *  @param pin DigitalOut pin to connect to
    */
-  explicit DigitalOut(PinName pinName);
+  explicit DigitalOut(PinName pin_name);
 
   /** Create a DigitalOut connected to the specified pin
    *
    *  @param pin DigitalOut pin to connect to
    *  @param value the initial pin value
    */
-  explicit DigitalOut(PinName pinName, bool value);
+  explicit DigitalOut(PinName pin_name, bool value);
 
   /** Set the output, specified as 0 or 1 (int)
    *

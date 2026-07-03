@@ -1,0 +1,38 @@
+applications:
+
+  - app: zpp_drivers/tests/interrupt_in
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+      - board: native_sim
+      - board: qemu_x86
+    specs:
+      - test+log+debug+gpio
+    config_dir: /home/serge/aes/deps/zpp_lib/configs
+  
+  - app: zpp_rtos/tests/mutex
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+      - board: native_sim
+      - board: qemu_x86
+    specs:
+      - test
+    config_dir: /home/serge/aes/deps/zpp_lib/configs
+      
+  - app: zpp_rtos/tests/semaphore
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+      - board: native_sim
+      - board: qemu_x86
+    specs:
+      - test
+    config_dir: /home/serge/aes/deps/zpp_lib/configs
+      
+  - app: zpp_rtos/tests/thread
+    boards:
+      - board: nrf5340dk/nrf5340/cpuapp
+      - board: native_sim
+      - board: qemu_x86
+    specs:
+      - test+log
+    config_dir: /home/serge/aes/deps/zpp_lib/configs
+      

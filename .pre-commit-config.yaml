@@ -26,25 +26,25 @@ repos:
   hooks:
   - id: clang-tidy-test-mutex
     name: clang-tidy-test-mutex
-    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/mutex --config-dir "." --specs "" --wd "."
+    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/mutex --spec "test" --wd "."
     language: system
     pass_filenames: true
     files: ^(zpp_rtos/tests/mutex)/.*\.(c|cc|cpp|cxx)$
   - id: clang-tidy-test-semaphore
     name: clang-tidy-test-semaphore
-    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/semaphore --config-dir "." --specs "" --wd "."
+    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/semaphore --spec "test" --wd "."
     language: system
     pass_filenames: true
     files: ^(zpp_rtos/tests/semaphore)/.*\.(c|cc|cpp|cxx)$
   - id: clang-tidy-test-thread
     name: clang-tidy-test-thread
-    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/thread --config-dir "." --specs "" --wd "."
+    entry: python scripts/run_clang_tidy.py --app zpp_rtos/tests/thread --spec "test+log" --wd "."
     language: system
     pass_filenames: true
     files: ^(zpp_rtos/tests/thread)/.*\.(c|cc|cpp|cxx)$
   - id: clang-tidy-test-interrupt-in
     name: clang-tidy-test-interrupt-in
-    entry: python scripts/run_clang_tidy.py --app zpp_drivers/tests/interrupt_in --config-dir "." --specs "" --wd "."
+    entry: python scripts/run_clang_tidy.py --app zpp_drivers/tests/interrupt_in --spec "test+gpio" --wd "."
     language: system
     pass_filenames: true
     files: ^(zpp_drivers/tests/interrupt_in)/.*\.(c|cc|cpp|cxx)$

@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--app", required=True)
 parser.add_argument("--spec", required=True)
 parser.add_argument("--board", required=True)
-parser.add_argument("--config_dir", required=False, default=WORKSPACE_DIR + "/configs")
+parser.add_argument("--config_dir", required=False, default=WORKSPACE_DIR + "/deps/zpp_lib/configs")
 parser.add_argument("--shield", required=False)
 parser.add_argument("--pristine", action="store_true")
 
@@ -60,12 +60,9 @@ if pristine:
 conf_files = [config_dir + "/prj.conf"]
 for s in filter(None, re.split(r"[+,]", spec)):
     if qemu or native_sim:
-        # for gpio or sensor on qemu or native_sim, we need to use the emulated config only            
-        if s == "gpio":
-            conf_file = config_dir + "/prj_gpio_emul.conf"
-            conf_files.append(conf_file)
-        elif s == "sensor":
-            conf_file = config_dir + "/prj_sensor_emul.conf"
+        # for gpio/sensor/display on qemu or native_sim, we need to use the emulated config only            
+        if s == "gpio" or s == "sensor" or s == "display":
+            conf_file = config_dir + f"/prj_{s}_emul.conf"
             conf_files.append(conf_file)
         else:
             conf_file = config_dir + f"/prj_{s}.conf"

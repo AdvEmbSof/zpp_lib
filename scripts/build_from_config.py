@@ -12,7 +12,6 @@ parser.add_argument("--config", required=True)
 parser.add_argument("--app", required=False, help="If specified, only build this app from the config file")
 parser.add_argument("--board", required=False, help="If specified, only build this board from the config file")
 parser.add_argument("--spec", required=False, help="If specified, only build this spec from the config file")
-parser.add_argument("--pristine", action="store_true", help="If specified, build with --pristine")
 
 args = parser.parse_args()
 
@@ -20,7 +19,6 @@ config_file = args.config
 app= args.app
 board= args.board
 spec= args.spec
-pristine= args.pristine
 
 with open(config_file, "r") as f:
     config = yaml.safe_load(f)
@@ -50,15 +48,14 @@ for app in config["applications"]:
                 "--board", board_name
             ]
 
-            if pristine:
-                cmd.append("--pristine")
+            cmd.append("--pristine")
 
             if config_dir:
                 cmd.extend(["--config_dir", config_dir])
 
             if shield:
                 cmd.extend(["--shield", shield])
-
+            
             print(" ".join(cmd))
             subprocess.run(cmd, check=True)
 

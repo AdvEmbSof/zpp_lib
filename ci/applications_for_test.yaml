@@ -1,0 +1,5 @@
+tests:
+  - root: zpp_drivers/tests
+    tags: cpp
+  - root: zpp_rtos/tests
+    tags: cpp

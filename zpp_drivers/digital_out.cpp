@@ -41,7 +41,7 @@ ZPP_LOG_MODULE_REGISTER(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 
 namespace zpp_lib {
 
-DigitalOut::DigitalOut(PinName pinName) : DigitalOut(pinName, false) {}
+DigitalOut::DigitalOut(PinName pin_name) : DigitalOut(pin_name, false) {}
 
 // _gpio is initialized with an error in default switch case,
 // Complexity is not an issue since we only call a zephyr macro in the switch cases
