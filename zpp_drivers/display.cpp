@@ -90,7 +90,7 @@ ZephyrResult Display::initialize() {
     return res;
   }
 
-  ZPP_LOG_INF("Display sample for %s", _display_device->name);
+  ZPP_LOG_DBG("Display sample for %s", _display_device->name);
   display_get_capabilities(_display_device, &_display_capabilities);
 
   // Wrapper adapts to whatever driver reports (rotated or not)
@@ -134,12 +134,12 @@ ZephyrResult Display::initialize() {
     return res;
   }
 
-  ZPP_LOG_INF("Display capabilities: x_res %d y_res %d pixel_format %d",
+  ZPP_LOG_DBG("Display capabilities: x_res %d y_res %d pixel_format %d",
               _display_capabilities.x_resolution,
               _display_capabilities.y_resolution,
               _display_capabilities.current_pixel_format);
-  ZPP_LOG_INF("Display size: x %d, y %d", _lcd_xsize, _lcd_ysize);
-  ZPP_LOG_INF("Buffer size: %d", _line_buffer_size);
+  ZPP_LOG_DBG("Display size: x %d, y %d", _lcd_xsize, _lcd_ysize);
+  ZPP_LOG_DBG("Buffer size: %d", _line_buffer_size);
 
   return res;
 }
