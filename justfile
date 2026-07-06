@@ -54,7 +54,7 @@ test-qemu test_suite_root tags="":
 # Check only the main.cpp file of the application
 clang-tidy app spec:    
     # Step 1 — build to get compile_commands.json (build with all conf files to get the most complete database)
-    python {{zpp_lib_dir}}/scripts/build.py --app {{app}} --spec {{quote(spec)}} --board "native_sim" 
+    python {{zpp_lib_dir}}/scripts/build.py --app {{app}} --spec {{quote(spec)}} --board "native_sim" --pristine
     
     # Step 2 — filter the compile_commands.json file for compatibility with clang-tidy
     mkdir -p build_clang

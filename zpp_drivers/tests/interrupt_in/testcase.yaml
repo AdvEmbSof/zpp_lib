@@ -11,3 +11,6 @@ tests:
     extra_args: 
       - platform:qemu_x86/atom:CONFIG_INTERRUPT_IN_EMUL=y
       - platform:qemu_x86/atom:CONFIG_SYS_CLOCK_TICKS_PER_SEC=5000
+      - platform:qemu_x86/atom:DTC_OVERLAY_FILE=../../../configs/boards/qemu_x86.overlay
+      - platform:nrf5340dk/nrf5340/cpuapp:DTC_OVERLAY_FILE=../../../configs/boards/nrf5340dk_nrf5340_cpuapp.overlay
+      - platform:native_sim:DTC_OVERLAY_FILE=../../../configs/boards/native_sim.overlay

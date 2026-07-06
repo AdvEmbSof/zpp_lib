@@ -29,6 +29,7 @@ shield = args.shield
 qemu = args.board=="qemu_x86"
 native_sim = args.board=="native_sim"
 
+# Build the initial command based on the board type
 if qemu or native_sim:
     print(f"Building {app} for qemu_x86 or native_sim with spec '{spec}' and pristine='{pristine}'")
     cmd = [
@@ -53,9 +54,22 @@ else:
     if shield:
       cmd.extend(["--shield", shield])
     
+# Add pristine argument if configured
 if pristine:
     cmd.append("--pristine")
 
+# Add extra overlay file for qemu, native_sim, or nrf5340dk_nrf5340_cpuapp
+extra_overlay_file = ""
+if qemu:
+    extra_overlay_file = config_dir + "/boards/qemu_x86.overlay"
+elif native_sim:
+    extra_overlay_file = config_dir + "/boards/native_sim.overlay"
+elif board == "nrf5340dk/nrf5340/cpuapp":
+    extra_overlay_file = config_dir + "/boards/nrf5340dk_nrf5340_cpuapp.overlay"
+cmd.extend(["--extra-dtc-overlay",
+            extra_overlay_file])
+
+# Build and add configuration files
 conf_files = [config_dir + "/prj.conf"]
 for s in filter(None, re.split(r"[+,]", spec)):
     if qemu or native_sim:
@@ -77,6 +91,7 @@ cmd.extend([
     f"-DCONF_FILE={';'.join(conf_files)}"
 ])
 
+# For native_sim, export compile commands for clang-tidy
 if native_sim:
     cmd.append("-DCMAKE_EXPORT_COMPILE_COMMANDS=ON")
 
