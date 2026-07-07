@@ -138,9 +138,12 @@ public:
 #endif  // CONFIG_INTERRUPT_IN_EMUL
 
 private:
-  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LastButton);
 #if CONFIG_INTERRUPT_IN_EMUL
-  static inline bool _value[kNbrOfButtons] = {!kPolarityPressed};  // button not pressed by default
+  static constexpr size_t kNbrOfButtons = static_cast<size_t>(PinName::LastButton);
+  // PinName is an enum class that starts at 1, so kNbrOfButtons is known at compile time
+  // It is therefore safe to use a static array to store the state of each button
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
+  static inline bool s_value[kNbrOfButtons] = {!kPolarityPressed};  // button not pressed by default
 #else
   static void callback(const struct device* port, struct gpio_callback* cb, gpio_port_pins_t pins);
   struct gpio_dt_spec _gpio;

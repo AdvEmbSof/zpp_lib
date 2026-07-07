@@ -113,7 +113,7 @@ bool InterruptIn::read() {
   // PinName is an enum class that starts at 1, so buttonIndex is in
   // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  return _value[button_index];
+  return s_value[button_index];
 #else   // CONFIG_INTERRUPT_IN_EMUL
   return static_cast<bool>(gpio_pin_get_dt(&_gpio));
 #endif  // CONFIG_INTERRUPT_IN_EMUL
@@ -123,11 +123,11 @@ bool InterruptIn::read() {
 void InterruptIn::write(bool value) {
   size_t button_index = static_cast<size_t>(_pin_name) - 1;
   // PinName is an enum class that starts at 1, so buttonIndex is in
-  // the range [0, NUM_BUTTONS-1], which is the valid range for s_fall_cb_map
+  // the range [0, NUM_BUTTONS-1], which is the valid range for s_value
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  bool edge_falling = _value[button_index] == !kPolarityPressed && value == kPolarityPressed;
+  bool edge_falling = s_value[button_index] == !kPolarityPressed && value == kPolarityPressed;
   // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-constant-array-index)
-  _value[button_index] = value;
+  s_value[button_index] = value;
   if (edge_falling) {
     _callback_register.execute_callbacks();
   }
