@@ -7,20 +7,20 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 twister_script = SCRIPT_DIR / "twister.py"
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config", required=True)
+parser.add_argument("--yaml", required=True)
 parser.add_argument("--board", required=False, help="If specified, only test this board from the config file")
 parser.add_argument("--map-file", required=False, help="If specified, only build this spec from the config file")
 
 args = parser.parse_args()
 
-config_file = args.config
+yaml_file = args.yaml
 board= args.board
 map_file= args.map_file
 
-with open(config_file, "r") as f:
-    config = yaml.safe_load(f)
+with open(yaml_file, "r") as f:
+    yaml_data = yaml.safe_load(f)
     
-for test in config["tests"]:
+for test in yaml_data["tests"]:
     tags = ",".join(test.get("tags", []))
 
     print(f"Running twister with root '{test["root"]}'")

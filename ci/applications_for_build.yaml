@@ -5,34 +5,38 @@ applications:
       - board: nrf5340dk/nrf5340/cpuapp
       - board: native_sim
       - board: qemu_x86
-    specs:
+    configs:
+      - test+gpio
       - test+log+debug+gpio
-    config_dir: ../../../configs
+    configs_dir: ../../../configs
   
   - app: zpp_rtos/tests/mutex
     boards:
       - board: nrf5340dk/nrf5340/cpuapp
       - board: native_sim
       - board: qemu_x86
-    specs:
+    configs:
       - test
-    config_dir: ../../../configs
+      - test+log+debug
+    configs_dir: ../../../configs
       
   - app: zpp_rtos/tests/semaphore
     boards:
       - board: nrf5340dk/nrf5340/cpuapp
       - board: native_sim
       - board: qemu_x86
-    specs:
+    configs:
       - test
-    config_dir: ../../../configs
+      - test+log+debug
+    configs_dir: ../../../configs
       
   - app: zpp_rtos/tests/thread
     boards:
       - board: nrf5340dk/nrf5340/cpuapp
       - board: native_sim
       - board: qemu_x86
-    specs:
-      - test+log
-    config_dir: ../../../configs
+    configs:
+      - test
+      - test+log+debug
+    configs_dir: ../../../configs
       

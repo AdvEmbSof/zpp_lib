@@ -11,15 +11,15 @@ def run(cmd):
     print("+", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
-def build_database(app: str, spec: str):
+def build_database(app: str, configs: str):
     build_script = SCRIPT_DIR / "build.py"
     cmd = [
         sys.executable,
         str(build_script),
         "--app",
         app,
-        "--spec",
-        spec,
+        "--configs",
+        configs,
         "--board",
         "native_sim",
         "--pristine"        
@@ -79,7 +79,7 @@ def main():
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--app", required=True)
-    parser.add_argument("--spec", required=True)
+    parser.add_argument("--configs", required=True)
     parser.add_argument("--wd", required=True)
     parser.add_argument("files", nargs="*")
 
@@ -88,10 +88,10 @@ def main():
     args.app = args.app.rstrip("/\\")
     
     print(f"App: {args.app}")
-    print(f"Spec: {args.spec}")
+    print(f"Configs: {args.configs}")
     print(f"Working directory: {args.wd}")
 
-    build_database(args.app, args.spec)
+    build_database(args.app, args.configs)
     filter_database()
     if args.files:
         print("Running clang-tidy on files:")
