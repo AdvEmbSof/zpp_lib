@@ -3,6 +3,10 @@
 		i2c-controller = &i2c1;
 		i2c-controller-target = &i2c2;
 	};
+
+	chosen {
+		zephyr,uart-mcumgr = &cdc_acm_uart0;
+	};
 };
 
 &pinctrl {
@@ -39,4 +43,10 @@
     compatible = "bosch,bme280";
     reg = <0x77>;
   };
+};
+
+&zephyr_udc0 {
+	cdc_acm_uart0: cdc_acm_uart0 {
+		compatible = "zephyr,cdc-acm-uart";
+	};
 };
