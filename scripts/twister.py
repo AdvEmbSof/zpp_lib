@@ -44,5 +44,7 @@ else:
 for t in filter(None, re.split(r"[+,]", tags)):
     cmd.extend(["--tag", f"{t}"])
 
+cmd.extend(["--short-build-path"])
+
 print(" ".join(cmd))
 subprocess.run(cmd, check=True)

@@ -338,9 +338,10 @@ uint32_t Display::compute_ypos_from_line_number(uint32_t line) const {
   return line * get_font()->height;
 }
 
-// This is a private method and we always call it correctly
+// Complexity is increased by zephyr macros
+// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void Display::display_char(Color color,
-                           uint32_t x_pos,
+                           uint32_t x_pos,  // This is a private method and we always call it correctly
                            uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)
                            uint32_t unicode) {
   ZPP_ASSERT(_p_font != nullptr, "Font not set");
