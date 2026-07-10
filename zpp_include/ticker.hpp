@@ -41,7 +41,7 @@ public:
     ZephyrResult res;
     // reject the call if already attached
     if (_isAttached) {
-      res.assign_error(ZephyrErrorCode::k_already);
+      res.assign_error(ZephyrErrorCode::Already);
       return res;
     }
 
