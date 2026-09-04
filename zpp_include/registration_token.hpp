@@ -43,6 +43,9 @@ public:
   explicit RegistrationToken(RegistrationRecord* p_record);
   ~RegistrationToken();
 
+  // Allows to check whether the token is valid (i.e., it has an associated registration record)
+  explicit operator bool() const noexcept;
+  
   // Explicity prevent copy and assignment
   RegistrationToken(const RegistrationToken&)                     = delete;
   RegistrationToken& operator=(const RegistrationToken&) noexcept = delete;

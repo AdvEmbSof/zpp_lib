@@ -38,6 +38,10 @@ RegistrationToken::~RegistrationToken() {
   reset();
 }
 
+RegistrationToken::operator bool() const noexcept {
+  return _p_record != nullptr;
+}
+
 RegistrationToken::RegistrationToken(RegistrationToken&& other) noexcept : _p_record(std::exchange(other._p_record, nullptr)) {}
 
 RegistrationToken& RegistrationToken::operator=(RegistrationToken&& other) noexcept {
