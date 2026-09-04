@@ -126,7 +126,7 @@ Mutex::Mutex(k_mutex* pMutex) noexcept {
 #endif  // CONFIG_USERSPACE
 
 ZephyrResult Mutex::lock() {
-  ZPP_LOG_DBG("Locking mutex %p", static_cast<void*>(_p_mutex));
+  ZPP_LOG_DBG("Thread %p is trying to lock mutex %p", static_cast<void*>(k_current_get()), static_cast<void*>(_p_mutex));
   ZephyrResult res;
   int ret = k_mutex_lock(_p_mutex, K_FOREVER);
   if (ret != 0) {
@@ -142,7 +142,8 @@ ZephyrBoolResult Mutex::try_lock() noexcept {
 }
 
 ZephyrBoolResult Mutex::try_lock_for(const std::chrono::milliseconds& timeout) noexcept {
-  ZPP_LOG_DBG("Trying to lock mutex with timeout %lld ms (ticks %lld)", timeout.count(), milliseconds_to_ticks(timeout).ticks);
+  ZPP_LOG_DBG("Thread %p is trying to lock mutex %p with timeout %lld ms (ticks %lld)", static_cast<void*>(k_current_get()), 
+              static_cast<void*>(_p_mutex), timeout.count(), milliseconds_to_ticks(timeout).ticks);
   auto ret = k_mutex_lock(_p_mutex, milliseconds_to_ticks(timeout));
   ZephyrBoolResult res;
   if (ret == -EAGAIN) {
@@ -159,7 +160,7 @@ ZephyrBoolResult Mutex::try_lock_for(const std::chrono::milliseconds& timeout) n
 }
 
 ZephyrResult Mutex::unlock() {
-  ZPP_LOG_DBG("Unlocking mutex %p", static_cast<void*>(_p_mutex));
+  ZPP_LOG_DBG("Thread %p is unlocking mutex %p", static_cast<void*>(k_current_get()), static_cast<void*>(_p_mutex));
   ZephyrResult res;
   int ret = k_mutex_unlock(_p_mutex);
   if (ret != 0) {
