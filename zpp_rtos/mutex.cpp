@@ -142,8 +142,11 @@ ZephyrBoolResult Mutex::try_lock() noexcept {
 }
 
 ZephyrBoolResult Mutex::try_lock_for(const std::chrono::milliseconds& timeout) noexcept {
-  ZPP_LOG_DBG("Thread %p is trying to lock mutex %p with timeout %lld ms (ticks %lld)", static_cast<void*>(k_current_get()), 
-              static_cast<void*>(_p_mutex), timeout.count(), milliseconds_to_ticks(timeout).ticks);
+  ZPP_LOG_DBG("Thread %p is trying to lock mutex %p with timeout %lld ms (ticks %lld)",
+              static_cast<void*>(k_current_get()),
+              static_cast<void*>(_p_mutex),
+              timeout.count(),
+              milliseconds_to_ticks(timeout).ticks);
   auto ret = k_mutex_lock(_p_mutex, milliseconds_to_ticks(timeout));
   ZephyrBoolResult res;
   if (ret == -EAGAIN) {
