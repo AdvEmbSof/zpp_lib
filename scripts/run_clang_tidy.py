@@ -136,6 +136,7 @@ def run_clang_tidy_files(files: list[str]) -> None:
         raise RuntimeError("No C++ files selected for clang-tidy.")
 
     print(f"Running clang-tidy on {len(files)} file(s):")
+    run(["clang-tidy", "--version",])
 
     for file in files:
         print(f"  {file}")
