@@ -239,8 +239,6 @@ k_tid_t Thread::get_tid() const noexcept {
 }
 #endif  // CONFIG_USERSPACE
 
-// Complexity is increased by Zephyr Macros
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void Thread::s_thunk(void* p1, void* p2, void* p3) {
 #if CONFIG_USERSPACE
   // cppcheck-suppress cstyleCast

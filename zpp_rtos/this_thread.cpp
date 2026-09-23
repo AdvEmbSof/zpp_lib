@@ -73,21 +73,18 @@ std::chrono::milliseconds sleep_for(const std::chrono::seconds& sleep_duration) 
   return std::chrono::milliseconds(res);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
 std::chrono::milliseconds sleep_until(const std::chrono::microseconds& absolute_time) {
   // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
   auto res = k_sleep(K_TIMEOUT_ABS_US(absolute_time.count()));
   return std::chrono::milliseconds(res);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
 std::chrono::milliseconds sleep_until(const std::chrono::milliseconds& absolute_time) {
   // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
   auto res = k_sleep(K_TIMEOUT_ABS_MS(absolute_time.count()));
   return std::chrono::milliseconds(res);
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity) - we only call a zephyr macro
 std::chrono::milliseconds sleep_until(const std::chrono::seconds& absolute_time) {
   // NOLINTNEXTLINE(readability-math-missing-parentheses) -- this is a zephyr macro
   auto res = k_sleep(K_TIMEOUT_ABS_SEC(absolute_time.count()));

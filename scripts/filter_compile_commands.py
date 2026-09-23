@@ -11,6 +11,9 @@
 import json
 import sys
 import re
+import os
+import subprocess
+from pathlib import Path
 
 # Exact flags to remove
 STRIP_FLAGS = {
@@ -18,7 +21,10 @@ STRIP_FLAGS = {
     '-mpreferred-stack-boundary=2',
     '-fno-freestanding',
     '-fno-defer-pop',
-    '-fsanitize=bounds-strict'
+    '-fsanitize=bounds-strict',
+    '-specs=picolibc.specs',
+    '--param=min-pagesize=0',
+    '-mfp16-format=ieee',
 }
 
 # Regex patterns for flags with values (flag and its argument)
@@ -34,40 +40,106 @@ REPLACE_FLAGS = {
 
 # Add system C++ headers so <chrono> etc. are found
 EXTRA_ARGS = [
+    '-DZPP_CLANG_TIDY',
+    '--target=arm-none-eabi',
     '-Wno-unknown-warning-option',
     '-Wno-unused-command-line-argument',
 ]
 
+def gcc_include_paths(compiler: str) -> list[str]:
+    """Return GCC C++/target include paths suitable for Clang."""
+    result = subprocess.run(
+        [
+            compiler,
+            "-v",
+            "-E",
+            "-x",
+            "c++",
+            os.devnull,
+        ],
+        input="",
+        text=True,
+        capture_output=True,
+        check=True,
+    )
 
-def filter_command(command: str) -> str:
-    parts  = command.split()
+    paths = []
+    in_search_list = False
+
+    for line in result.stderr.splitlines():
+        if line == "#include <...> search starts here:":
+            in_search_list = True
+            continue
+
+        if in_search_list:
+            if line == "End of search list.":
+                break
+
+            path = Path(line.strip()).resolve()
+
+            # Exclude GCC's private compiler headers.
+            if "/lib/gcc/" in str(path):
+                continue
+
+            if path.exists():
+                paths.append(str(path))
+
+    return paths
+
+def find_gcc_compiler(db: list[dict]) -> str:
+    """Find the GCC C/C++ compiler used by the compilation database."""
+    for entry in db:
+        if "arguments" in entry and entry["arguments"]:
+            compiler = entry["arguments"][0]
+        elif "command" in entry:
+            compiler = entry["command"].split()[0]
+        else:
+            continue
+
+        compiler_name = Path(compiler).name
+
+        if compiler_name.endswith(("gcc", "g++", "clang", "clang++")):
+            if "gcc" in compiler_name or "g++" in compiler_name:
+                return compiler
+
+    raise RuntimeError("Could not find a GCC compiler in compile_commands.json")
+
+def filter_command(command: str, gcc_includes: list[str]) -> str:
+    parts = command.split()
     result = []
-    skip   = False
+    skip = False
 
-    for i, part in enumerate(parts):
+    for part in parts:
         if skip:
             skip = False
             continue
 
-        # Strip exact flags
         if part in STRIP_FLAGS:
             continue
 
-        # Strip pattern flags
         if any(re.match(p, part) for p in STRIP_PATTERNS):
-            # Also skip the next token if it is the value
-            if not '=' in part:
+            if "=" not in part:
                 skip = True
             continue
 
         result.append(part)
 
-    # Replace compiler with clang++ for C++ files
-    if result and ('gcc' in result[0] or 'g++' in result[0]):
-        result[0] = 'clang++'
+    # Replace GCC compiler with Clang.
+    if result:
+        compiler = result[0]
+        compiler_name = Path(compiler).name
+
+        if "gcc" in compiler_name or "g++" in compiler_name:
+            result[0] = "clang++"
+            result.insert(1, "--target=arm-none-eabi")
+
+            # Tell Clang where GCC's C++ standard library headers are.
+            for path in gcc_includes:
+                result.extend(["-isystem", path])
 
     result.extend(EXTRA_ARGS)
-    return ' '.join(result)
+
+    return " ".join(result)
 
 
 def main():
@@ -78,6 +150,15 @@ def main():
     with open(sys.argv[1]) as f:
         db = json.load(f)
 
+    gcc_compiler = find_gcc_compiler(db)
+    print(f"GCC compiler: {gcc_compiler}")
+
+    gcc_includes = gcc_include_paths(gcc_compiler)
+
+    print("GCC C++ include paths:")
+    for path in gcc_includes:
+        print(f"  {path}")
+
     filtered = []
     for entry in db:
         # Only process C++ files — skip C files and assembly
@@ -87,7 +168,10 @@ def main():
 
         new_entry = dict(entry)
         if 'command' in new_entry:
-            new_entry['command'] = filter_command(new_entry['command'])
+            new_entry["command"] = filter_command(
+                new_entry["command"],
+                gcc_includes,
+            )
         if 'arguments' in new_entry:
             # arguments is a list — filter each element
             args   = new_entry['arguments']

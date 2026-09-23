@@ -77,8 +77,6 @@ inline const uint8_t* font_get_glyph(const Display::Font* p_font, uint32_t unico
   return nullptr;
 }
 
-// Complexity is not an issue since we only initialize the driver and initialize some
-// variables NOLINTNEXTLINE(readability-function-cognitive-complexity)
 ZephyrResult Display::initialize() {
   ZephyrResult res;
   _display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
@@ -338,8 +336,6 @@ uint32_t Display::compute_ypos_from_line_number(uint32_t line) const {
   return line * get_font()->height;
 }
 
-// Complexity is increased by zephyr macros
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void Display::display_char(Color color,
                            uint32_t x_pos,  // This is a private method and we always call it correctly
                            uint32_t y_pos,  // NOLINT(bugprone-easily-swappable-parameters)

@@ -39,8 +39,7 @@ ZPP_LOG_MODULE_DECLARE(zpp_drivers, CONFIG_ZPP_DRIVERS_LOG_LEVEL);
 namespace zpp_lib {
 
 // _gpio is initialized with an error in default switch case,
-// complexity is not an issue since we only call a zephyr macro in the switch cases
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name), _callback_register(*this) {
 #if !CONFIG_INTERRUPT_IN_EMUL
   switch (pin_name) {
@@ -97,8 +96,6 @@ InterruptIn::InterruptIn(PinName pin_name) : _pin_name(pin_name), _callback_regi
 #endif  // !CONFIG_INTERRUPT_IN_EMUL
 }
 
-// Complexity is increased by Zephyr Macros
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 InterruptIn::~InterruptIn() {
 #if NUM_BUTTONS > 0
   _callback_register.unregister_all_callbacks();
@@ -134,8 +131,6 @@ void InterruptIn::write(bool value) {
 }
 #endif  // CONFIG_INTERRUPT_IN_EMUL
 
-// Complexity is increased by Zephyr Macros
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 RegistrationToken InterruptIn::add_callback(const CallbackRegister::CallbackFunction& cb) {
   if (cb == nullptr) {
     ZPP_LOG_ERR("Cannot call fall with nullptr");

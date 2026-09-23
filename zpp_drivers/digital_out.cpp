@@ -43,9 +43,8 @@ namespace zpp_lib {
 
 DigitalOut::DigitalOut(PinName pin_name) : DigitalOut(pin_name, false) {}
 
-// _gpio is initialized with an error in default switch case,
-// Complexity is not an issue since we only call a zephyr macro in the switch cases
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init,readability-function-cognitive-complexity)
+// _gpio is initialized with an error in default switch case
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 DigitalOut::DigitalOut(PinName pin_name, bool value) {
   switch (pin_name) {
 #if HAS_LED0

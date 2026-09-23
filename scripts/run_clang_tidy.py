@@ -11,7 +11,13 @@ def run(cmd):
     print("+", " ".join(cmd))
     subprocess.run(cmd, check=True)
 
-def build_database(app: str, configs: str, app_config: str = None):
+def build_database(
+    app: str,
+    configs: str,
+    board: str,
+    shield: str = None,
+    app_config: str = None,
+):
     build_script = SCRIPT_DIR / "build.py"
     cmd = [
         sys.executable,
@@ -21,9 +27,11 @@ def build_database(app: str, configs: str, app_config: str = None):
         "--configs",
         configs,
         "--board",
-        "native_sim",
+        board,
         "--pristine"        
     ]
+    if shield:
+        cmd.extend(["--shield", shield])
     if app_config:
         cmd.extend(["--app-config", app_config])
     run(cmd)
@@ -81,8 +89,10 @@ def main():
     
     parser = argparse.ArgumentParser()
     parser.add_argument("--app", required=True)
+    parser.add_argument("--board", default="native_sim")
     parser.add_argument("--configs", required=True)
     parser.add_argument("--wd", required=True)
+    parser.add_argument("--shield", required=False)
     parser.add_argument("--app-config", required=False)
     parser.add_argument("files", nargs="*")
 
@@ -95,8 +105,11 @@ def main():
     if args.app_config:
         print(f"App Config: {args.app_config}")
     print(f"Working directory: {args.wd}")
+    print(f"Board: {args.board}")
+    if (args.shield):
+        print(f"Shield: {args.shield}")
 
-    build_database(args.app, args.configs, args.app_config)
+    build_database(args.app, args.configs, args.board, args.shield, args.app_config)
     filter_database()
     if args.files:
         print("Running clang-tidy on files:")
