@@ -12,6 +12,7 @@ import json
 import sys
 import re
 import os
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -45,6 +46,10 @@ EXTRA_ARGS = [
     '-Wno-unknown-warning-option',
     '-Wno-unused-command-line-argument',
 ]
+
+def split_command(command: str) -> list[str]:
+    """Split a compile command using the host platform's quoting rules."""
+    return shlex.split(command, posix=(os.name != "nt"))
 
 def gcc_include_paths(compiler: str) -> list[str]:
     """Return GCC C++/target include paths suitable for Clang."""
@@ -105,7 +110,7 @@ def find_gcc_compiler(db: list[dict]) -> str:
     raise RuntimeError("Could not find a GCC compiler in compile_commands.json")
 
 def filter_command(command: str, gcc_includes: list[str]) -> str:
-    parts = command.split()
+    parts = split_command(command)
     result = []
     skip = False
 
@@ -126,10 +131,13 @@ def filter_command(command: str, gcc_includes: list[str]) -> str:
 
     # Replace GCC compiler with Clang.
     if result:
-        compiler = result[0]
-        compiler_name = Path(compiler).name
-
-        if "gcc" in compiler_name or "g++" in compiler_name:
+        compiler = Path(result[0]).name.lower()
+        
+        if compiler in {
+            "gcc", "g++",
+            "arm-zephyr-eabi-gcc",
+            "arm-zephyr-eabi-g++",
+        }:
             result[0] = "clang++"
             result.insert(1, "--target=arm-none-eabi")
 
