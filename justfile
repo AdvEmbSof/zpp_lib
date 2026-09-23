@@ -1,5 +1,5 @@
 prefix := "/"
-working_dir := justfile_directory()
+working_dir := `python -c "from pathlib import Path; print(Path.cwd().as_posix())"`
 zpp_lib_dir := "."
 default_board := "nrf5340dk/nrf5340/cpuapp"
 
@@ -61,7 +61,9 @@ clang-tidy app configs:
     python3 {{zpp_lib_dir}}/scripts/filter_compile_commands.py build/compile_commands.json build_clang/compile_commands.json
 
     # Step 3 — run clang-tidy against the filtered database
-    clang-tidy-22 -p build_clang {{working_dir}}/{{app}}/src/main.cpp --extra-arg=-v    
+    @echo {{working_dir}}
+    @echo {{working_dir}}/{{app}}/src/main.cpp
+    clang-tidy -p build_clang {{working_dir}}/{{app}}/src/main.cpp --extra-arg=-v    
 
 # Check all application files
 run-clang-tidy app configs:

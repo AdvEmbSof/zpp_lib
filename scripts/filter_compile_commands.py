@@ -45,7 +45,6 @@ EXTRA_ARGS = [
     '-Wno-unknown-warning-option',
     '-Wno-unused-command-line-argument',
 ]
-
 def gcc_include_paths(compiler: str) -> list[str]:
     """Return GCC C++/target include paths suitable for Clang."""
     result = subprocess.run(
@@ -77,12 +76,12 @@ def gcc_include_paths(compiler: str) -> list[str]:
 
             path = Path(line.strip()).resolve()
 
-            # Exclude GCC's private compiler headers.
-            if "/lib/gcc/" in str(path):
+            # Normalize before testing GCC private headers.
+            if "/lib/gcc/" in path.as_posix():
                 continue
 
             if path.exists():
-                paths.append(str(path))
+                paths.append(path.as_posix())
 
     return paths
 
@@ -99,7 +98,7 @@ def find_gcc_compiler(db: list[dict]) -> str:
         else:
             continue
 
-        compiler_name = Path(compiler).name.lower()
+        compiler_name = Path(compiler).stem.lower()
 
         if compiler_name.endswith(("gcc", "g++")):
             return compiler
@@ -109,7 +108,10 @@ def find_gcc_compiler(db: list[dict]) -> str:
     )
 
 def filter_command(command: str, gcc_includes: list[str]) -> str:
-    parts = split_command(command)
+    if os.name == "nt":
+        command = command.replace("\\", "/")
+
+    parts = command.split()
     result = []
     skip = False
 
@@ -130,17 +132,16 @@ def filter_command(command: str, gcc_includes: list[str]) -> str:
 
     # Replace GCC compiler with Clang.
     if result:
-        compiler_name = Path(result[0]).name.lower()
-        
-        if compiler_name in {"gcc", "g++"} or compiler_name.endswith(("-gcc", "-g++")):
+        compiler_name = Path(result[0]).stem.lower()
+
+        if compiler_name.endswith(("gcc", "g++")):
             result[0] = "clang++"
-            result.insert(1, "--target=arm-none-eabi")
 
             # Tell Clang where GCC's C++ standard library headers are
             for path in gcc_includes:
                 result.extend(["-isystem", path])
 
-    result.extend(EXTRA_ARGS)
+        result.extend(EXTRA_ARGS)
 
     return " ".join(result)
 
