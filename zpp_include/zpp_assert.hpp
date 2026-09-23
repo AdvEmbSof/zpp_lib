@@ -37,15 +37,15 @@
 #define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
 // NOLINTNEXTLINE(readability/nolint)
 // NOLINTEND(cppcoreguidelines-avoid-do-while)
-#else // !defined(ZPP_CLANG_TIDY)
+#else                                                    // !defined(ZPP_CLANG_TIDY)
 #define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)            // NOLINT
 #define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
 // NOLINTNEXTLINE(readability/nolint)
 // NOLINTEND(cppcoreguidelines-avoid-do-while)
-#endif // ZPP_CLANG_TIDY
+#endif                                                   // ZPP_CLANG_TIDY
 
 #if CONFIG_TEST
 #define zpp_zassert_true(...) zassert_true(__VA_ARGS__)      // NOLINT
 #define zpp_zassert_equal(...) zassert_equal(__VA_ARGS__)    // NOLINT
 #define zpp_zassert_within(...) zassert_within(__VA_ARGS__)  // NOLINT
-#endif  // CONFIG_TEST
+#endif                                                       // CONFIG_TEST
