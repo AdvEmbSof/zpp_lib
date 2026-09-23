@@ -47,15 +47,21 @@ jobs:
             clang-tidy-22 \
             clang-tools-22 \
             clang-22
-          
-          sudo ln -sf /usr/bin/clang-22 /usr/local/bin/clang
-          sudo ln -sf /usr/bin/clang-tidy-22 /usr/local/bin/clang-tidy
-          sudo ln -sf /usr/bin/clang-22 /usr/local/bin/clang
-          sudo ln -sf /usr/bin/clang++-22 /usr/local/bin/clang++
-          sudo ln -sf /usr/bin/clang-tidy-22 /usr/local/bin/clang-tidy
 
+          echo "/usr/lib/llvm-22/bin" >> "$GITHUB_PATH"
+
+          export PATH="/usr/lib/llvm-22/bin:$PATH"
+
+          echo "clang:"
+          command -v clang
           clang --version
+
+          echo "clang++:"
+          command -v clang++
           clang++ --version
+
+          echo "clang-tidy:"
+          command -v clang-tidy
           clang-tidy --version
           
       - name: Run pre-commit hooks
