@@ -48,6 +48,9 @@ jobs:
             clang-tools-22 \
             clang-22
           
+          sudo ln -sf /usr/bin/clang-22 /usr/local/bin/clang
+          sudo ln -sf /usr/bin/clang-tidy-22 /usr/local/bin/clang-tidy
+      
       - name: Run pre-commit hooks
         run: pre-commit run --all-files --color=always --show-diff-on-failure
         
