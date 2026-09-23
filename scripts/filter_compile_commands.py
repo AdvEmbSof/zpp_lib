@@ -12,7 +12,6 @@ import json
 import sys
 import re
 import os
-import shlex
 import subprocess
 from pathlib import Path
 
@@ -46,10 +45,6 @@ EXTRA_ARGS = [
     '-Wno-unknown-warning-option',
     '-Wno-unused-command-line-argument',
 ]
-
-def split_command(command: str) -> list[str]:
-    """Split a compile command using the host platform's quoting rules."""
-    return shlex.split(command, posix=(os.name != "nt"))
 
 def gcc_include_paths(compiler: str) -> list[str]:
     """Return GCC C++/target include paths suitable for Clang."""
@@ -91,17 +86,16 @@ def gcc_include_paths(compiler: str) -> list[str]:
 
     return paths
 
-
 def find_gcc_compiler(db: list[dict]) -> str:
     """Find the GCC C/C++ compiler used by the compilation database."""
     for entry in db:
         if "arguments" in entry and entry["arguments"]:
             compiler = entry["arguments"][0]
         elif "command" in entry:
-            compiler = shlex.split(
-                entry["command"],
-                posix=(os.name != "nt"),
-            )[0]
+            match = re.match(r'\s*(?:"([^"]+)"|(\S+))', entry["command"])
+            if not match:
+                continue
+            compiler = match.group(1) or match.group(2)
         else:
             continue
 
