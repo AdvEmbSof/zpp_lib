@@ -91,23 +91,28 @@ def gcc_include_paths(compiler: str) -> list[str]:
 
     return paths
 
+
 def find_gcc_compiler(db: list[dict]) -> str:
     """Find the GCC C/C++ compiler used by the compilation database."""
     for entry in db:
         if "arguments" in entry and entry["arguments"]:
             compiler = entry["arguments"][0]
         elif "command" in entry:
-            compiler = entry["command"].split()[0]
+            compiler = shlex.split(
+                entry["command"],
+                posix=(os.name != "nt"),
+            )[0]
         else:
             continue
 
-        compiler_name = Path(compiler).name
+        compiler_name = Path(compiler).name.lower()
 
-        if compiler_name.endswith(("gcc", "g++", "clang", "clang++")):
-            if "gcc" in compiler_name or "g++" in compiler_name:
-                return compiler
+        if compiler_name.endswith(("gcc", "g++")):
+            return compiler
 
-    raise RuntimeError("Could not find a GCC compiler in compile_commands.json")
+    raise RuntimeError(
+        "Could not find a GCC compiler in compile_commands.json"
+    )
 
 def filter_command(command: str, gcc_includes: list[str]) -> str:
     parts = split_command(command)
@@ -131,17 +136,13 @@ def filter_command(command: str, gcc_includes: list[str]) -> str:
 
     # Replace GCC compiler with Clang.
     if result:
-        compiler = Path(result[0]).name.lower()
+        compiler_name = Path(result[0]).name.lower()
         
-        if compiler in {
-            "gcc", "g++",
-            "arm-zephyr-eabi-gcc",
-            "arm-zephyr-eabi-g++",
-        }:
+        if compiler_name in {"gcc", "g++"} or compiler_name.endswith(("-gcc", "-g++")):
             result[0] = "clang++"
             result.insert(1, "--target=arm-none-eabi")
 
-            # Tell Clang where GCC's C++ standard library headers are.
+            # Tell Clang where GCC's C++ standard library headers are
             for path in gcc_includes:
                 result.extend(["-isystem", path])
 
