@@ -137,7 +137,16 @@ def run_clang_tidy_files(files: list[str]) -> None:
 
     print(f"Running clang-tidy on {len(files)} file(s):")
     run(["clang-tidy", "--version",])
+    run(["clang-tidy", "--dump-config",])
 
+    with open("build_clang/compile_commands.json") as f:
+        db = json.load(f)
+
+    for entry in db:
+        if entry["file"].endswith("zpp_rtos/tests/mutex/src/main.cpp"):
+            print(entry["command"])
+            break
+        
     for file in files:
         print(f"  {file}")
 
