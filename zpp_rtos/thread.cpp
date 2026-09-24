@@ -61,7 +61,7 @@ static K_THREAD_STACK_ARRAY_DEFINE(zpp_threads_stacks, CONFIG_ZPP_THREAD_POOL_SI
 // library and more generally for preventing stack overflow that may happen if we allocate
 // too large objects on the stack (zephyr requirement)
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
-static struct k_thread thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {nullptr};
+static struct k_thread thread_data[CONFIG_ZPP_THREAD_POOL_SIZE] = {};
 
 #if CONFIG_USERSPACE
 // initialize static data members

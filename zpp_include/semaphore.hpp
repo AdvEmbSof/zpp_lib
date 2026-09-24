@@ -31,7 +31,6 @@
 #include <chrono>
 
 // zpp_lib
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
@@ -42,7 +41,7 @@ namespace zpp_lib {
  * thread's stack, both for the mbed OS and underlying RTOS objects (static or dynamic
  * RTOS memory pools are not being used).
  */
-class Semaphore final : private NonCopyable {
+class Semaphore final {
 public:
   /** Create and Initialize a Semaphore object used for managing resources.
     @param count number of available resources; maximum index value is (count-1).
@@ -57,6 +56,15 @@ public:
    * @note You cannot call this function from ISR context.
    */
   ~Semaphore();
+
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  Semaphore(const Semaphore&)            = delete;
+  Semaphore(Semaphore&&)                 = delete;
+  Semaphore& operator=(const Semaphore&) = delete;
+  Semaphore& operator=(Semaphore&&)      = delete;
 
   /** Wait until a Semaphore resource becomes available.
     @note You cannot call this function from ISR context.
@@ -79,7 +87,7 @@ public:
 
     @note You may call this function from ISR context.
   */
-  [[nodiscard]] ZephyrResult release(void);
+  [[nodiscard]] ZephyrResult release();
 
 #if CONFIG_USERSPACE
   /**

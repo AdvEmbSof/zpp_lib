@@ -30,6 +30,7 @@
 // zpp_lib
 #include "zpp_include/clock.hpp"
 #include "zpp_include/non_copyable.hpp"
+#include "zpp_include/zephyr_result.hpp"
 
 namespace zpp_lib {
 
@@ -40,19 +41,19 @@ public:
   [[nodiscard]] ZephyrResult attach(const F& f, const std::chrono::milliseconds& period) {
     ZephyrResult res;
     // reject the call if already attached
-    if (_isAttached) {
+    if (_is_attached) {
       res.assign_error(ZephyrErrorCode::Already);
       return res;
     }
 
     // initialize our timer
-    k_timer_init(&_timer, &Ticker::_thunk, nullptr);
+    k_timer_init(&_timer, &Ticker::s_thunk, nullptr);
 
     // specify this instance as user data
     // this cast is ugly but the only way to pass a reference to this instance to the
     // timer
     // cppcheck-suppress cstyleCast
-    _timer.user_data = (void*)this;  // NOLINT(readability/casting)
+    _timer.user_data = (void*)this;  // NOLINT(readability/casting,modernize-avoid-c-style-cast)
 
     // store the task
     _task = f;
@@ -62,29 +63,29 @@ public:
     k_timer_start(&_timer, timeout_period, timeout_period);
 
     // set the status
-    _isAttached = true;
+    _is_attached = true;
 
     return res;
   }
 
 private:
-  static void _thunk(struct k_timer* timer_id) {
+  static void s_thunk(struct k_timer* timer_id) {
     // submit the periodic task
     if (timer_id != nullptr) {
       // get instance from user data
       // this cast is ugly but the only way to pass a reference to this instance to the
       // timer
       // cppcheck-suppress cstyleCast
-      Ticker* pTicker = (Ticker*)timer_id->user_data;  // NOLINT(readability/casting)
+      Ticker* p_ticker = (Ticker*)timer_id->user_data;  // NOLINT(readability/casting,modernize-avoid-c-style-cast,modernize-use-auto)
       // will run in ISR context (should be dispatched to a work queue)
-      pTicker->_task();
+      p_ticker->_task();
     }
   }
 
   // data members
-  struct k_timer _timer;
-  bool _isAttached = false;
-  F _task;
+  struct k_timer _timer = {};
+  bool _is_attached     = false;
+  F _task               = nullptr;
 };
 
 }  // namespace zpp_lib

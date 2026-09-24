@@ -51,7 +51,7 @@ extern struct k_mem_partition zpp_lib_partition;
 namespace zpp_lib {
 
 using std::literals::chrono_literals::operator""us;
-ZPP_LIB_DATA std::chrono::microseconds Barrier::_start_time = 0us;
+ZPP_LIB_DATA std::chrono::microseconds Barrier::s_start_time = 0us;
 
 Barrier::Barrier(uint32_t nbr_of_threads) : _wait_semaphore{0, nbr_of_threads}, _count(nbr_of_threads), _total(nbr_of_threads) {}
 
@@ -67,10 +67,10 @@ std::chrono::microseconds Barrier::wait() {
   _count--;
   if (_count == 0) {
     // Last thread to arrive — get start time and release all
-    _start_time = zpp_lib::Time::get_uptime();
+    s_start_time = zpp_lib::Time::get_uptime();
 
 #if CONFIG_TEST
-    zero_time_cb(_start_time);
+    zero_time_cb(s_start_time);
 #endif
 
 #if CONFIG_SEGGER_SYSTEMVIEW
@@ -96,7 +96,7 @@ std::chrono::microseconds Barrier::wait() {
   }
 
   // _start_time is the same value for all threads
-  return _start_time;
+  return s_start_time;
 }
 
 #if CONFIG_USERSPACE

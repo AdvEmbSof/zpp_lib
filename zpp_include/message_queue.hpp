@@ -28,11 +28,14 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/clock.h>
 
+// std
+#include <chrono>
+
 // zpp_lib
 #include "zpp_include/clock.hpp"
 #include "zpp_include/non_copyable.hpp"
-#include "zpp_include/this_thread.hpp"
 #include "zpp_include/zephyr_result.hpp"
+#include "zpp_include/zpp_assert.hpp"
 
 namespace zpp_lib {
 
@@ -54,9 +57,8 @@ public:
     _p_msgq = &ZPP_MESSAGE_QUEUE_ARRAY[gMsgqInstanceCount];
     gMsgqInstanceCount++;
 #else   // CONFIG_USERSPACE
-  MessageQueue() {
+  MessageQueue() : _p_msgq(&_msgq) {
     k_msgq_init(&_msgq, _msgq_buffer, sizeof(T), QueueSize);
-    _p_msgq = &_msgq;
 #endif  // // CONFIG_USERSPACE
   }
 
@@ -69,7 +71,7 @@ public:
       res.assign_value(false);
     } else if (ret != 0) {
       // other failure -> return false with error
-      __ASSERT(false, "Cannot put message: %d (timeout is %lld msecs)", ret, timeout.count());
+      ZPP_ASSERT(false, "Cannot put message: %d (timeout is %lld msecs)", ret, timeout.count());
       res.assign_value(false);
       res.assign_error(zephyr_to_zpp_error_code(ret));
     }
@@ -85,7 +87,7 @@ public:
       res.assign_value(false);
     } else if (ret != 0) {
       // other failure -> return false with error
-      __ASSERT(false, "Cannot get message: %d (timeout is %lld msecs)", ret, timeout.count());
+      ZPP_ASSERT(false, "Cannot get message: %d (timeout is %lld msecs)", ret, timeout.count());
       res.assign_value(false);
       res.assign_error(zephyr_to_zpp_error_code(ret));
     }
@@ -105,8 +107,11 @@ public:
 private:
 #if CONFIG_USERSPACE
 #else   // CONFIG_USERSPACE
-  struct k_msgq _msgq;
-  char _msgq_buffer[sizeof(T) * QueueSize];
+  struct k_msgq _msgq = {};
+  // We need to provide a buffer for the message queue.
+  // Allocation is done statically to avoid dynamic allocation in user space, which is acceptable.
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,-warnings-as-errors) --- zephyr requires
+  char _msgq_buffer[sizeof(T) * QueueSize] = {};
 #endif  // CONFIG_USERSPACE
   struct k_msgq* _p_msgq = nullptr;
 };  // NOLINT(readability/braces)

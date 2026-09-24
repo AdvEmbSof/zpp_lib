@@ -30,7 +30,6 @@
 
 // zpp_lib
 #include "zpp_include/mutex.hpp"
-#include "zpp_include/non_copyable.hpp"
 #include "zpp_include/semaphore.hpp"
 #include "zpp_include/time.hpp"
 
@@ -40,11 +39,20 @@
 
 namespace zpp_lib {
 
-class Barrier : NonCopyable {
+class Barrier {
 public:
   // constructor and destructor
   explicit Barrier(uint32_t nbr_of_threads);
   ~Barrier() = default;
+
+  /** Explicity prevent (move) copy and assignment
+      rather than inheriting from NonCopyable. This avoids
+      cppcoreguidelines-special-member-functions warning by clang-tidy.
+  */
+  Barrier(const Barrier&)            = delete;
+  Barrier(Barrier&&)                 = delete;
+  Barrier& operator=(const Barrier&) = delete;
+  Barrier& operator=(Barrier&&)      = delete;
 
   /** Wait for all thread to reach the barrier, last thread gets the time and
    *  all threads get the same synchronized time
@@ -70,7 +78,7 @@ private:
   // total thread count
   uint32_t _total;
   // shared start time (same for all threads)
-  static std::chrono::microseconds _start_time;
+  static std::chrono::microseconds s_start_time;
 };
 
 }  // namespace zpp_lib

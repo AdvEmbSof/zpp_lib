@@ -24,6 +24,9 @@
 
 #pragma once
 
+// std
+#include <cstdint>
+
 namespace zpp_lib {
 
 // we expect CONFIG_NUM_PREEMPT_PRIORITIES to be at least 10
@@ -32,7 +35,7 @@ namespace zpp_lib {
 #endif
 
 // Preemptable thread priority values
-enum class PreemptableThreadPriority : int8_t {
+enum class PreemptableThreadPriority : std::int8_t {
   PriorityIdle        = CONFIG_NUM_PREEMPT_PRIORITIES - 1,  ///< Reserved for Idle thread
   PriorityMinimal     = CONFIG_NUM_PREEMPT_PRIORITIES - 2,
   PriorityVeryLow     = CONFIG_NUM_PREEMPT_PRIORITIES - 3,
