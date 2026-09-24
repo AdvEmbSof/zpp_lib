@@ -26,22 +26,27 @@
 
 #pragma once
 
-// NOLINTBEGIN(cppcoreguidelines-pro-type-vararg,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 #include <zephyr/logging/log.h>
 
-#define ZPP_LOG_MODULE_REGISTER(name, level) LOG_MODULE_REGISTER(name, level)  // NOLINT
-#define ZPP_LOG_MODULE_DECLARE(name, level) LOG_MODULE_DECLARE(name, level)    // NOLINT
-
 #ifdef ZPP_CLANG_TIDY
-#define ZPP_LOG_INF(...)
-#define ZPP_LOG_DBG(...)
-#define ZPP_LOG_WRN(...)
-#define ZPP_LOG_ERR(...)
-#else                                          // !defined(ZPP_CLANG_TIDY)
-#define ZPP_LOG_INF(...) LOG_INF(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_DBG(...) LOG_DBG(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_WRN(...) LOG_WRN(__VA_ARGS__)  // NOLINT
-#define ZPP_LOG_ERR(...) LOG_ERR(__VA_ARGS__)  // NOLINT
-// NOLINTNEXTLINE(readability/nolint) -- false positive
-// NOLINTEND(cppcoreguidelines-pro-type-vararg,cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-#endif                                         // ZPP_CLANG_TIDY
+#define ZPP_LOG_MODULE_REGISTER(name, level)
+#define ZPP_LOG_MODULE_DECLARE(name, level)
+
+// NOLINTBEGIN(readability-identifier-naming,readability-named-parameter)
+template <typename... Args> constexpr void ZPP_LOG_INF(Args&&...) {}
+
+template <typename... Args> constexpr void ZPP_LOG_DBG(Args&&...) {}
+
+template <typename... Args> constexpr void ZPP_LOG_WRN(Args&&...) {}
+
+template <typename... Args> constexpr void ZPP_LOG_ERR(Args&&...) {}
+// NOLINTEND(readability-identifier-naming,readability-named-parameter)
+#else  // !defined(ZPP_CLANG_TIDY)
+#define ZPP_LOG_MODULE_REGISTER(name, level) LOG_MODULE_REGISTER(name, level)
+#define ZPP_LOG_MODULE_DECLARE(name, level) LOG_MODULE_DECLARE(name, level)
+
+#define ZPP_LOG_INF(...) LOG_INF(__VA_ARGS__)
+#define ZPP_LOG_DBG(...) LOG_DBG(__VA_ARGS__)
+#define ZPP_LOG_WRN(...) LOG_WRN(__VA_ARGS__)
+#define ZPP_LOG_ERR(...) LOG_ERR(__VA_ARGS__)
+#endif  // ZPP_CLANG_TIDY

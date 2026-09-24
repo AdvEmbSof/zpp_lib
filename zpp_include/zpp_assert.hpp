@@ -26,23 +26,20 @@
 
 #pragma once
 
-// NOLINTBEGIN(cppcoreguidelines-avoid-do-while)
 #include <zephyr/sys/__assert.h>
 #if CONFIG_TEST
 #include <zephyr/ztest.h>
 #endif  // CONFIG_TEST
 
 #if ZPP_CLANG_TIDY
-#define ZPP_ASSERT(...)
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
-// NOLINTNEXTLINE(readability/nolint)
-// NOLINTEND(cppcoreguidelines-avoid-do-while)
-#else                                                    // !defined(ZPP_CLANG_TIDY)
-#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)            // NOLINT
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
-// NOLINTNEXTLINE(readability/nolint)
-// NOLINTEND(cppcoreguidelines-avoid-do-while)
-#endif                                                   // ZPP_CLANG_TIDY
+// NOLINTBEGIN(readability-identifier-naming,readability-named-parameter,cppcoreguidelines-macro-usage)
+template <typename... Args> constexpr void ZPP_ASSERT(Args&&...) {}
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)
+// NOLINTEND(readability-identifier-naming,readability-named-parameter,cppcoreguidelines-macro-usage)
+#else  // !defined(ZPP_CLANG_TIDY)
+#define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)
+#endif  // ZPP_CLANG_TIDY
 
 #if CONFIG_TEST
 #define zpp_zassert_true(...) zassert_true(__VA_ARGS__)      // NOLINT

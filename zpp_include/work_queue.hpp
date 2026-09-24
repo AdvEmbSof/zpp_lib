@@ -60,7 +60,7 @@ public:
     // start the _isrWorkQueueThread thread
     auto res = _thread.start([this]() { this->run(); });
     if (!res) {
-      ZPP_ASSERT(false, "Could not start WorkQueue thread: %d", (int)res.error());
+      ZPP_ASSERT(false, "Could not start WorkQueue thread: %d", static_cast<int>(res.error()));
     }
 
     // wait for the thread to be started
