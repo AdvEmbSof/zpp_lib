@@ -5,9 +5,10 @@ import os
 import subprocess
 import sys
 import argparse
+import shutil
+import re
 
 SCRIPT_DIR = Path(__file__).resolve().parent
-
 
 def run(cmd):
     print("+", " ".join(cmd))
@@ -16,6 +17,14 @@ def run(cmd):
         cmd.insert(0, sys.executable)
 
     subprocess.run(cmd, check=True)
+
+def find_llvm_tool(name):
+    executable = shutil.which(name)
+
+    if executable is None:
+        raise RuntimeError(f"{name} not found in PATH")
+
+    return Path(executable)
 
 def build_database(
     app: str,
@@ -54,26 +63,50 @@ def filter_database(header_root: str):
         str(header_root),
     ])
 
+def run_clang_tidy(source_filter: str):
+    clang_tidy = shutil.which("clang-tidy")
 
-def run_clang_tidy_patterns(workdir: str, app: str, include_zpp_lib: bool = False):
+    if clang_tidy is None:
+        raise RuntimeError("clang-tidy not found in PATH")
+
+    executable = Path(clang_tidy).parent / "run-clang-tidy"
+    
+    cmd = [
+        "-p",
+        "build_clang",
+        "-source-filter",
+        source_filter,
+        "-warnings-as-errors=*",
+        "-quiet",
+    ]
+
+    if sys.platform == "win32":
+        run([sys.executable, str(executable), *cmd])
+    else:
+        run([str(executable), *cmd])
+
+
+def sep_re(path):
+    return r"[/\\]+".join(re.escape(p) for p in re.split(r"[/\\]", path))
+
+
+def run_clang_tidy_patterns(
+    workdir: str,
+    app: str,
+    include_zpp_lib: bool = False,
+):
     patterns = [
-        rf"{workdir}/{app}/src/.*\.cpp$",
-        rf"{workdir}/build_clang/header_tus/.*\.cpp$",
+        rf".*[/\\]+{sep_re(app)}[/\\]+src[/\\]+.*\.cpp$",
+        r".*[/\\]+build_clang[/\\]+header_tus[/\\]+.*\.cpp$",
     ]
 
     if include_zpp_lib:
-        patterns.append(rf"zpp_lib/.*\.cpp$")
+        patterns.append(r".*[/\\]zpp_lib[/\\].*\.cpp$")
 
+    source_filter = "|".join(f"(?:{p})" for p in patterns)
+    
     for pattern in patterns:
-        run([
-            "run-clang-tidy",
-            "-p",
-            "build_clang",
-            pattern,
-            "--warning-as-error *",
-            "-quiet",
-        ])
-
+        run_clang_tidy(source_filter)
 
 def run_clang_tidy_files(files):
     for f in files:
