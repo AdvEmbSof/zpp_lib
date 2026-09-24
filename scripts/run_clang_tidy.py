@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+import os
 import subprocess
 import sys
 import argparse
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
+
 def run(cmd):
     print("+", " ".join(cmd))
+
+    if os.name == "nt" and cmd[0].endswith("run-clang-tidy"):
+        cmd.insert(0, sys.executable)
+
     subprocess.run(cmd, check=True)
 
 def build_database(
@@ -60,7 +66,7 @@ def run_clang_tidy_patterns(workdir: str, app: str, include_zpp_lib: bool = Fals
 
     for pattern in patterns:
         run([
-            "run-clang-tidy-22",
+            "run-clang-tidy",
             "-p",
             "build_clang",
             pattern,
@@ -75,7 +81,7 @@ def run_clang_tidy_files(files):
             continue
 
         run([
-            "clang-tidy-22",
+            "clang-tidy",
             "-p",
             "build_clang",
             f,
