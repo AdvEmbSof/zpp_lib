@@ -34,7 +34,7 @@
 #if ZPP_CLANG_TIDY
 // NOLINTBEGIN(readability-identifier-naming,readability-named-parameter,cppcoreguidelines-macro-usage)
 template <typename... Args> constexpr void ZPP_ASSERT(Args&&...) {}
-#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)
+#define ZPP_ASSERT_EVAL(...) __ASSERT_EVAL(__VA_ARGS__)  // NOLINT
 // NOLINTEND(readability-identifier-naming,readability-named-parameter,cppcoreguidelines-macro-usage)
 #else  // !defined(ZPP_CLANG_TIDY)
 #define ZPP_ASSERT(...) __ASSERT(__VA_ARGS__)

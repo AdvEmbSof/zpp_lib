@@ -129,11 +129,15 @@ ZephyrResult Thread::start(std::function<void()> task) noexcept {
   uint32_t options = 0;
 #endif  // CONFIG_USERSPACE
   int zephyr_priority = preemptable_thread_priority_to_zephyr_prio(_priority);
+  // s_thread_instance_count is used to index the thread stack array and the thread data array
+  // It is checked to be smaller than the pool size
+  // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index,clang-analyzer-security.ArrayBound)
   ZPP_LOG_DBG("Creating thread with stack at %p of size %d, priority %d and name %s",
               zpp_threads_stacks[s_thread_instance_count],
               K_THREAD_STACK_SIZEOF(zpp_threads_stacks[s_thread_instance_count]),
               zephyr_priority,
               _name.c_str());
+  // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index,clang-analyzer-security.ArrayBound)
   // k_thread_create returns k_tid_t that is in fact typedef struct k_thread *k_tid_t;
   // so the return value of k_thread_create is in fact _thread_data initialized
 #if CONFIG_USERSPACE
