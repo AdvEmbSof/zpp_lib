@@ -30,7 +30,10 @@ for app in yaml_data["applications"]:
         continue
 
     configs_dir = app.get("configs_dir", None)
-    print(f"Building app '{app['app']}' with configs-dir='{configs_dir}'")
+    app_config = app.get("app_config", None)
+    print("##########################")
+    print(f"Building app '{app['app']}' with configs-dir='{configs_dir}', app-config='{app_config}'")
+    print("##########################")
     for board in app["boards"]:
         board_name = board["board"]
         if args.board and board["board"] != args.board:
@@ -57,7 +60,10 @@ for app in yaml_data["applications"]:
 
             if shield:
                 cmd.extend(["--shield", shield])
-            
+
+            if app_config:
+                cmd.extend(["--app-config", app_config])
+
             print(" ".join(cmd))
             subprocess.run(cmd, check=True)
 
