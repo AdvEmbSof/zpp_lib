@@ -105,8 +105,7 @@ def run_clang_tidy_patterns(
 
     source_filter = "|".join(f"(?:{p})" for p in patterns)
     
-    for pattern in patterns:
-        run_clang_tidy(source_filter)
+    run_clang_tidy(source_filter)
 
 def run_clang_tidy_files(files):
     for f in files:
