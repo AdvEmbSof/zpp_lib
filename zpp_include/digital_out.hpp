@@ -65,10 +65,9 @@ public:
    */
   explicit DigitalOut(PinName pin_name, bool value);
 
-  /** Set the output, specified as 0 or 1 (int)
+  /** Set the output, specified as true or false (bool)
    *
-   *  @param value An integer specifying the pin output value,
-   *      0 for logical 0, 1 (or any other non-zero value) for logical 1
+   *  @param value A boolean specifying the pin output value,
    */
   ZephyrResult write(bool value);
 
@@ -83,8 +82,8 @@ public:
   /** A shorthand for write()
    * \sa DigitalOut::write()
    * @code
-   *      DigitalIn  button(BUTTON1);
-   *      DigitalOut led(LED1);
+   *      DigitalIn  button(...);
+   *      DigitalOut led(...);
    *      led = button;   // Equivalent to led.write(button.read())
    * @endcode
    */
@@ -97,8 +96,8 @@ public:
   /** A shorthand for read()
    * \sa DigitalOut::read()
    * @code
-   *      DigitalIn  button(BUTTON1);
-   *      DigitalOut led(LED1);
+   *      DigitalIn  button(...);
+   *      DigitalOut led(...);
    *      led = button;   // Equivalent to led.write(button.read())
    * @endcode
    */

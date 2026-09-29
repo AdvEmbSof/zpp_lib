@@ -114,7 +114,10 @@ public:
 
   /** An operator shorthand for read()
    */
-  operator bool();
+  operator bool() {
+    // Underlying call is thread safe
+    return read();
+  }
 
   /** Register a function to call when a falling edge occurs on the input
    *  Interrupts are enabled for the pin
