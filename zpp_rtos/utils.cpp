@@ -74,23 +74,24 @@ static void log_thread_stack_info(const struct k_thread* thread, void* idx) {
 
   const char* name    = k_thread_name_get(thread_id);
   uint32_t* threadIdx = static_cast<uint32_t*>(idx);
-  ZPP_LOG_INF("%2d | %10p | %-15s | 0x%08x | %4u / %-4u",
+  ZPP_LOG_INF("%2d | %10p | %-15s | 0x%08x    | 0x%08x  | %4u / %-4u",
               (*threadIdx)++,
               thread_id,
               name ? name : "Unnamed",
               start_address,
+              start_address + stack_size,
               used_stack_size,
               stack_size);
 }
 
 void Utils::log_threads_stack_info() {
-  ZPP_LOG_INF("=== Threads Summary ===");
-  ZPP_LOG_INF(" # |  Thread ID | Name           | Start address |Stack (used/total)");
-  ZPP_LOG_INF("---+------------+----------------+---------------+------------------");
+  ZPP_LOG_INF("=== Threads Stack Info ===");
+  ZPP_LOG_INF(" # |  Thread ID | Name            | Start address | End address | Stack (used/total)");
+  ZPP_LOG_INF("---+------------+-----------------+---------------+-------------+-------------------");
 
   int idx = 0;
   k_thread_foreach(log_thread_stack_info, &idx);
-  ZPP_LOG_INF("---+------------+----------------+---------------+------------------\n");
+  ZPP_LOG_INF("---+------------+-----------------+---------------+-------------+-----------------\n");
 }
 #endif
 
@@ -166,7 +167,7 @@ void Utils::log_threads_summary() {
   int idx = 0;
   k_thread_foreach(log_thread_statistics, &idx);
 
-  ZPP_LOG_INF("---+----------------+------------+-----------+------+-------------------\n");
+  ZPP_LOG_INF("---+----------------+--------------+-----------+------+-------------------\n");
 #else   // CONFIG_THREAD_ANALYZER
   ZPP_LOG_WRN("Thread statistics not available (enable CONFIG_THREAD_ANALYZER)");
 #endif  // CONFIG_THREAD_ANALYZER
