@@ -32,9 +32,11 @@ jobs:
 
       - name: Setup Zephyr
         uses: AdvEmbSof/setup-zephyr-action@v2
+        timeout-minutes: 5
         with:
-          sdk_version: '1.0.1'
-          path_west_workspace: ${{ github.workspace }}/../
+          sdk_version: ${{ github.event.inputs.sdk_version || '1.0.1' }}
+          path_west_workspace: ${{ github.workspace }}
+          path_west_manifest: ${{ github.workspace }}/manifest-repo/
 
       - name: Run twister for zpp_lib on qemu_x86      
         shell: bash
