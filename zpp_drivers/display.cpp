@@ -77,6 +77,13 @@ inline const uint8_t* font_get_glyph(const Display::Font* p_font, uint32_t unico
   return nullptr;
 }
 
+Display::~Display() {
+  if (_line_buffer != nullptr) {
+    k_heap_free(&buf_heap, _line_buffer);
+    _line_buffer = nullptr;
+  }
+}
+
 ZephyrResult Display::initialize() {
   ZephyrResult res;
   _display_device = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));

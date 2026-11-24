@@ -50,6 +50,7 @@ namespace zpp_lib {
 class Display final : private NonCopyable {
 public:
   Display() = default;
+  ~Display();
   [[nodiscard]] ZephyrResult initialize();
   [[nodiscard]] uint32_t get_width() const;
   [[nodiscard]] uint32_t get_height() const;
